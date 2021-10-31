@@ -1,0 +1,3 @@
+[submodule "KSP"]
+	path = KSP
+	url = git@github.com:clemenscodes/KSP.git
