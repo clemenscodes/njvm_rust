@@ -1,3 +1,6 @@
 [submodule "KSP"]
 	path = KSP
 	url = git@github.com:clemenscodes/KSP.git
+[submodule "cardano"]
+	path = cardano
+	url = git@github.com:crc-cardano-stakepool/cardano.git
