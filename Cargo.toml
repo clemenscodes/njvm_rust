@@ -12,4 +12,3 @@ description = "Virtual Machine for Ninja"
 
 [dependencies]
 lib = { path = "lib" }
-structopt = { version = "0.3", default-features = false }
