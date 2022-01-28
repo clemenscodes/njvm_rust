@@ -1,12 +1,11 @@
-use std::env;
-use std::process::exit;
-
+#[macro_export]
 macro_rules! immediate {
     ($e:expr) => {
         ($e) & 0x00FFFFFF
     };
 }
 
+#[macro_export]
 macro_rules! sign_extend {
     ($e:expr) => {
         if ((($e) & 0x00800000) == 1) {
@@ -51,13 +50,17 @@ impl Opcode {
         }
         opcode
     }
+    pub fn print(&self) {
+        println!("{self:#?}")
+    }
 }
 
 #[derive(Debug)]
 pub struct Instruction {
-    opcode: Opcode,
-    immediate: u32,
+    pub opcode: Opcode,
+    pub immediate: u32,
 }
+
 
 impl Instruction {
     pub fn new(opcode: Opcode, immediate: u32) -> Self {
@@ -72,42 +75,8 @@ impl Instruction {
             sign_extend!(immediate!(bytecode)),
         )
     }
-}
-
-pub fn print_help() {
-    println!("usage: ./njvm [option] [option] ...");
-    println!("  --version        show version and exit");
-    println!("  --help           show this help and exit");
-    exit(0);
-}
-
-pub fn print_version() {
-    println!("Ninja Virtual Machine version 0 (compiled Sep 23 2015, 10:36:52)");
-    exit(0);
-}
-
-pub fn print_err(arg: &str) {
-    println!("unknown command line argument '{arg}', try './njvm --help'");
-    exit(0);
-}
-
-pub fn start_cli() {
-    if env::args().count() < 2 {
-        println!("Ninja Virtual Machine started");
-        println!("Ninja Virtual Machine stopped");
-        let result: u32 = immediate!(2);
-        let extend: u32 = sign_extend!(immediate!(2));
-        println!("{result}");
-        println!("{extend}");
-    }
-    let args = env::args().skip(1);
-    for arg in args {
-        if arg == "--help" {
-            print_help()
-        }
-        if arg == "--version" {
-            print_version()
-        }
-        print_err(&arg)
+    pub fn print(&self) {
+        println!("{self:#?}")
     }
 }
+

@@ -1,7 +1,6 @@
-extern crate lib;
-pub mod cli;
-pub use cli::*;
+pub mod njvm;
+pub use njvm::*;
 
 fn main() {
-    start_cli();
+    start_njvm();
 }
