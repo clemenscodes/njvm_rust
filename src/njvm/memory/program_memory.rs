@@ -1,8 +1,9 @@
-use crate::{Instruction, MAXITEMS, Opcode};
+use crate::{Instruction, Opcode, MAXITEMS};
 
+#[derive(Debug)]
 pub struct ProgramMemory {
-    pc: u32,
-    memory: [u32; MAXITEMS as usize],
+    pub pc: u32,
+    pub memory: [u32; MAXITEMS as usize],
 }
 
 impl ProgramMemory {
@@ -18,50 +19,55 @@ impl ProgramMemory {
             match instruction.opcode {
                 Opcode::Halt => {
                     println!("{i:03}\thalt");
-                    break
-                },
+                    break;
+                }
                 Opcode::Pushc => {
-                    println!("{i:03}\tpushc\t{}",instruction.immediate);
-                    break
-                },
+                    println!("{i:03}\tpushc\t{}", instruction.immediate);
+                    break;
+                }
                 Opcode::Add => {
                     println!("{i:03}\tadd");
-                    break
-                },
+                    break;
+                }
                 Opcode::Sub => {
                     println!("{i:03}\tsub");
-                    break
-                },
+                    break;
+                }
                 Opcode::Mul => {
                     println!("{i:03}\tmul");
-                    break
-                },
+                    break;
+                }
                 Opcode::Div => {
                     println!("{i:03}\tdiv");
-                    break
-                },
+                    break;
+                }
                 Opcode::Mod => {
                     println!("{i:03}\tmod");
-                    break
-                },
+                    break;
+                }
                 Opcode::Rdint => {
                     println!("{i:03}\trdint");
-                    break
-                },
+                    break;
+                }
                 Opcode::Wrint => {
                     println!("{i:03}\twrint");
-                    break
-                },
+                    break;
+                }
                 Opcode::Rdchr => {
                     println!("{i:03}\trdchr");
-                    break
-                },
+                    break;
+                }
                 Opcode::Wrchr => {
                     println!("{i:03}\twrint");
-                    break
+                    break;
                 }
             }
-            
         }
+    }
+    pub fn register_instruction(&mut self, opcode: &Opcode, immediate: u32) {
+        let instruction: u32 = Instruction::encode_instruction(opcode, immediate);
+        self.memory[self.pc as usize] = instruction;
+        self.pc = self.pc + 1;
+        self.print()
     }
 }

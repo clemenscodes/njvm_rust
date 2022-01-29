@@ -50,9 +50,6 @@ impl Opcode {
         }
         opcode
     }
-    pub fn print(&self) {
-        println!("{self:#?}")
-    }
 }
 
 #[derive(Debug)]
@@ -70,10 +67,12 @@ impl Instruction {
         *opcode as u32 | immediate!(immediate)
     }
     pub fn decode_instruction(bytecode: u32) -> Self {
-        Instruction::new(
+        let instruction = Instruction::new(
             Opcode::match_opcode((bytecode >> 24) as u8),
             sign_extend!(immediate!(bytecode)),
-        )
+        );
+        instruction.print();
+        instruction
     }
     pub fn print(&self) {
         println!("{self:#?}")

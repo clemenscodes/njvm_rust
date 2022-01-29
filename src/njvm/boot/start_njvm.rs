@@ -1,13 +1,8 @@
 use std::env;
 use std::process::exit;
-// use crate::Stack;
+use crate::{Worker, Opcode};
 
 pub fn start_njvm() {
-    if env::args().count() < 2 {
-        println!("Ninja Virtual Machine started");
-        // let mut stack: Stack = Stack::new();
-        println!("Ninja Virtual Machine stopped");
-    }
     let args = env::args().skip(1);
     for arg in args {
         if arg == "--help" {
@@ -24,16 +19,28 @@ pub fn start_njvm() {
             exit(0);
         }
         if arg == "--prog1" {
-            println!("prog1 selected");
-            exit(0);
+            let (mut stack, mut program_memory) = Worker::init();
+            program_memory.register_instruction(&Opcode::Pushc, 3);
+            program_memory.register_instruction(&Opcode::Pushc, 4);
+            program_memory.register_instruction(&Opcode::Add, 0);
+            program_memory.register_instruction(&Opcode::Pushc, 10);
+            program_memory.register_instruction(&Opcode::Pushc, 6);
+            program_memory.register_instruction(&Opcode::Sub, 0);
+            program_memory.register_instruction(&Opcode::Mul, 0);
+            program_memory.register_instruction(&Opcode::Wrint, 0);
+            program_memory.register_instruction(&Opcode::Pushc, 10);
+            program_memory.register_instruction(&Opcode::Wrchr, 0);
+            program_memory.register_instruction(&Opcode::Halt, 0);
+            program_memory.print();
+            Worker::work(&mut program_memory, &mut stack);
         }
         if arg == "--prog2" {
-            println!("prog2 selected");
-            exit(0);
+            let (mut stack, mut program_memory) = Worker::init();
+            Worker::work(&mut program_memory, &mut stack);
         }
         if arg == "--prog3" {
-            println!("prog3 selected");
-            exit(0);
+            let (mut stack, mut program_memory) = Worker::init();
+            Worker::work(&mut program_memory, &mut stack);
         }
         println!("unknown command line argument '{arg}', try './njvm --help'");
         exit(1);
