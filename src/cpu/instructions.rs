@@ -99,13 +99,45 @@ impl Instruction {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Bytecode, Instruction, Opcode};
+    // use super::*;
+    #[ignore]
     #[test]
-    fn test_display_binary() {
-        testing()
+    fn test_immediate_macro() {
+        unimplemented!()
     }
-    fn testing() {
-        let instruction: Bytecode = Instruction::encode_instruction(Opcode::Pushc, 123424);
-        Instruction::decode_immediate(instruction);
+    #[ignore]
+    #[test]
+    fn test_sign_extend_macro() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_encode_instruction() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_decode_instruction() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_encode_opcode() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_decode_opcode() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_encode_immediate() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_decode_immediate() {
+        unimplemented!()
     }
 }

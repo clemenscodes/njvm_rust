@@ -149,3 +149,78 @@ fn main() {
         exit(1);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // use super::*;
+    #[ignore]
+    #[test]
+    fn test_ninja_vm() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_work() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_execute() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_halt() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_pushc() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_add() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_sub() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_mul() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_div() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_modulo() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_rdint() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_wrint() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_rdchr() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_wrchr() {
+        unimplemented!()
+    }
+}

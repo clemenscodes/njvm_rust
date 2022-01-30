@@ -77,3 +77,38 @@ impl ProgramMemory {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // use super::*;
+    #[ignore]
+    #[test]
+    fn test_program_memory() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_register_instruction() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_prog1() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_prog2() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_prog3() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_print_program_memory() {
+        unimplemented!()
+    }
+}
