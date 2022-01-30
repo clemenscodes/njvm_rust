@@ -1,6 +1,5 @@
 use crate::{Immediate, MAXITEMS};
 
-
 #[derive(Debug)]
 pub struct Stack {
     sp: u32,

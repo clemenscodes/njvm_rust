@@ -1,2 +1,2 @@
 pub mod instructions;
-pub use instructions::{Instruction, Opcode, Bytecode, Immediate};
+pub use instructions::{Bytecode, Immediate, Instruction, Opcode};
