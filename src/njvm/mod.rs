@@ -1,5 +1,5 @@
 pub mod njvm;
-pub use njvm::NinjaVM;
+pub use njvm::{NinjaVM, MAXITEMS};
 pub mod cpu;
 pub use cpu::*;
 pub mod memory;

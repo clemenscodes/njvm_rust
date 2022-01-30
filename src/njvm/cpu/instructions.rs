@@ -1,3 +1,6 @@
+pub type Bytecode = u32;
+pub type Immediate = i32;
+
 #[macro_export]
 macro_rules! immediate {
     ($e:expr) => {
@@ -18,9 +21,6 @@ macro_rules! sign_extend {
         }
     };
 }
-
-pub type Bytecode = u32;
-pub type Immediate = i32;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Opcode {
@@ -47,7 +47,7 @@ impl Instruction {
     pub fn new(opcode: Opcode, immediate: Immediate) -> Self {
         Self { opcode, immediate }
     }
-    pub fn encode_instruction(opcode: Opcode, immediate: i32) -> Bytecode {
+    pub fn encode_instruction(opcode: Opcode, immediate: Immediate) -> Bytecode {
         Instruction::encode_opcode(opcode) | Instruction::encode_immediate(immediate)
     }
     pub fn decode_instruction(instruction: Bytecode) -> Self {
@@ -56,7 +56,7 @@ impl Instruction {
             Instruction::decode_immediate(instruction),
         )
     }
-    pub fn encode_opcode(opcode: Opcode) -> u32 {
+    pub fn encode_opcode(opcode: Opcode) -> Bytecode {
         let encoded_opcode = (opcode as u32) << 24;
         encoded_opcode
     }
@@ -77,7 +77,7 @@ impl Instruction {
             _ => panic!("Unknown opcode"),
         }
     }
-    pub fn encode_immediate(immediate: i32) -> u32 {
+    pub fn encode_immediate(immediate: i32) -> Bytecode {
         const MIN: i32 = -8388608;
         const MAX: i32 = 8388607;
         match immediate {

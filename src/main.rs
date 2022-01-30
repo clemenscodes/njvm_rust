@@ -5,6 +5,7 @@ use std::env;
 use std::process::exit;
 
 fn main() {
+    let mut vm = NinjaVM::new();
     let args = env::args().skip(1);
     for arg in args {
         if arg == "--help" {
@@ -21,16 +22,19 @@ fn main() {
             exit(0);
         }
         if arg == "--prog1" {
-            let mut vm = NinjaVM::init();
-            ProgramMemory::prog1(&mut vm);
+            NinjaVM::init();
+            vm.program_memory.load_prog1();
+            vm.work()
         }
         if arg == "--prog2" {
-            let mut vm = NinjaVM::init();
-            ProgramMemory::prog2(&mut vm);
+            NinjaVM::init();
+            vm.program_memory.load_prog2();
+            vm.work()
         }
         if arg == "--prog3" {
-            let mut vm = NinjaVM::init();
-            ProgramMemory::prog3(&mut vm);
+            NinjaVM::init();
+            vm.program_memory.load_prog3();
+            vm.work()
         }
         println!("unknown command line argument '{arg}', try './njvm --help'");
         exit(1);

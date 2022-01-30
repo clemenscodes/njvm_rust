@@ -1,10 +1,11 @@
-use crate::{Bytecode, Immediate, Instruction, Opcode, NinjaVM, MAXITEMS};
+use crate::{Bytecode, Immediate, Instruction, Opcode, MAXITEMS};
 
 #[derive(Debug)]
 pub struct ProgramMemory {
     pub pc: u32,
     pub memory: [Bytecode; MAXITEMS as usize],
 }
+
 impl ProgramMemory {
     pub fn new() -> Self {
         ProgramMemory {
@@ -16,6 +17,40 @@ impl ProgramMemory {
         let instruction: Bytecode = Instruction::encode_instruction(opcode, immediate);
         self.memory[self.pc as usize] = instruction;
         self.pc = self.pc + 1;
+    }
+    pub fn load_prog1(&mut self) {
+        self.register_instruction(Opcode::Pushc, 3);
+        self.register_instruction(Opcode::Pushc, 4);
+        self.register_instruction(Opcode::Add, 0);
+        self.register_instruction(Opcode::Pushc, 10);
+        self.register_instruction(Opcode::Pushc, 6);
+        self.register_instruction(Opcode::Sub, 0);
+        self.register_instruction(Opcode::Mul, 0);
+        self.register_instruction(Opcode::Wrint, 0);
+        self.register_instruction(Opcode::Pushc, 10);
+        self.register_instruction(Opcode::Wrchr, 0);
+        self.register_instruction(Opcode::Halt, 0);
+        self.print();
+    }
+    pub fn load_prog2(&mut self) {
+        self.register_instruction(Opcode::Pushc, -2);
+        self.register_instruction(Opcode::Rdint, 0);
+        self.register_instruction(Opcode::Mul, 0);
+        self.register_instruction(Opcode::Pushc, 3);
+        self.register_instruction(Opcode::Add, 0);
+        self.register_instruction(Opcode::Wrint, 0);
+        self.register_instruction(Opcode::Pushc, '\n' as i32);
+        self.register_instruction(Opcode::Wrchr, 0);
+        self.register_instruction(Opcode::Halt, 0);
+        self.print();
+    }
+    pub fn load_prog3(&mut self) {
+        self.register_instruction(Opcode::Rdchr, 0);
+        self.register_instruction(Opcode::Wrint, 0);
+        self.register_instruction(Opcode::Pushc, '\n' as i32);
+        self.register_instruction(Opcode::Wrchr, 0);
+        self.register_instruction(Opcode::Halt, 0);
+        self.print();
     }
     pub fn print(&self) {
         for i in 0..=self.pc {
@@ -34,40 +69,5 @@ impl ProgramMemory {
                 Opcode::Wrchr => println!("{i:03}:\twrint"),
             }
         }
-    }
-    pub fn prog1(vm: &mut NinjaVM) {
-        vm.program_memory.register_instruction(Opcode::Pushc, 3);
-        vm.program_memory.register_instruction(Opcode::Pushc, 4);
-        vm.program_memory.register_instruction(Opcode::Add, 0);
-        vm.program_memory.register_instruction(Opcode::Pushc, 10);
-        vm.program_memory.register_instruction(Opcode::Pushc, 6);
-        vm.program_memory.register_instruction(Opcode::Sub, 0);
-        vm.program_memory.register_instruction(Opcode::Mul, 0);
-        vm.program_memory.register_instruction(Opcode::Wrint, 0);
-        vm.program_memory.register_instruction(Opcode::Pushc, 10);
-        vm.program_memory.register_instruction(Opcode::Wrchr, 0);
-        vm.program_memory.register_instruction(Opcode::Halt, 0);
-        vm.program_memory.print();
-        vm.work();
-    }
-    pub fn prog2(vm: &mut NinjaVM) {
-        vm.program_memory.register_instruction(Opcode::Pushc, -2);
-        vm.program_memory.register_instruction(Opcode::Rdint, 0);
-        vm.program_memory.register_instruction(Opcode::Mul, 0);
-        vm.program_memory.register_instruction(Opcode::Pushc, 3);
-        vm.program_memory.register_instruction(Opcode::Add, 0);
-        vm.program_memory.register_instruction(Opcode::Wrint, 0);
-        vm.program_memory.register_instruction(Opcode::Pushc, '\n' as i32);
-        vm.program_memory.register_instruction(Opcode::Wrchr, 0);
-        vm.program_memory.register_instruction(Opcode::Halt, 0);
-        vm.work();
-    }
-    pub fn prog3(vm: &mut NinjaVM) {
-        vm.program_memory.register_instruction(Opcode::Rdchr, 0);
-        vm.program_memory.register_instruction(Opcode::Wrint, 0);
-        vm.program_memory.register_instruction(Opcode::Pushc, '\n' as i32);
-        vm.program_memory.register_instruction(Opcode::Wrchr, 0);
-        vm.program_memory.register_instruction(Opcode::Halt, 0);
-        vm.work();
     }
 }

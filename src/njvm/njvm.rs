@@ -2,6 +2,8 @@ use crate::{Bytecode, Immediate, Instruction, Opcode, ProgramMemory, Stack};
 use std::io::stdin;
 use std::process::exit;
 
+pub const MAXITEMS: u8 = 100;
+
 pub struct NinjaVM {
     pub stack: Stack,
     pub program_memory: ProgramMemory,
@@ -14,11 +16,15 @@ impl NinjaVM {
             program_memory: ProgramMemory::new(),
         }
     }
-    pub fn init() -> Self {
+    pub fn init() {
         println!("Ninja Virtual Machine started");
-        NinjaVM::new()
     }
-    pub fn execute(&mut self, bytecode: Bytecode) {
+    pub fn work(&mut self) {
+        for i in 0..=self.program_memory.pc {
+            self.execute(self.program_memory.memory[i as usize]);
+        }
+    }
+    fn execute(&mut self, bytecode: Bytecode) {
         let instruction = Instruction::decode_instruction(bytecode);
         match instruction.opcode {
             Opcode::Halt => self.halt(),
@@ -32,11 +38,6 @@ impl NinjaVM {
             Opcode::Wrint => self.wrint(),
             Opcode::Rdchr => self.rdchr(),
             Opcode::Wrchr => self.wrchr(),
-        }
-    }
-    pub fn work(&mut self) {
-        for i in 0..=self.program_memory.pc {
-            self.execute(self.program_memory.memory[i as usize]);
         }
     }
     fn halt(&self) {

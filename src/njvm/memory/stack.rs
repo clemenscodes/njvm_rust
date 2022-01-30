@@ -1,6 +1,5 @@
-use crate::Immediate;
+use crate::{Immediate, MAXITEMS};
 
-pub const MAXITEMS: u8 = 100;
 
 #[derive(Debug)]
 pub struct Stack {
