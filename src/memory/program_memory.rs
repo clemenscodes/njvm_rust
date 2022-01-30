@@ -53,7 +53,7 @@ impl ProgramMemory {
         self.print();
     }
     pub fn print(&self) {
-        for i in 0..=self.pc {
+        for i in 0..self.pc {
             let instruction: Instruction = Instruction::decode_instruction(self.memory[i as usize]);
             match instruction.opcode {
                 Opcode::Halt => println!("{i:03}:\thalt"),
