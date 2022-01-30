@@ -35,9 +35,6 @@ impl Instruction {
     }
     pub fn encode_opcode(opcode: Opcode) -> u32 {
         let encoded_opcode = (opcode as u32) << 24;
-        println!("OPCODE: {opcode:#?}");
-        println!("OPCODE VALUE: {}", opcode as u32);
-        println!("ENCODED OPCODE: {encoded_opcode:032b}");
         encoded_opcode
     }
     pub fn encode_immediate(immediate: i32) -> u32 {
@@ -48,7 +45,6 @@ impl Instruction {
                 let immediate = immediate!(immediate);
                 let bytes = immediate.to_be_bytes();
                 let immediate = u32::from_be_bytes(bytes);
-                println!("EDITED IMMEDIATE: {immediate:032b}");
                 immediate
             }
             _ => panic!("Immediate value out of range"),
@@ -58,7 +54,6 @@ impl Instruction {
         let encoded_opcode = Instruction::encode_opcode(opcode);
         let encoded_immediate = Instruction::encode_immediate(immediate);
         let instruction = encoded_opcode | encoded_immediate;
-        println!("INSTRUCTION: {instruction:08x}");
         instruction
     }
     pub fn decode_opcode(instruction: Bytecode) -> Opcode {
@@ -84,10 +79,8 @@ impl Instruction {
             let mut bytes = immediate.to_be_bytes();
             bytes[0] = 0xFF;
             immediate = i32::from_be_bytes(bytes);
-            println!("DECODED IMMEDIATE: {immediate}");
             immediate
         } else {
-            println!("DECODED IMMEDIATE: {immediate}");
             immediate
         }
     }
@@ -96,7 +89,7 @@ impl Instruction {
             Instruction::decode_opcode(instruction),
             Instruction::decode_immediate(instruction),
         );
-        instruction.print();
+        // instruction.print();
         instruction
     }
     pub fn print(&self) {
