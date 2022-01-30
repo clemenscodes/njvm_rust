@@ -5,3 +5,9 @@ edition = "2021"
 license = "MIT"
 authors = ["Clemens Horn <clemens.horn@mni.thm.de>"]
 description = "Virtual Machine for Ninja"
+
+[dev-dependencies]
+assert_cmd = "2.0.4"
+pretty_assertions = "1.0"
+anyhow = "1.0.53"
+predicates = "2.1.1"
