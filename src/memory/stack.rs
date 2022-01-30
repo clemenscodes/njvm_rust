@@ -39,3 +39,23 @@ impl Stack {
         println!("{self:#?}");
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // use super::*;
+    #[ignore]
+    #[test]
+    fn test_stack() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_push() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_pop() {
+        unimplemented!()
+    }
+}
