@@ -3,14 +3,20 @@ pub use cpu::*;
 pub mod memory;
 pub use memory::*;
 use std::env;
-use std::process::exit;
 use std::io::stdin;
+use std::process::exit;
 
 pub const MAXITEMS: u8 = 100;
 
 pub struct NinjaVM {
     pub stack: Stack,
     pub program_memory: ProgramMemory,
+}
+
+impl Default for NinjaVM {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl NinjaVM {

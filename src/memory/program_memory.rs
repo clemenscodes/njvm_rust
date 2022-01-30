@@ -6,6 +6,12 @@ pub struct ProgramMemory {
     pub memory: [Bytecode; MAXITEMS as usize],
 }
 
+impl Default for ProgramMemory {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProgramMemory {
     pub fn new() -> Self {
         ProgramMemory {
@@ -16,7 +22,7 @@ impl ProgramMemory {
     pub fn register_instruction(&mut self, opcode: Opcode, immediate: Immediate) {
         let instruction: Bytecode = Instruction::encode_instruction(opcode, immediate);
         self.memory[self.pc as usize] = instruction;
-        self.pc = self.pc + 1;
+        self.pc += 1;
     }
     pub fn load_prog1(&mut self) {
         self.register_instruction(Opcode::Pushc, 3);
