@@ -64,9 +64,9 @@ impl ProgramMemory {
             }
         }
     }
-    pub fn register_instruction(&mut self, opcode: &Opcode, immediate: u32) {
-        let instruction: u32 = Instruction::encode_instruction(opcode, immediate);
-        self.memory[self.pc as usize] = instruction;
+    pub fn register_instruction(&mut self, opcode: Opcode, immediate: u32) {
+        let encoded_opcode: u32 = Instruction::encode_opcode(opcode);
+        self.memory[self.pc as usize] = encoded_opcode;
         self.pc = self.pc + 1;
         self.print()
     }

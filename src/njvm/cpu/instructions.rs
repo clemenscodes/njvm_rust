@@ -58,17 +58,20 @@ pub struct Instruction {
     pub immediate: u32,
 }
 
-
 impl Instruction {
     pub fn new(opcode: Opcode, immediate: u32) -> Self {
         Self { opcode, immediate }
     }
-    pub fn encode_instruction(opcode: &Opcode, immediate: u32) -> u32 {
-        *opcode as u32 | immediate!(immediate)
+    pub fn encode_opcode(opcode: Opcode) -> u32 {
+        let encoded_opcode = (opcode as u32) << 24;
+        println!("OPCODE: {opcode:#?}");
+        println!("OPCODE VALUE: {}", opcode as u32);
+        println!("ENCODED OPCODE: {encoded_opcode:032b}");
+        encoded_opcode
     }
     pub fn decode_instruction(bytecode: u32) -> Self {
         let instruction = Instruction::new(
-            Opcode::match_opcode((bytecode >> 24) as u8),
+            Opcode::match_opcode((bytecode << 24) as u8),
             sign_extend!(immediate!(bytecode)),
         );
         instruction.print();
@@ -79,3 +82,29 @@ impl Instruction {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::{Instruction, Opcode};
+    fn testing() {
+        Instruction::encode_opcode(Opcode::Pushc);
+        // fn immediate(i: u32) -> u32 {
+        //     i & 0x00FFFFFF
+        // }
+        // fn sign_extend(i: u32) -> u32 {
+        //     println!("{i:032b}");
+        //     let tmp = immediate(i);
+        //     let tmp = tmp & 0x00800000;
+        //     println!("{tmp:032b}");
+        //     tmp
+        // }
+        // sign_extend(2);
+        // let pushc_value = (Opcode::Pushc as u32) << 24;
+        // let instruction = pushc_value | immediate(2);
+        // println!("{pushc_value:032b}");
+        // println!("{instruction:032b}");
+    }
+    #[test]
+    fn test_display_binary() {
+        testing()
+    }
+}

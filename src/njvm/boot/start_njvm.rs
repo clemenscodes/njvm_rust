@@ -20,17 +20,17 @@ pub fn start_njvm() {
         }
         if arg == "--prog1" {
             let (mut stack, mut program_memory) = Worker::init();
-            program_memory.register_instruction(&Opcode::Pushc, 3);
-            program_memory.register_instruction(&Opcode::Pushc, 4);
-            program_memory.register_instruction(&Opcode::Add, 0);
-            program_memory.register_instruction(&Opcode::Pushc, 10);
-            program_memory.register_instruction(&Opcode::Pushc, 6);
-            program_memory.register_instruction(&Opcode::Sub, 0);
-            program_memory.register_instruction(&Opcode::Mul, 0);
-            program_memory.register_instruction(&Opcode::Wrint, 0);
-            program_memory.register_instruction(&Opcode::Pushc, 10);
-            program_memory.register_instruction(&Opcode::Wrchr, 0);
-            program_memory.register_instruction(&Opcode::Halt, 0);
+            program_memory.register_instruction(Opcode::Pushc, 3);
+            program_memory.register_instruction(Opcode::Pushc, 4);
+            program_memory.register_instruction(Opcode::Add, 0);
+            program_memory.register_instruction(Opcode::Pushc, 10);
+            program_memory.register_instruction(Opcode::Pushc, 6);
+            program_memory.register_instruction(Opcode::Sub, 0);
+            program_memory.register_instruction(Opcode::Mul, 0);
+            program_memory.register_instruction(Opcode::Wrint, 0);
+            program_memory.register_instruction(Opcode::Pushc, 10);
+            program_memory.register_instruction(Opcode::Wrchr, 0);
+            program_memory.register_instruction(Opcode::Halt, 0);
             program_memory.print();
             Worker::work(&mut program_memory, &mut stack);
         }
