@@ -1,4 +1,4 @@
-use crate::{Instruction, Opcode, ProgramMemory, Stack};
+use crate::{Instruction, Opcode, ProgramMemory, Stack, Immediate, Bytecode};
 use std::io::stdin;
 use std::process::exit;
 
@@ -9,7 +9,7 @@ impl Worker {
         println!("Ninja Virtual Machine started");
         (Stack::new(), ProgramMemory::new())
     }
-    pub fn execute(bytecode: u32, stack: &mut Stack) {
+    pub fn execute(bytecode: Bytecode, stack: &mut Stack) {
         let instruction = Instruction::decode_instruction(bytecode);
         match instruction.opcode {
             Opcode::Halt => Worker::halt(),
@@ -34,7 +34,7 @@ impl Worker {
         println!("Ninja Virtual Machine stopped");
         exit(0);
     }
-    fn pushc(stack: &mut Stack, immediate: u32) {
+    fn pushc(stack: &mut Stack, immediate: Immediate) {
         stack.push(immediate);
     }
     fn add(stack: &mut Stack) {
@@ -73,7 +73,7 @@ impl Worker {
     fn rdint(stack: &mut Stack) {
         let mut input = String::new();
         stdin().read_line(&mut input).expect("Failed to read line");
-        let line: u32 = input.trim().parse::<u32>().expect("Input not an integer");
+        let line: i32 = input.trim().parse::<i32>().expect("Input not an integer");
         stack.push(line)
     }
     fn wrint(stack: &mut Stack) {
@@ -82,7 +82,7 @@ impl Worker {
     fn rdchr(stack: &mut Stack) {
         let mut input = String::new();
         stdin().read_line(&mut input).expect("Failed to read line");
-        let line = input.trim().chars().next().expect("Failed to read character") as u32;
+        let line = input.trim().chars().next().expect("Failed to read character") as i32;
         stack.push(line)
     }
     fn wrchr(stack: &mut Stack) {

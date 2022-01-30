@@ -1,11 +1,12 @@
 use std::process::exit;
+use crate::Immediate;
 
 pub const MAXITEMS: u8 = 100;
 
 #[derive(Debug)]
 pub struct Stack {
     sp: u32,
-    memory: [u32; MAXITEMS as usize],
+    memory: [Immediate; MAXITEMS as usize],
 }
 
 impl Stack {
@@ -15,7 +16,7 @@ impl Stack {
             memory: [0; MAXITEMS as usize],
         }
     }
-    pub fn push(&mut self, immediate: u32) {
+    pub fn push(&mut self, immediate: Immediate) {
         if self.sp > MAXITEMS as u32 {
             println!("Stack overflow: Stack is full, not more than {MAXITEMS} allowed");
             exit(1)
@@ -23,7 +24,7 @@ impl Stack {
         self.memory[self.sp as usize] = immediate;
         self.sp = self.sp + 1;
     }
-    pub fn pop(&mut self) -> u32 {
+    pub fn pop(&mut self) -> Immediate {
         if self.sp == 0 && self.memory[self.sp as usize] == 0 {
             println!("Stack underflow: popped from empty stack");
             exit(1)

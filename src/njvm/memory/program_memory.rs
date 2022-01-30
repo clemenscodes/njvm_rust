@@ -1,4 +1,4 @@
-use crate::{Instruction, Opcode, MAXITEMS};
+use crate::{Instruction, Opcode, MAXITEMS, Immediate, Bytecode};
 
 #[derive(Debug)]
 pub struct ProgramMemory {
@@ -64,9 +64,9 @@ impl ProgramMemory {
             }
         }
     }
-    pub fn register_instruction(&mut self, opcode: Opcode, immediate: u32) {
-        let encoded_opcode: u32 = Instruction::encode_opcode(opcode);
-        self.memory[self.pc as usize] = encoded_opcode;
+    pub fn register_instruction(&mut self, opcode: Opcode, immediate: Immediate) {
+        let instruction: Bytecode = Instruction::encode_instruction(opcode, immediate);
+        self.memory[self.pc as usize] = instruction;
         self.pc = self.pc + 1;
         self.print()
     }
