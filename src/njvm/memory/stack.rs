@@ -1,4 +1,3 @@
-use std::process::exit;
 use crate::Immediate;
 
 pub const MAXITEMS: u8 = 100;
@@ -18,29 +17,21 @@ impl Stack {
     }
     pub fn push(&mut self, immediate: Immediate) {
         if self.sp > MAXITEMS as u32 {
-            println!("Stack overflow: Stack is full, not more than {MAXITEMS} allowed");
-            exit(1)
+            panic!("Stack overflow: Stack is full, not more than {MAXITEMS} allowed");
         }
         self.memory[self.sp as usize] = immediate;
         self.sp = self.sp + 1;
     }
     pub fn pop(&mut self) -> Immediate {
         if self.sp == 0 && self.memory[self.sp as usize] == 0 {
-            println!("Stack underflow: popped from empty stack");
-            exit(1)
+            panic!("Stack underflow: popped from empty stack");
         }
         self.sp = self.sp - 1;
         let tmp = self.memory[self.sp as usize];
         self.memory[self.sp as usize] = 0;
         tmp
     }
-    pub fn print_stack(&self) {
-        for stack_item in (0..self.sp).rev() {
-            if stack_item == self.sp {
-                println!("{self:#?}")
-            } else {
-                println!("{self:#?}")
-            }
-        }
+    pub fn print(&self) {
+        println!("{self:#?}");
     }
 }

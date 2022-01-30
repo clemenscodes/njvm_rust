@@ -5,6 +5,23 @@ macro_rules! immediate {
     };
 }
 
+#[macro_export]
+macro_rules! sign_extend {
+    ($e:expr) => {
+        if ($e & 0x00800000) != 0 {
+            let mut bytes = $e.to_be_bytes();
+            bytes[0] = 0xFF;
+            $e = i32::from_be_bytes(bytes);
+            $e
+        } else {
+            $e
+        }
+    };
+}
+
+pub type Bytecode = u32;
+pub type Immediate = i32;
+
 #[derive(Debug, Copy, Clone)]
 pub enum Opcode {
     Halt = 0,
@@ -20,9 +37,6 @@ pub enum Opcode {
     Wrchr = 10,
 }
 
-pub type Bytecode = u32;
-pub type Immediate = i32;
-
 #[derive(Debug)]
 pub struct Instruction {
     pub opcode: Opcode,
@@ -33,28 +47,18 @@ impl Instruction {
     pub fn new(opcode: Opcode, immediate: Immediate) -> Self {
         Self { opcode, immediate }
     }
+    pub fn encode_instruction(opcode: Opcode, immediate: i32) -> Bytecode {
+        Instruction::encode_opcode(opcode) | Instruction::encode_immediate(immediate)
+    }
+    pub fn decode_instruction(instruction: Bytecode) -> Self {
+        Instruction::new(
+            Instruction::decode_opcode(instruction),
+            Instruction::decode_immediate(instruction),
+        )
+    }
     pub fn encode_opcode(opcode: Opcode) -> u32 {
         let encoded_opcode = (opcode as u32) << 24;
         encoded_opcode
-    }
-    pub fn encode_immediate(immediate: i32) -> u32 {
-        const MIN: i32 = -8388608;
-        const MAX: i32 = 8388607;
-        match immediate {
-            MIN..=MAX => {
-                let immediate = immediate!(immediate);
-                let bytes = immediate.to_be_bytes();
-                let immediate = u32::from_be_bytes(bytes);
-                immediate
-            }
-            _ => panic!("Immediate value out of range"),
-        }
-    }
-    pub fn encode_instruction(opcode: Opcode, immediate: i32) -> Bytecode {
-        let encoded_opcode = Instruction::encode_opcode(opcode);
-        let encoded_immediate = Instruction::encode_immediate(immediate);
-        let instruction = encoded_opcode | encoded_immediate;
-        instruction
     }
     pub fn decode_opcode(instruction: Bytecode) -> Opcode {
         let opcode = instruction >> 24;
@@ -73,24 +77,22 @@ impl Instruction {
             _ => panic!("Unknown opcode"),
         }
     }
-    pub fn decode_immediate(instruction: Bytecode) -> Immediate {
-        let mut immediate: Immediate = (instruction & 0x00FFFFFF) as Immediate;
-        if (immediate & 0x00800000) != 0 {
-            let mut bytes = immediate.to_be_bytes();
-            bytes[0] = 0xFF;
-            immediate = i32::from_be_bytes(bytes);
-            immediate
-        } else {
-            immediate
+    pub fn encode_immediate(immediate: i32) -> u32 {
+        const MIN: i32 = -8388608;
+        const MAX: i32 = 8388607;
+        match immediate {
+            MIN..=MAX => {
+                let immediate = immediate!(immediate);
+                let bytes = immediate.to_be_bytes();
+                let immediate = u32::from_be_bytes(bytes);
+                immediate
+            }
+            _ => panic!("Immediate value out of range"),
         }
     }
-    pub fn decode_instruction(instruction: Bytecode) -> Self {
-        let instruction = Instruction::new(
-            Instruction::decode_opcode(instruction),
-            Instruction::decode_immediate(instruction),
-        );
-        // instruction.print();
-        instruction
+    pub fn decode_immediate(instruction: Bytecode) -> Immediate {
+        let mut immediate: Immediate = (instruction & 0x00FFFFFF) as Immediate;
+        sign_extend!(immediate)
     }
     pub fn print(&self) {
         println!("{self:#?}")
