@@ -22,17 +22,17 @@ fn main() {
             exit(0);
         }
         if arg == "--prog1" {
-            NinjaVM::init();
+            vm.init();
             vm.program_memory.load_prog1();
             vm.work()
         }
         if arg == "--prog2" {
-            NinjaVM::init();
+            vm.init();
             vm.program_memory.load_prog2();
             vm.work()
         }
         if arg == "--prog3" {
-            NinjaVM::init();
+            vm.init();
             vm.program_memory.load_prog3();
             vm.work()
         }

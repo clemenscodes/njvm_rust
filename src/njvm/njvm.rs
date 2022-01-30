@@ -16,7 +16,7 @@ impl NinjaVM {
             program_memory: ProgramMemory::new(),
         }
     }
-    pub fn init() {
+    pub fn init(&self) {
         println!("Ninja Virtual Machine started");
     }
     pub fn work(&mut self) {
@@ -66,8 +66,7 @@ impl NinjaVM {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
-            println!("Division by zero error");
-            exit(1)
+            panic!("Division by zero error");
         }
         self.stack.push(n1 / n2);
     }
@@ -75,16 +74,15 @@ impl NinjaVM {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
-            println!("Division by zero error");
-            exit(1)
+            panic!("Division by zero error");
         }
         self.stack.push(n1 % n2);
     }
     fn rdint(&mut self) {
         let mut input = String::new();
         stdin().read_line(&mut input).expect("Failed to read line");
-        let line: i32 = input.trim().parse::<i32>().expect("Input not an integer");
-        self.stack.push(line)
+        let immediate: Immediate = input.trim().parse::<i32>().expect("Input not an integer");
+        self.stack.push(immediate)
     }
     fn wrint(&mut self) {
         print!("{}", self.stack.pop())
@@ -92,12 +90,12 @@ impl NinjaVM {
     fn rdchr(&mut self) {
         let mut input = String::new();
         stdin().read_line(&mut input).expect("Failed to read line");
-        let line = input
+        let immediate = input
             .trim()
             .chars()
             .next()
-            .expect("Failed to read character") as i32;
-        self.stack.push(line)
+            .expect("Failed to read character") as Immediate;
+        self.stack.push(immediate)
     }
     fn wrchr(&mut self) {
         let character = self.stack.pop() as u8 as char;
