@@ -13,6 +13,12 @@ pub struct NinjaVM {
     pub program_memory: ProgramMemory,
 }
 
+impl Default for NinjaVM {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NinjaVM {
     pub fn new() -> Self {
         Self {

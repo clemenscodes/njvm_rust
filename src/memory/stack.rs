@@ -6,6 +6,12 @@ pub struct Stack {
     memory: [Immediate; MAXITEMS as usize],
 }
 
+impl Default for Stack {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Stack {
     pub fn new() -> Self {
         Stack {
@@ -18,13 +24,13 @@ impl Stack {
             panic!("Stack overflow: Stack is full, not more than {MAXITEMS} allowed");
         }
         self.memory[self.sp as usize] = immediate;
-        self.sp = self.sp + 1;
+        self.sp += 1;
     }
     pub fn pop(&mut self) -> Immediate {
         if self.sp == 0 && self.memory[self.sp as usize] == 0 {
             panic!("Stack underflow: popped from empty stack");
         }
-        self.sp = self.sp - 1;
+        self.sp -= 1;
         let tmp = self.memory[self.sp as usize];
         self.memory[self.sp as usize] = 0;
         tmp

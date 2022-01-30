@@ -57,8 +57,7 @@ impl Instruction {
         )
     }
     pub fn encode_opcode(opcode: Opcode) -> Bytecode {
-        let encoded_opcode = (opcode as u32) << 24;
-        encoded_opcode
+        (opcode as u32) << 24
     }
     pub fn decode_opcode(instruction: Bytecode) -> Opcode {
         let opcode = instruction >> 24;
@@ -84,8 +83,7 @@ impl Instruction {
             MIN..=MAX => {
                 let immediate = immediate!(immediate);
                 let bytes = immediate.to_be_bytes();
-                let immediate = u32::from_be_bytes(bytes);
-                immediate
+                u32::from_be_bytes(bytes)
             }
             _ => panic!("Immediate value out of range"),
         }
