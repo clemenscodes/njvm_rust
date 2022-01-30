@@ -1,0 +1,3 @@
+/home/clemens/Projects/RustProjects/njvm/aufgaben/a1/build/CMakeFiles/rebuild_cache.dir
+/home/clemens/Projects/RustProjects/njvm/aufgaben/a1/build/CMakeFiles/edit_cache.dir
+/home/clemens/Projects/RustProjects/njvm/aufgaben/a1/build/CMakeFiles/njvm.dir

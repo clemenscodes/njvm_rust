@@ -1,6 +1,6 @@
+use crate::{Opcode, Worker};
 use std::env;
 use std::process::exit;
-use crate::{Worker, Opcode};
 
 pub fn start_njvm() {
     let args = env::args().skip(1);
@@ -36,10 +36,24 @@ pub fn start_njvm() {
         }
         if arg == "--prog2" {
             let (mut stack, mut program_memory) = Worker::init();
+            program_memory.register_instruction(Opcode::Pushc, -2);
+            program_memory.register_instruction(Opcode::Rdint, 0);
+            program_memory.register_instruction(Opcode::Mul, 0);
+            program_memory.register_instruction(Opcode::Pushc, 3);
+            program_memory.register_instruction(Opcode::Add, 0);
+            program_memory.register_instruction(Opcode::Wrint, 0);
+            program_memory.register_instruction(Opcode::Pushc, '\n');
+            program_memory.register_instruction(Opcode::Wrchr, 0);
+            program_memory.register_instruction(Opcode::Halt, 0);
             Worker::work(&mut program_memory, &mut stack);
         }
         if arg == "--prog3" {
             let (mut stack, mut program_memory) = Worker::init();
+            program_memory.register_instruction(Opcode::Rdchr, 0);
+            program_memory.register_instruction(Opcode::Wrint, 0);
+            program_memory.register_instruction(Opcode::Pushc, '\n');
+            program_memory.register_instruction(Opcode::Wrchr, 0);
+            program_memory.register_instruction(Opcode::Halt, 0);
             Worker::work(&mut program_memory, &mut stack);
         }
         println!("unknown command line argument '{arg}', try './njvm --help'");
