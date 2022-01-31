@@ -72,7 +72,7 @@ impl ProgramMemory {
                 Opcode::Rdint => println!("{i:03}:\trdint"),
                 Opcode::Wrint => println!("{i:03}:\twrint"),
                 Opcode::Rdchr => println!("{i:03}:\trdchr"),
-                Opcode::Wrchr => println!("{i:03}:\twrint"),
+                Opcode::Wrchr => println!("{i:03}:\twrchr"),
             }
         }
     }

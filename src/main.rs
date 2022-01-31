@@ -145,7 +145,7 @@ fn main() {
             vm.program_memory.load_prog3();
             vm.work()
         }
-        println!("unknown command line argument '{arg}', try './njvm --help'");
+        eprintln!("unknown command line argument '{arg}', try './njvm --help'");
         exit(1);
     }
 }
