@@ -79,6 +79,7 @@ fn test_output_success(arg: &str, output: &str) -> Result<()> {
     cmd.assert().success().stdout(contains(output));
     Ok(())
 }
+
 fn test_output_failure(arg: &str, output: &str) -> Result<()> {
     let mut cmd = Command::cargo_bin(crate_name!())?;
     cmd.arg(arg);
