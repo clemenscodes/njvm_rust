@@ -200,7 +200,17 @@ mod tests {
     }
     #[ignore]
     #[test]
+    fn test_division_by_zero_should_fail() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
     fn test_modulo() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_modulo_with_zero_should_fail() {
         unimplemented!()
     }
     #[ignore]

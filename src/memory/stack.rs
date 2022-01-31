@@ -55,7 +55,17 @@ mod tests {
     }
     #[ignore]
     #[test]
+    fn test_stack_overflow() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
     fn test_pop() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_stack_underflow() {
         unimplemented!()
     }
 }

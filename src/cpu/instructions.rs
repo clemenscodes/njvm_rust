@@ -132,12 +132,22 @@ mod tests {
     }
     #[ignore]
     #[test]
+    fn test_unknown_opcode() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
     fn test_encode_immediate() {
         unimplemented!()
     }
     #[ignore]
     #[test]
     fn test_decode_immediate() {
+        unimplemented!()
+    }
+    #[ignore]
+    #[test]
+    fn test_immediate_value_out_of_range() {
         unimplemented!()
     }
 }
