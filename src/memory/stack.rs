@@ -1,6 +1,6 @@
 use crate::{Immediate, MAXITEMS};
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Stack {
     sp: u32,
     memory: [Immediate; MAXITEMS as usize],

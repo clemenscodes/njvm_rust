@@ -8,6 +8,7 @@ use std::process::exit;
 
 pub const MAXITEMS: u8 = 100;
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct NinjaVM {
     pub stack: Stack,
     pub program_memory: ProgramMemory,
@@ -115,6 +116,10 @@ impl NinjaVM {
 
 fn main() {
     let mut vm = NinjaVM::new();
+    if env::args().count() == 1 {
+        vm.init();
+        vm.halt();
+    }
     let args = env::args().skip(1);
     for arg in args {
         if arg == "--help" {

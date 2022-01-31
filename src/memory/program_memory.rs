@@ -1,6 +1,6 @@
 use crate::{Bytecode, Immediate, Instruction, Opcode, MAXITEMS};
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct ProgramMemory {
     pub pc: u32,
     pub memory: [Bytecode; MAXITEMS as usize],
