@@ -22,7 +22,7 @@ macro_rules! sign_extend {
     };
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Opcode {
     Halt = 0,
     Pushc = 1,
@@ -37,7 +37,7 @@ pub enum Opcode {
     Wrchr = 10,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Instruction {
     pub opcode: Opcode,
     pub immediate: Immediate,
@@ -99,15 +99,15 @@ impl Instruction {
 
 #[cfg(test)]
 mod tests {
-    use crate::{immediate, sign_extend, Bytecode, Immediate};
+    use crate::{immediate, sign_extend, Bytecode, Immediate, Instruction, Opcode};
     #[test]
     fn test_immediate_macro() {
-        let instruction: Bytecode = 0xFFFFFFFF;
-        let immediate = immediate!(instruction);
-        assert_eq!(immediate, 0x00FFFFFF);
-        let instruction: Bytecode = 0x00000000;
-        let immediate = immediate!(instruction);
-        assert_eq!(immediate, 0x00000000);
+        let instruction_with_opcode: Bytecode = 0xFFFFFFFF;
+        let instruction_without_opcode: Bytecode = 0x00000000;
+        let opcode_immediate = immediate!(instruction_with_opcode);
+        let no_opcode_immediate = immediate!(instruction_without_opcode);
+        assert_eq!(opcode_immediate, 0x00FFFFFF);
+        assert_eq!(no_opcode_immediate, 0x00000000);
     }
     #[test]
     fn test_sign_extend_macro() {
@@ -118,30 +118,57 @@ mod tests {
         assert_eq!(positive, 1);
         assert_eq!(negative, -1);
     }
-    #[ignore]
     #[test]
     fn test_encode_instruction() {
-        unimplemented!()
+        let instruction: Bytecode = Instruction::encode_instruction(Opcode::Pushc, 1);
+        assert_eq!(instruction, 0x01000001);
+        let instruction = Instruction::encode_instruction(Opcode::Pushc, -1);
+        assert_eq!(instruction, 0x01ffffff);
     }
-    #[ignore]
     #[test]
     fn test_decode_instruction() {
-        unimplemented!()
+        let instruction: Bytecode = 0x01000001;
+        let decoded_instruction = Instruction::decode_instruction(instruction);
+        assert_eq!(decoded_instruction.opcode, Opcode::Pushc);
+        assert_eq!(decoded_instruction.immediate, 1);
+        let instruction: Bytecode = 0x01ffffff;
+        let decoded_instruction = Instruction::decode_instruction(instruction);
+        assert_eq!(decoded_instruction.opcode, Opcode::Pushc);
+        assert_eq!(decoded_instruction.immediate, -1);
     }
-    #[ignore]
     #[test]
     fn test_encode_opcode() {
-        unimplemented!()
+        assert_eq!(Instruction::encode_opcode(Opcode::Halt), 0x00000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Pushc), 0x01000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Add), 0x02000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Sub), 0x03000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Mul), 0x04000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Div), 0x05000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Mod), 0x06000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Rdint), 0x07000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Wrint), 0x08000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Rdchr), 0x09000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Wrchr), 0x0a000000);
     }
-    #[ignore]
     #[test]
     fn test_decode_opcode() {
-        unimplemented!()
+        assert_eq!(Instruction::decode_opcode(0x0000f001), Opcode::Halt);
+        assert_eq!(Instruction::decode_opcode(0x01000f01), Opcode::Pushc);
+        assert_eq!(Instruction::decode_opcode(0x02000001), Opcode::Add);
+        assert_eq!(Instruction::decode_opcode(0x030000f1), Opcode::Sub);
+        assert_eq!(Instruction::decode_opcode(0x04000001), Opcode::Mul);
+        assert_eq!(Instruction::decode_opcode(0x0500f001), Opcode::Div);
+        assert_eq!(Instruction::decode_opcode(0x06000001), Opcode::Mod);
+        assert_eq!(Instruction::decode_opcode(0x07000001), Opcode::Rdint);
+        assert_eq!(Instruction::decode_opcode(0x0800f001), Opcode::Wrint);
+        assert_eq!(Instruction::decode_opcode(0x0900c0f1), Opcode::Rdchr);
+        assert_eq!(Instruction::decode_opcode(0x0a000f01), Opcode::Wrchr);
     }
-    #[ignore]
     #[test]
+    #[should_panic(expected = "Unknown opcode")]
     fn test_unknown_opcode() {
-        unimplemented!()
+        std::panic::set_hook(Box::new(|_| {}));
+        Instruction::decode_opcode(0xFF000001);
     }
     #[ignore]
     #[test]
