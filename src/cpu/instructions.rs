@@ -97,7 +97,12 @@ impl Instruction {
 #[cfg(test)]
 mod tests {
     use crate::{immediate, sign_extend, Bytecode, Immediate, Instruction, Opcode};
-
+    #[test]
+    fn test_instruction() {
+        let instruction = Instruction::new(Opcode::Pushc, 1);
+        assert_eq!(instruction.opcode, Opcode::Pushc);
+        assert_eq!(instruction.immediate, 1);
+    }
     #[test]
     fn test_immediate_macro() {
         let instruction_with_opcode: Bytecode = 0xFFFFFFFF;

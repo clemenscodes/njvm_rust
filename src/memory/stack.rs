@@ -2,8 +2,8 @@ use crate::{Immediate, MAXITEMS};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Stack {
-    sp: u32,
-    memory: [Immediate; MAXITEMS as usize],
+    pub sp: u32,
+    pub memory: [Immediate; MAXITEMS as usize],
 }
 
 impl Default for Stack {
@@ -44,10 +44,14 @@ impl Stack {
 mod tests {
     use crate::Stack;
     #[test]
-    fn test_push() {
-        let mut stack = Stack::default();
+    fn test_stack() {
+        let stack = Stack::default();
         assert_eq!(stack.sp, 0);
         assert_eq!(stack.memory[0], 0);
+    }
+    #[test]
+    fn test_push() {
+        let mut stack = Stack::default();
         stack.push(1);
         assert_eq!(stack.sp, 1);
         assert_eq!(stack.memory[0], 1);
@@ -67,8 +71,6 @@ mod tests {
     #[test]
     fn test_pop() {
         let mut stack = Stack::default();
-        assert_eq!(stack.sp, 0);
-        assert_eq!(stack.memory[0], 0);
         stack.push(1);
         assert_eq!(stack.sp, 1);
         assert_eq!(stack.memory[0], 1);

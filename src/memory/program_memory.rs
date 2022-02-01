@@ -82,10 +82,14 @@ impl ProgramMemory {
 mod tests {
     use crate::{Opcode, ProgramMemory};
     #[test]
+    fn test_program_memory() {
+        let program_memory = ProgramMemory::default();
+        assert_eq!(program_memory.pc, 0);
+        assert_eq!(program_memory.memory[0], 0);
+    }
+    #[test]
     fn test_register_instruction() {
         let mut program_memory = ProgramMemory::default();
-        assert_eq!(program_memory.pc, 0);
-        assert_eq!(program_memory.memory[0], 0x00000000);
         program_memory.register_instruction(Opcode::Pushc, 1);
         assert_eq!(program_memory.pc, 1);
         assert_eq!(program_memory.memory[0], 0x01000001);

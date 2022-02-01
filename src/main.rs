@@ -153,11 +153,18 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
-    #[ignore]
+    use super::*;
     #[test]
     fn test_ninja_vm() {
-        unimplemented!()
+        let vm = NinjaVM::default();
+        assert_eq!(vm.stack.sp, 0);
+        assert_eq!(vm.stack.memory.len(), 100);
+        assert_eq!(vm.stack.memory[0], 0);
+        assert_eq!(vm.stack.memory[99], 0);
+        assert_eq!(vm.program_memory.pc, 0);
+        assert_eq!(vm.program_memory.memory.len(), 100);
+        assert_eq!(vm.program_memory.memory[0], 0);
+        assert_eq!(vm.program_memory.memory[99], 0);
     }
     #[ignore]
     #[test]
