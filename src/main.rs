@@ -101,11 +101,7 @@ impl NinjaVM {
     fn rdchr(&mut self) {
         let mut input = String::new();
         stdin().read_line(&mut input).expect("Failed to read line");
-        let immediate = input
-            .trim()
-            .chars()
-            .next()
-            .expect("Failed to read character") as Immediate;
+        let immediate = input.trim().chars().next().expect("Failed to read character") as Immediate;
         self.stack.push(immediate)
     }
     fn wrchr(&mut self) {

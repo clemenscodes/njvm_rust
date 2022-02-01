@@ -80,7 +80,7 @@ impl ProgramMemory {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ProgramMemory, Opcode};
+    use crate::{Opcode, ProgramMemory};
     #[test]
     fn test_register_instruction() {
         let mut program_memory = ProgramMemory::default();

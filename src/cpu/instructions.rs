@@ -51,10 +51,7 @@ impl Instruction {
         Instruction::encode_opcode(opcode) | Instruction::encode_immediate(immediate)
     }
     pub fn decode_instruction(instruction: Bytecode) -> Self {
-        Instruction::new(
-            Instruction::decode_opcode(instruction),
-            Instruction::decode_immediate(instruction),
-        )
+        Instruction::new(Instruction::decode_opcode(instruction), Instruction::decode_immediate(instruction))
     }
     pub fn encode_opcode(opcode: Opcode) -> Bytecode {
         (opcode as u32) << 24
@@ -121,19 +118,15 @@ mod tests {
     }
     #[test]
     fn test_encode_instruction() {
-        let instruction: Bytecode = Instruction::encode_instruction(Opcode::Pushc, 1);
-        assert_eq!(instruction, 0x01000001);
-        let instruction = Instruction::encode_instruction(Opcode::Pushc, -1);
-        assert_eq!(instruction, 0x01ffffff);
+        assert_eq!(Instruction::encode_instruction(Opcode::Pushc, 1), 0x01000001);
+        assert_eq!(Instruction::encode_instruction(Opcode::Pushc, -1), 0x01ffffff);
     }
     #[test]
     fn test_decode_instruction() {
-        let instruction: Bytecode = 0x01000001;
-        let decoded_instruction = Instruction::decode_instruction(instruction);
+        let decoded_instruction = Instruction::decode_instruction(0x01000001);
         assert_eq!(decoded_instruction.opcode, Opcode::Pushc);
         assert_eq!(decoded_instruction.immediate, 1);
-        let instruction: Bytecode = 0x01ffffff;
-        let decoded_instruction = Instruction::decode_instruction(instruction);
+        let decoded_instruction = Instruction::decode_instruction(0x01ffffff);
         assert_eq!(decoded_instruction.opcode, Opcode::Pushc);
         assert_eq!(decoded_instruction.immediate, -1);
     }
