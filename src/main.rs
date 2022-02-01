@@ -177,61 +177,92 @@ mod tests {
         assert_eq!(vm.stack.sp, 1);
         assert_eq!(vm.stack.memory[0], 3);
         assert_eq!(vm.program_memory, ProgramMemory::default());
-
     }
     #[test]
     fn test_execute() {
         let mut vm = NinjaVM::default();
-        let instruction =  Instruction::encode_instruction(Opcode::Pushc, 1);
+        let instruction = Instruction::encode_instruction(Opcode::Pushc, 1);
         vm.execute(instruction);
         assert_eq!(vm.stack.sp, 1);
         assert_eq!(vm.stack.memory[0], 1);
     }
     #[test]
-    fn test_halt() {
-        let vm = NinjaVM::default();
-        vm.halt();
-        println!("hey")
-    }
-    #[ignore]
-    #[test]
     fn test_pushc() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(2);
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 2);
     }
-    #[ignore]
     #[test]
     fn test_add() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(-1);
+        vm.pushc(2);
+        vm.add();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 1);
     }
-    #[ignore]
     #[test]
     fn test_sub() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(1);
+        vm.pushc(2);
+        vm.sub();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], -1);
     }
-    #[ignore]
     #[test]
     fn test_mul() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(-1);
+        vm.pushc(-2);
+        vm.mul();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 2);
     }
-    #[ignore]
     #[test]
     fn test_div() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(-7);
+        vm.pushc(-2);
+        vm.div();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 3);
+        vm.pushc(-3);
+        vm.div();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], -1);
     }
-    #[ignore]
     #[test]
+    #[should_panic(expected = "Division by zero error")]
     fn test_division_by_zero_should_fail() {
-        unimplemented!()
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut vm = NinjaVM::default();
+        vm.pushc(-2);
+        vm.pushc(4);
+        vm.pushc(-4);
+        vm.add();
+        vm.div();
     }
-    #[ignore]
     #[test]
     fn test_modulo() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(-9);
+        vm.pushc(4);
+        vm.modulo();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], -1);
     }
-    #[ignore]
     #[test]
+    #[should_panic(expected = "Division by zero error")]
     fn test_modulo_with_zero_should_fail() {
-        unimplemented!()
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut vm = NinjaVM::default();
+        vm.pushc(-2);
+        vm.pushc(4);
+        vm.pushc(-4);
+        vm.add();
+        vm.modulo();
     }
     #[ignore]
     #[test]

@@ -51,7 +51,10 @@ impl Instruction {
         Instruction::encode_opcode(opcode) | Instruction::encode_immediate(immediate)
     }
     pub fn decode_instruction(instruction: Bytecode) -> Self {
-        Instruction::new(Instruction::decode_opcode(instruction), Instruction::decode_immediate(instruction))
+        Instruction::new(
+            Instruction::decode_opcode(instruction),
+            Instruction::decode_immediate(instruction),
+        )
     }
     pub fn encode_opcode(opcode: Opcode) -> Bytecode {
         (opcode as u32) << 24
