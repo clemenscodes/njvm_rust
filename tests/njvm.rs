@@ -6,7 +6,11 @@ use predicates::str::contains;
 #[test]
 pub fn njvm_works() -> Result<()> {
     let mut cmd = Command::cargo_bin(crate_name!())?;
-    cmd.assert().success();
+    let output = format!(
+        "{}\n{}",
+        "Ninja Virtual Machine started", "Ninja Virtual Machine stopped"
+    );
+    cmd.assert().success().stdout(contains(output));
     Ok(())
 }
 

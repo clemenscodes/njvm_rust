@@ -8,6 +8,7 @@ use std::process::exit;
 
 pub const MAXITEMS: u8 = 100;
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct NinjaVM {
     pub stack: Stack,
     pub program_memory: ProgramMemory,
@@ -22,17 +23,18 @@ impl Default for NinjaVM {
 impl NinjaVM {
     pub fn new() -> Self {
         Self {
-            stack: Stack::new(),
-            program_memory: ProgramMemory::new(),
+            stack: Stack::default(),
+            program_memory: ProgramMemory::default(),
         }
     }
     pub fn init(&self) {
         println!("Ninja Virtual Machine started");
     }
     pub fn work(&mut self) {
-        for i in 0..=self.program_memory.pc {
+        for i in 0..self.program_memory.pc {
             self.execute(self.program_memory.memory[i as usize]);
         }
+        self.program_memory = ProgramMemory::default();
     }
     fn execute(&mut self, bytecode: Bytecode) {
         let instruction = Instruction::decode_instruction(bytecode);
@@ -100,11 +102,7 @@ impl NinjaVM {
     fn rdchr(&mut self) {
         let mut input = String::new();
         stdin().read_line(&mut input).expect("Failed to read line");
-        let immediate = input
-            .trim()
-            .chars()
-            .next()
-            .expect("Failed to read character") as Immediate;
+        let immediate = input.trim().chars().next().expect("Failed to read character") as Immediate;
         self.stack.push(immediate)
     }
     fn wrchr(&mut self) {
@@ -114,7 +112,11 @@ impl NinjaVM {
 }
 
 fn main() {
-    let mut vm = NinjaVM::new();
+    let mut vm = NinjaVM::default();
+    if env::args().count() == 1 {
+        vm.init();
+        vm.halt();
+    }
     let args = env::args().skip(1);
     for arg in args {
         if arg == "--help" {
@@ -152,75 +154,114 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
-    #[ignore]
+    use super::*;
     #[test]
     fn test_ninja_vm() {
-        unimplemented!()
+        let vm = NinjaVM::default();
+        assert_eq!(vm.stack.sp, 0);
+        assert_eq!(vm.stack.memory.len(), 100);
+        assert_eq!(vm.stack.memory[0], 0);
+        assert_eq!(vm.stack.memory[99], 0);
+        assert_eq!(vm.program_memory.pc, 0);
+        assert_eq!(vm.program_memory.memory.len(), 100);
+        assert_eq!(vm.program_memory.memory[0], 0);
+        assert_eq!(vm.program_memory.memory[99], 0);
     }
-    #[ignore]
     #[test]
     fn test_work() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.program_memory.register_instruction(Opcode::Pushc, 1);
+        vm.program_memory.register_instruction(Opcode::Pushc, 2);
+        vm.program_memory.register_instruction(Opcode::Add, 0);
+        vm.work();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 3);
+        assert_eq!(vm.program_memory, ProgramMemory::default());
     }
-    #[ignore]
     #[test]
     fn test_execute() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        let instruction = Instruction::encode_instruction(Opcode::Pushc, 1);
+        vm.execute(instruction);
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 1);
     }
-    #[ignore]
-    #[test]
-    fn test_halt() {
-        unimplemented!()
-    }
-    #[ignore]
     #[test]
     fn test_pushc() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(2);
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 2);
     }
-    #[ignore]
     #[test]
     fn test_add() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(-1);
+        vm.pushc(2);
+        vm.add();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 1);
     }
-    #[ignore]
     #[test]
     fn test_sub() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(1);
+        vm.pushc(2);
+        vm.sub();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], -1);
     }
-    #[ignore]
     #[test]
     fn test_mul() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(-1);
+        vm.pushc(-2);
+        vm.mul();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 2);
     }
-    #[ignore]
     #[test]
     fn test_div() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(-7);
+        vm.pushc(-2);
+        vm.div();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 3);
+        vm.pushc(-3);
+        vm.div();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], -1);
     }
-    #[ignore]
+    #[test]
+    #[should_panic(expected = "Division by zero error")]
+    fn test_division_by_zero_should_fail() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut vm = NinjaVM::default();
+        vm.pushc(-2);
+        vm.pushc(4);
+        vm.pushc(-4);
+        vm.add();
+        vm.div();
+    }
     #[test]
     fn test_modulo() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.pushc(-9);
+        vm.pushc(4);
+        vm.modulo();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], -1);
     }
-    #[ignore]
     #[test]
-    fn test_rdint() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_wrint() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_rdchr() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_wrchr() {
-        unimplemented!()
+    #[should_panic(expected = "Division by zero error")]
+    fn test_modulo_with_zero_should_fail() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut vm = NinjaVM::default();
+        vm.pushc(-2);
+        vm.pushc(4);
+        vm.pushc(-4);
+        vm.add();
+        vm.modulo();
     }
 }

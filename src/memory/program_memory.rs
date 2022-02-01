@@ -1,6 +1,6 @@
 use crate::{Bytecode, Immediate, Instruction, Opcode, MAXITEMS};
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct ProgramMemory {
     pub pc: u32,
     pub memory: [Bytecode; MAXITEMS as usize],
@@ -80,35 +80,21 @@ impl ProgramMemory {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
-    #[ignore]
+    use crate::{Opcode, ProgramMemory};
     #[test]
     fn test_program_memory() {
-        unimplemented!()
+        let program_memory = ProgramMemory::default();
+        assert_eq!(program_memory.pc, 0);
+        assert_eq!(program_memory.memory[0], 0);
     }
-    #[ignore]
     #[test]
     fn test_register_instruction() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_prog1() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_prog2() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_prog3() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_print_program_memory() {
-        unimplemented!()
+        let mut program_memory = ProgramMemory::default();
+        program_memory.register_instruction(Opcode::Pushc, 1);
+        assert_eq!(program_memory.pc, 1);
+        assert_eq!(program_memory.memory[0], 0x01000001);
+        program_memory.register_instruction(Opcode::Pushc, 2);
+        assert_eq!(program_memory.pc, 2);
+        assert_eq!(program_memory.memory[1], 0x01000002);
     }
 }

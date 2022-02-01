@@ -1,9 +1,9 @@
 use crate::{Immediate, MAXITEMS};
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Stack {
-    sp: u32,
-    memory: [Immediate; MAXITEMS as usize],
+    pub sp: u32,
+    pub memory: [Immediate; MAXITEMS as usize],
 }
 
 impl Default for Stack {
@@ -42,20 +42,47 @@ impl Stack {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
-    #[ignore]
+    use crate::Stack;
     #[test]
     fn test_stack() {
-        unimplemented!()
+        let stack = Stack::default();
+        assert_eq!(stack.sp, 0);
+        assert_eq!(stack.memory[0], 0);
     }
-    #[ignore]
     #[test]
     fn test_push() {
-        unimplemented!()
+        let mut stack = Stack::default();
+        stack.push(1);
+        assert_eq!(stack.sp, 1);
+        assert_eq!(stack.memory[0], 1);
+        stack.push(5);
+        assert_eq!(stack.sp, 2);
+        assert_eq!(stack.memory[1], 5);
     }
-    #[ignore]
+    #[test]
+    #[should_panic]
+    fn test_stack_overflow() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut stack = Stack::default();
+        for i in 0..=100 {
+            stack.push(i);
+        }
+    }
     #[test]
     fn test_pop() {
-        unimplemented!()
+        let mut stack = Stack::default();
+        stack.push(1);
+        assert_eq!(stack.sp, 1);
+        assert_eq!(stack.memory[0], 1);
+        assert_eq!(stack.pop(), 1);
+        assert_eq!(stack.sp, 0);
+        assert_eq!(stack.memory[0], 0);
+    }
+    #[test]
+    #[should_panic(expected = "Stack underflow: popped from empty stack")]
+    fn test_stack_underflow() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut stack = Stack::default();
+        stack.pop();
     }
 }
