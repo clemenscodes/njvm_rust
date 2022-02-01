@@ -100,6 +100,7 @@ impl Instruction {
 #[cfg(test)]
 mod tests {
     use crate::{immediate, sign_extend, Bytecode, Immediate, Instruction, Opcode};
+
     #[test]
     fn test_immediate_macro() {
         let instruction_with_opcode: Bytecode = 0xFFFFFFFF;
@@ -170,19 +171,26 @@ mod tests {
         std::panic::set_hook(Box::new(|_| {}));
         Instruction::decode_opcode(0xFF000001);
     }
-    #[ignore]
-    #[test]
-    fn test_encode_immediate() {
-        unimplemented!()
-    }
-    #[ignore]
     #[test]
     fn test_decode_immediate() {
-        unimplemented!()
+        assert_eq!(Instruction::decode_immediate(0x00000001), 1);
+        assert_eq!(Instruction::decode_immediate(0x00ffffff), -1)
     }
-    #[ignore]
     #[test]
-    fn test_immediate_value_out_of_range() {
-        unimplemented!()
+    fn test_encode_immediate() {
+        assert_eq!(Instruction::encode_immediate(1), 0x00000001);
+        assert_eq!(Instruction::encode_immediate(-1), 0x00ffffff)
+    }
+    #[test]
+    #[should_panic(expected = "Immediate value out of range")]
+    fn test_immediate_value_over_range() {
+        std::panic::set_hook(Box::new(|_| {}));
+        Instruction::encode_immediate(100000000);
+    }
+    #[test]
+    #[should_panic(expected = "Immediate value out of range")]
+    fn test_immediate_value_under_range() {
+        std::panic::set_hook(Box::new(|_| {}));
+        Instruction::encode_immediate(-100000000);
     }
 }
