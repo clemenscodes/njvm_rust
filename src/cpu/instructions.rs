@@ -76,7 +76,7 @@ impl Instruction {
             _ => panic!("Unknown opcode"),
         }
     }
-    pub fn encode_immediate(immediate: i32) -> Bytecode {
+    pub fn encode_immediate(immediate: Immediate) -> Bytecode {
         const MIN: i32 = -8388608;
         const MAX: i32 = 8388607;
         match immediate {
@@ -89,7 +89,7 @@ impl Instruction {
         }
     }
     pub fn decode_immediate(instruction: Bytecode) -> Immediate {
-        let mut immediate: Immediate = (instruction & 0x00FFFFFF) as Immediate;
+        let mut immediate: Immediate = (immediate!(instruction)) as Immediate;
         sign_extend!(immediate)
     }
     pub fn print(&self) {
@@ -99,16 +99,24 @@ impl Instruction {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
-    #[ignore]
+    use crate::{immediate, sign_extend, Bytecode, Immediate};
     #[test]
     fn test_immediate_macro() {
-        unimplemented!()
+        let instruction: Bytecode = 0xFFFFFFFF;
+        let immediate = immediate!(instruction);
+        assert_eq!(immediate, 0x00FFFFFF);
+        let instruction: Bytecode = 0x00000000;
+        let immediate = immediate!(instruction);
+        assert_eq!(immediate, 0x00000000);
     }
-    #[ignore]
     #[test]
     fn test_sign_extend_macro() {
-        unimplemented!()
+        let mut positive: Immediate = 0x00000001;
+        let mut negative: Immediate = 0x00FFFFFF;
+        let positive = sign_extend!(positive);
+        let negative = sign_extend!(negative);
+        assert_eq!(positive, 1);
+        assert_eq!(negative, -1);
     }
     #[ignore]
     #[test]

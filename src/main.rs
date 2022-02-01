@@ -23,8 +23,8 @@ impl Default for NinjaVM {
 impl NinjaVM {
     pub fn new() -> Self {
         Self {
-            stack: Stack::new(),
-            program_memory: ProgramMemory::new(),
+            stack: Stack::default(),
+            program_memory: ProgramMemory::default(),
         }
     }
     pub fn init(&self) {
@@ -115,7 +115,7 @@ impl NinjaVM {
 }
 
 fn main() {
-    let mut vm = NinjaVM::new();
+    let mut vm = NinjaVM::default();
     if env::args().count() == 1 {
         vm.init();
         vm.halt();
