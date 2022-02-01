@@ -80,35 +80,17 @@ impl ProgramMemory {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
-    #[ignore]
-    #[test]
-    fn test_program_memory() {
-        unimplemented!()
-    }
-    #[ignore]
+    use crate::{ProgramMemory, Opcode};
     #[test]
     fn test_register_instruction() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_prog1() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_prog2() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_prog3() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_print_program_memory() {
-        unimplemented!()
+        let mut program_memory = ProgramMemory::default();
+        assert_eq!(program_memory.pc, 0);
+        assert_eq!(program_memory.memory[0], 0x00000000);
+        program_memory.register_instruction(Opcode::Pushc, 1);
+        assert_eq!(program_memory.pc, 1);
+        assert_eq!(program_memory.memory[0], 0x01000001);
+        program_memory.register_instruction(Opcode::Pushc, 2);
+        assert_eq!(program_memory.pc, 2);
+        assert_eq!(program_memory.memory[1], 0x01000002);
     }
 }

@@ -42,30 +42,45 @@ impl Stack {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
-    #[ignore]
-    #[test]
-    fn test_stack() {
-        unimplemented!()
-    }
-    #[ignore]
+    use crate::Stack;
     #[test]
     fn test_push() {
-        unimplemented!()
+        let mut stack = Stack::default();
+        assert_eq!(stack.sp, 0);
+        assert_eq!(stack.memory[0], 0);
+        stack.push(1);
+        assert_eq!(stack.sp, 1);
+        assert_eq!(stack.memory[0], 1);
+        stack.push(5);
+        assert_eq!(stack.sp, 2);
+        assert_eq!(stack.memory[1], 5);
     }
-    #[ignore]
     #[test]
+    #[should_panic]
     fn test_stack_overflow() {
-        unimplemented!()
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut stack = Stack::default();
+        for i in 0..=100 {
+            stack.push(i);
+        }
     }
-    #[ignore]
     #[test]
     fn test_pop() {
-        unimplemented!()
+        let mut stack = Stack::default();
+        assert_eq!(stack.sp, 0);
+        assert_eq!(stack.memory[0], 0);
+        stack.push(1);
+        assert_eq!(stack.sp, 1);
+        assert_eq!(stack.memory[0], 1);
+        assert_eq!(stack.pop(), 1);
+        assert_eq!(stack.sp, 0);
+        assert_eq!(stack.memory[0], 0);
     }
-    #[ignore]
     #[test]
+    #[should_panic(expected = "Stack underflow: popped from empty stack")]
     fn test_stack_underflow() {
-        unimplemented!()
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut stack = Stack::default();
+        stack.pop();
     }
 }
