@@ -31,9 +31,10 @@ impl NinjaVM {
         println!("Ninja Virtual Machine started");
     }
     pub fn work(&mut self) {
-        for i in 0..=self.program_memory.pc {
+        for i in 0..self.program_memory.pc {
             self.execute(self.program_memory.memory[i as usize]);
         }
+        self.program_memory = ProgramMemory::default();
     }
     fn execute(&mut self, bytecode: Bytecode) {
         let instruction = Instruction::decode_instruction(bytecode);
@@ -166,20 +167,31 @@ mod tests {
         assert_eq!(vm.program_memory.memory[0], 0);
         assert_eq!(vm.program_memory.memory[99], 0);
     }
-    #[ignore]
     #[test]
     fn test_work() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        vm.program_memory.register_instruction(Opcode::Pushc, 1);
+        vm.program_memory.register_instruction(Opcode::Pushc, 2);
+        vm.program_memory.register_instruction(Opcode::Add, 0);
+        vm.work();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 3);
+        assert_eq!(vm.program_memory, ProgramMemory::default());
+
     }
-    #[ignore]
     #[test]
     fn test_execute() {
-        unimplemented!()
+        let mut vm = NinjaVM::default();
+        let instruction =  Instruction::encode_instruction(Opcode::Pushc, 1);
+        vm.execute(instruction);
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 1);
     }
-    #[ignore]
     #[test]
     fn test_halt() {
-        unimplemented!()
+        let vm = NinjaVM::default();
+        vm.halt();
+        println!("hey")
     }
     #[ignore]
     #[test]
