@@ -264,24 +264,4 @@ mod tests {
         vm.add();
         vm.modulo();
     }
-    #[ignore]
-    #[test]
-    fn test_rdint() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_wrint() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_rdchr() {
-        unimplemented!()
-    }
-    #[ignore]
-    #[test]
-    fn test_wrchr() {
-        unimplemented!()
-    }
 }
