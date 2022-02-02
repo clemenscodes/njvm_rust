@@ -34,19 +34,19 @@ pub fn unknown_command_fails() -> Result<()> {
 
 #[test]
 pub fn prog1_works() -> Result<()> {
-    let output = read_file("tests/data/prog1.out")?;
+    let output = read_file("tests/data/a1/prog1.out")?;
     test_output("--prog1", &output)
 }
 
 #[test]
 pub fn prog2_works() -> Result<()> {
-    let output = read_file("tests/data/prog2.out")?;
+    let output = read_file("tests/data/a1/prog2.out")?;
     test_stdin_output("--prog2", "10", &output)
 }
 
 #[test]
 pub fn prog3_works() -> Result<()> {
-    let output = read_file("tests/data/prog3.out")?;
+    let output = read_file("tests/data/a1/prog3.out")?;
     test_stdin_output("--prog3", "1", &output)
 }
 
