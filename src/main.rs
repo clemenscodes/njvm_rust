@@ -29,17 +29,14 @@ impl NinjaVM {
         }
     }
     pub fn no_arg() {
-        let vm = NinjaVM::default();
-        vm.halt();
+        eprintln!("Error: no code file specified");
+        exit(1)
     }
     pub fn check_arg(arg: &str) {
         match arg {
             "--help" => NinjaVM::help(),
             "--version" => NinjaVM::version(),
-            "--prog1" => NinjaVM::prog1(),
-            "--prog2" => NinjaVM::prog2(),
-            "--prog3" => NinjaVM::prog3(),
-            _ => NinjaVM::unknown_arg(arg),
+            _ => NinjaVM::execute_binary(arg),
         }
     }
     pub fn unknown_arg(arg: &str) {
@@ -76,6 +73,12 @@ impl NinjaVM {
         let mut vm = NinjaVM::default();
         vm.program_memory.load_prog3();
         vm.work()
+    }
+    fn execute_binary(arg: &str) {
+        if arg.starts_with('-') {
+            NinjaVM::unknown_arg(arg)
+        }
+        println!("Executing binary: {arg}")
     }
     pub fn work(&mut self) {
         for i in 0..self.program_memory.pc {
