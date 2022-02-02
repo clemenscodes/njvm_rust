@@ -37,7 +37,6 @@ impl NinjaVM {
         println!("  --prog3          select program 3 to execute");
         println!("  --version        show version and exit");
         println!("  --help           show this help and exit");
-        exit(0);
     }
     pub fn version() {
         println!("Ninja Virtual Machine version 1 (compiled Sep 23 2015, 10:36:52)");
@@ -150,6 +149,7 @@ fn main() {
             let arg = env::args().nth(1).expect("Failed to parse argument");
             if arg == "--help" {
                 NinjaVM::help();
+                exit(0);
             }
             if arg == "--version" {
                 NinjaVM::version();
