@@ -30,6 +30,59 @@ impl NinjaVM {
     pub fn init(&self) {
         println!("Ninja Virtual Machine started");
     }
+    pub fn no_arg() {
+        let vm = NinjaVM::default();
+        vm.init();
+        vm.halt();
+    }
+    pub fn check_arg(arg: &str) {
+        match arg {
+            "--help" => NinjaVM::help(),
+            "--version" => NinjaVM::version(),
+            "--prog1" => NinjaVM::prog1(),
+            "--prog2" => NinjaVM::prog2(),
+            "--prog3" => NinjaVM::prog3(),
+            _ => NinjaVM::unknown_arg(arg),
+        }
+    }
+    pub fn help() {
+        println!("usage: ./njvm [option] [option] ...");
+        println!("  --prog1          select program 1 to execute");
+        println!("  --prog2          select program 2 to execute");
+        println!("  --prog3          select program 3 to execute");
+        println!("  --version        show version and exit");
+        println!("  --help           show this help and exit");
+    }
+    pub fn version() {
+        println!("Ninja Virtual Machine version 1 (compiled Sep 23 2015, 10:36:52)");
+        exit(0);
+    }
+    pub fn prog1() {
+        let mut vm = NinjaVM::default();
+        vm.init();
+        vm.program_memory.load_prog1();
+        vm.work()
+    }
+    pub fn prog2() {
+        let mut vm = NinjaVM::default();
+        vm.init();
+        vm.program_memory.load_prog2();
+        vm.work()
+    }
+    pub fn prog3() {
+        let mut vm = NinjaVM::default();
+        vm.init();
+        vm.program_memory.load_prog3();
+        vm.work()
+    }
+    pub fn unknown_arg(arg: &str) {
+        eprintln!("unknown command line argument '{arg}', try './njvm --help'");
+        exit(1);
+    }
+    pub fn kill() {
+        NinjaVM::help();
+        exit(1)
+    }
     pub fn work(&mut self) {
         for i in 0..self.program_memory.pc {
             self.execute(self.program_memory.memory[i as usize]);
@@ -112,43 +165,10 @@ impl NinjaVM {
 }
 
 fn main() {
-    let mut vm = NinjaVM::default();
-    if env::args().count() == 1 {
-        vm.init();
-        vm.halt();
-    }
-    let args = env::args().skip(1);
-    for arg in args {
-        if arg == "--help" {
-            println!("usage: ./njvm [option] [option] ...");
-            println!("  --prog1          select program 1 to execute");
-            println!("  --prog2          select program 2 to execute");
-            println!("  --prog3          select program 3 to execute");
-            println!("  --version        show version and exit");
-            println!("  --help           show this help and exit");
-            exit(0);
-        }
-        if arg == "--version" {
-            println!("Ninja Virtual Machine version 1 (compiled Sep 23 2015, 10:36:52)");
-            exit(0);
-        }
-        if arg == "--prog1" {
-            vm.init();
-            vm.program_memory.load_prog1();
-            vm.work()
-        }
-        if arg == "--prog2" {
-            vm.init();
-            vm.program_memory.load_prog2();
-            vm.work()
-        }
-        if arg == "--prog3" {
-            vm.init();
-            vm.program_memory.load_prog3();
-            vm.work()
-        }
-        eprintln!("unknown command line argument '{arg}', try './njvm --help'");
-        exit(1);
+    match env::args().len() {
+        1 => NinjaVM::no_arg(),
+        2 => NinjaVM::check_arg(&env::args().nth(1).expect("Failed to parse argument")),
+        _ => NinjaVM::kill(),
     }
 }
 
