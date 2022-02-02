@@ -22,17 +22,14 @@ impl Default for NinjaVM {
 
 impl NinjaVM {
     pub fn new() -> Self {
+        println!("Ninja Virtual Machine started");
         Self {
             stack: Stack::default(),
             program_memory: ProgramMemory::default(),
         }
     }
-    pub fn init(&self) {
-        println!("Ninja Virtual Machine started");
-    }
     pub fn no_arg() {
         let vm = NinjaVM::default();
-        vm.init();
         vm.halt();
     }
     pub fn check_arg(arg: &str) {
@@ -44,6 +41,14 @@ impl NinjaVM {
             "--prog3" => NinjaVM::prog3(),
             _ => NinjaVM::unknown_arg(arg),
         }
+    }
+    pub fn unknown_arg(arg: &str) {
+        eprintln!("unknown command line argument '{arg}', try './njvm --help'");
+        exit(1);
+    }
+    pub fn kill() {
+        NinjaVM::help();
+        exit(1)
     }
     pub fn help() {
         println!("usage: ./njvm [option] [option] ...");
@@ -59,29 +64,18 @@ impl NinjaVM {
     }
     pub fn prog1() {
         let mut vm = NinjaVM::default();
-        vm.init();
         vm.program_memory.load_prog1();
         vm.work()
     }
     pub fn prog2() {
         let mut vm = NinjaVM::default();
-        vm.init();
         vm.program_memory.load_prog2();
         vm.work()
     }
     pub fn prog3() {
         let mut vm = NinjaVM::default();
-        vm.init();
         vm.program_memory.load_prog3();
         vm.work()
-    }
-    pub fn unknown_arg(arg: &str) {
-        eprintln!("unknown command line argument '{arg}', try './njvm --help'");
-        exit(1);
-    }
-    pub fn kill() {
-        NinjaVM::help();
-        exit(1)
     }
     pub fn work(&mut self) {
         for i in 0..self.program_memory.pc {
