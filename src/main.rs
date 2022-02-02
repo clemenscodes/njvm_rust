@@ -3,6 +3,7 @@ pub use cpu::*;
 pub mod memory;
 pub use memory::*;
 use std::env;
+use std::fs::read;
 use std::io::stdin;
 use std::process::exit;
 
@@ -75,7 +76,18 @@ impl NinjaVM {
         if arg.starts_with('-') {
             NinjaVM::unknown_arg(arg)
         }
-        println!("Executing binary: {arg}")
+        let file = match read(arg){
+            Ok(file) => file,
+            Err(_) => {
+                eprintln!("Error: cannot open code file '{arg}'");
+                exit(1);
+            }
+        };
+        let ninja_binary_format = &[78, 74, 66, 70];
+        if !file.starts_with(ninja_binary_format) {
+            eprintln!("Error: file '{arg}' is not a Ninja binary");
+            exit(1);
+        }
     }
     pub fn work(&mut self) {
         for i in 0..self.program_memory.pc {
