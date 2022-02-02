@@ -35,6 +35,12 @@ pub enum Opcode {
     Wrint = 8,
     Rdchr = 9,
     Wrchr = 10,
+    Pushg = 11,
+    Popg = 12,
+    Asf = 13,
+    Rsf = 14,
+    Pushl = 15,
+    Popl = 16,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -73,6 +79,12 @@ impl Instruction {
             8 => Opcode::Wrint,
             9 => Opcode::Rdchr,
             10 => Opcode::Wrchr,
+            11 => Opcode::Pushg,
+            12 => Opcode::Popg,
+            13 => Opcode::Asf,
+            14 => Opcode::Rsf,
+            15 => Opcode::Pushl,
+            16 => Opcode::Popl,
             _ => panic!("Unknown opcode"),
         }
     }

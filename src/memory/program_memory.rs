@@ -1,9 +1,9 @@
-use crate::{Bytecode, Immediate, Instruction, Opcode, MAXITEMS};
+use crate::{Bytecode, Immediate, Instruction, Opcode};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ProgramMemory {
     pub pc: u32,
-    pub memory: [Bytecode; MAXITEMS as usize],
+    pub memory: Vec<u32>,
 }
 
 impl Default for ProgramMemory {
@@ -14,49 +14,12 @@ impl Default for ProgramMemory {
 
 impl ProgramMemory {
     pub fn new() -> Self {
-        ProgramMemory {
-            pc: 0,
-            memory: [0; MAXITEMS as usize],
-        }
+        ProgramMemory { pc: 0, memory: vec![] }
     }
     pub fn register_instruction(&mut self, opcode: Opcode, immediate: Immediate) {
         let instruction: Bytecode = Instruction::encode_instruction(opcode, immediate);
-        self.memory[self.pc as usize] = instruction;
+        self.memory.push(instruction);
         self.pc += 1;
-    }
-    pub fn load_prog1(&mut self) {
-        self.register_instruction(Opcode::Pushc, 3);
-        self.register_instruction(Opcode::Pushc, 4);
-        self.register_instruction(Opcode::Add, 0);
-        self.register_instruction(Opcode::Pushc, 10);
-        self.register_instruction(Opcode::Pushc, 6);
-        self.register_instruction(Opcode::Sub, 0);
-        self.register_instruction(Opcode::Mul, 0);
-        self.register_instruction(Opcode::Wrint, 0);
-        self.register_instruction(Opcode::Pushc, 10);
-        self.register_instruction(Opcode::Wrchr, 0);
-        self.register_instruction(Opcode::Halt, 0);
-        self.print();
-    }
-    pub fn load_prog2(&mut self) {
-        self.register_instruction(Opcode::Pushc, -2);
-        self.register_instruction(Opcode::Rdint, 0);
-        self.register_instruction(Opcode::Mul, 0);
-        self.register_instruction(Opcode::Pushc, 3);
-        self.register_instruction(Opcode::Add, 0);
-        self.register_instruction(Opcode::Wrint, 0);
-        self.register_instruction(Opcode::Pushc, '\n' as i32);
-        self.register_instruction(Opcode::Wrchr, 0);
-        self.register_instruction(Opcode::Halt, 0);
-        self.print();
-    }
-    pub fn load_prog3(&mut self) {
-        self.register_instruction(Opcode::Rdchr, 0);
-        self.register_instruction(Opcode::Wrint, 0);
-        self.register_instruction(Opcode::Pushc, '\n' as i32);
-        self.register_instruction(Opcode::Wrchr, 0);
-        self.register_instruction(Opcode::Halt, 0);
-        self.print();
     }
     pub fn print(&self) {
         for i in 0..self.pc {
@@ -73,6 +36,12 @@ impl ProgramMemory {
                 Opcode::Wrint => println!("{i:03}:\twrint"),
                 Opcode::Rdchr => println!("{i:03}:\trdchr"),
                 Opcode::Wrchr => println!("{i:03}:\twrchr"),
+                Opcode::Pushg => println!("{i:03}:\tpushg\t{}", instruction.immediate),
+                Opcode::Popg => println!("{i:03}:\tpopg\t{}", instruction.immediate),
+                Opcode::Asf => println!("{i:03}:\tasf\t{}", instruction.immediate),
+                Opcode::Rsf => println!("{i:03}:\trsf\t{}", instruction.immediate),
+                Opcode::Pushl => println!("{i:03}:\tpushl\t{}", instruction.immediate),
+                Opcode::Popl => println!("{i:03}:\tpopl\t{}", instruction.immediate),
             }
         }
     }
@@ -85,7 +54,7 @@ mod tests {
     fn test_program_memory() {
         let program_memory = ProgramMemory::default();
         assert_eq!(program_memory.pc, 0);
-        assert_eq!(program_memory.memory[0], 0);
+        assert_eq!(program_memory.memory.len(), 0);
     }
     #[test]
     fn test_register_instruction() {

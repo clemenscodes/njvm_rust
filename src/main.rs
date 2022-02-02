@@ -68,24 +68,26 @@ impl NinjaVM {
                 exit(1);
             }
         };
-        if file.len() < 16 {
-            eprintln!("Error: code file is corrupted'");
-            exit(1);
-        }
-        let mut instructions = file.split_off(16);
-        let chunks = instructions.chunks_mut(4);
-        for chunk in chunks {
-            let bytecode: [u8; 4] = [chunk[3], chunk[2], chunk[1], chunk[0]];
-            let instruction = u32::from_be_bytes(bytecode);
-            let decoded_instruction = Instruction::decode_instruction(instruction);
-            decoded_instruction.print();
-        }
-
         let ninja_binary_format = &[78, 74, 66, 70];
         if !file.starts_with(ninja_binary_format) {
             eprintln!("Error: file '{arg}' is not a Ninja binary");
             exit(1);
         }
+        if file.len() < 16 {
+            eprintln!("Error: code file is corrupted'");
+            exit(1);
+        }
+        let mut vm = NinjaVM::default();
+        let mut instructions = file.split_off(16);
+        let chunks = instructions.chunks_mut(4);
+        for c in chunks {
+            let instruction = u32::from_be_bytes([c[3], c[2], c[1], c[0]]);
+            let instruction = Instruction::decode_instruction(instruction);
+            let opcode = instruction.opcode;
+            let immediate = instruction.immediate;
+            vm.program_memory.register_instruction(opcode, immediate);
+        }
+        vm.program_memory.print();
     }
     pub fn work(&mut self) {
         for i in 0..self.program_memory.pc {
@@ -107,6 +109,12 @@ impl NinjaVM {
             Opcode::Wrint => self.wrint(),
             Opcode::Rdchr => self.rdchr(),
             Opcode::Wrchr => self.wrchr(),
+            Opcode::Pushg => self.pushg(instruction.immediate),
+            Opcode::Popg => self.popg(instruction.immediate),
+            Opcode::Asf => self.asf(instruction.immediate),
+            Opcode::Rsf => self.rsf(instruction.immediate),
+            Opcode::Pushl => self.pushl(instruction.immediate),
+            Opcode::Popl => self.popl(instruction.immediate),
         }
     }
     fn halt(&self) {
@@ -166,6 +174,24 @@ impl NinjaVM {
         let character = self.stack.pop() as u8 as char;
         print!("{character}")
     }
+    fn pushg(&mut self, immediate: Immediate) {
+        println!("Called pushg with immediate {immediate}");
+    }
+    fn popg(&mut self, immediate: Immediate) {
+        println!("Called popg with immediate {immediate}");
+    }
+    fn asf(&mut self, immediate: Immediate) {
+        println!("Called asf with immediate {immediate}");
+    }
+    fn rsf(&mut self, immediate: Immediate) {
+        println!("Called rsf with immediate {immediate}");
+    }
+    fn pushl(&mut self, immediate: Immediate) {
+        println!("Called pushl with immediate {immediate}");
+    }
+    fn popl(&mut self, immediate: Immediate) {
+        println!("Called popl with immediate {immediate}");
+    }
 }
 
 fn main() {
@@ -187,9 +213,7 @@ mod tests {
         assert_eq!(vm.stack.memory[0], 0);
         assert_eq!(vm.stack.memory[99], 0);
         assert_eq!(vm.program_memory.pc, 0);
-        assert_eq!(vm.program_memory.memory.len(), 100);
-        assert_eq!(vm.program_memory.memory[0], 0);
-        assert_eq!(vm.program_memory.memory[99], 0);
+        assert_eq!(vm.program_memory.memory.len(), 0);
     }
     #[test]
     fn test_work() {
