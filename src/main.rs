@@ -48,15 +48,12 @@ impl NinjaVM {
         exit(1)
     }
     pub fn help() {
-        println!("usage: ./njvm [option] [option] ...");
-        println!("  --prog1          select program 1 to execute");
-        println!("  --prog2          select program 2 to execute");
-        println!("  --prog3          select program 3 to execute");
+        println!("usage: ./njvm [options] <code file>");
         println!("  --version        show version and exit");
         println!("  --help           show this help and exit");
     }
     pub fn version() {
-        println!("Ninja Virtual Machine version 1 (compiled Sep 23 2015, 10:36:52)");
+        println!("Ninja Virtual Machine version 2 (compiled Sep 23 2015, 10:36:52)");
         exit(0);
     }
     pub fn prog1() {

@@ -15,13 +15,13 @@ pub fn njvm_works() -> Result<()> {
 
 #[test]
 pub fn help_works() -> Result<()> {
-    let output = "usage: ./njvm [option] [option] ...";
+    let output = "usage: ./njvm [options] <code file>";
     test_output_success("--help", &output)
 }
 
 #[test]
 pub fn version_works() -> Result<()> {
-    let output = "Ninja Virtual Machine version 1 (compiled Sep 23 2015, 10:36:52)";
+    let output = "Ninja Virtual Machine version 2 (compiled Sep 23 2015, 10:36:52)";
     test_output_success("--version", &output)
 }
 
