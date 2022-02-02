@@ -57,32 +57,30 @@ impl NinjaVM {
         println!("Ninja Virtual Machine version 2 (compiled Sep 23 2015, 10:36:52)");
         exit(0);
     }
-    pub fn prog1() {
-        let mut vm = NinjaVM::default();
-        vm.program_memory.load_prog1();
-        vm.work()
-    }
-    pub fn prog2() {
-        let mut vm = NinjaVM::default();
-        vm.program_memory.load_prog2();
-        vm.work()
-    }
-    pub fn prog3() {
-        let mut vm = NinjaVM::default();
-        vm.program_memory.load_prog3();
-        vm.work()
-    }
     fn execute_binary(arg: &str) {
         if arg.starts_with('-') {
             NinjaVM::unknown_arg(arg)
         }
-        let file = match read(arg){
+        let mut file = match read(arg) {
             Ok(file) => file,
             Err(_) => {
                 eprintln!("Error: cannot open code file '{arg}'");
                 exit(1);
             }
         };
+        if file.len() < 16 {
+            eprintln!("Error: code file is corrupted'");
+            exit(1);
+        }
+        let mut instructions = file.split_off(16);
+        let chunks = instructions.chunks_mut(4);
+        for chunk in chunks {
+            let bytecode: [u8; 4] = [chunk[3], chunk[2], chunk[1], chunk[0]];
+            let instruction = u32::from_be_bytes(bytecode);
+            let decoded_instruction = Instruction::decode_instruction(instruction);
+            decoded_instruction.print();
+        }
+
         let ninja_binary_format = &[78, 74, 66, 70];
         if !file.starts_with(ninja_binary_format) {
             eprintln!("Error: file '{arg}' is not a Ninja binary");
