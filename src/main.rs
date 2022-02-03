@@ -6,6 +6,8 @@ pub mod memory;
 pub use memory::*;
 use std::env;
 
+pub const VERSION: u32 = 2;
+
 pub type Bytecode = u32;
 pub const MAXITEMS: u32 = 10000;
 

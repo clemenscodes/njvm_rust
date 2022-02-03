@@ -25,7 +25,6 @@ impl NinjaVM {
     }
     pub fn version() {
         println!("Ninja Virtual Machine version 2 (compiled Sep 23 2015, 10:36:52)");
-        exit(0);
     }
     pub fn init() {
         println!("Ninja Virtual Machine started");

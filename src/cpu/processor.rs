@@ -1,4 +1,4 @@
-use crate::{Bytecode, Immediate, Instruction, NinjaVM, Opcode, ProgramMemory, Stack};
+use crate::{Bytecode, Immediate, Instruction, NinjaVM, Opcode, ProgramMemory, Stack, VERSION};
 use std::fs::read;
 use std::io::stdin;
 use std::process::exit;
@@ -21,39 +21,6 @@ impl Processor {
             stack: Stack::default(),
             program_memory: ProgramMemory::default(),
         }
-    }
-    pub fn execute_binary(&mut self, arg: &str) {
-        if arg.starts_with('-') {
-            NinjaVM::unknown_arg(arg)
-        }
-        let mut file = match read(arg) {
-            Ok(file) => file,
-            Err(_) => {
-                eprintln!("Error: cannot open code file '{arg}'");
-                exit(1);
-            }
-        };
-        let ninja_binary_format = &[78, 74, 66, 70];
-        if !file.starts_with(ninja_binary_format) {
-            eprintln!("Error: file '{arg}' is not a Ninja binary");
-            exit(1);
-        }
-        if file.len() < 16 {
-            eprintln!("Error: code file is corrupted'");
-            exit(1);
-        }
-        let mut instructions = file.split_off(16);
-        let chunks = instructions.chunks_mut(4);
-        for c in chunks {
-            let instruction = u32::from_be_bytes([c[3], c[2], c[1], c[0]]);
-            let instruction = Instruction::decode_instruction(instruction);
-            let opcode = instruction.opcode;
-            let immediate = instruction.immediate;
-            self.program_memory.register_instruction(opcode, immediate);
-        }
-        NinjaVM::init();
-        self.program_memory.print();
-        self.halt();
     }
     pub fn execute(&mut self, bytecode: Bytecode) {
         let instruction = Instruction::decode_instruction(bytecode);
@@ -79,7 +46,6 @@ impl Processor {
     }
     fn halt(&self) {
         println!("Ninja Virtual Machine stopped");
-        exit(0);
     }
     fn pushc(&mut self, immediate: Immediate) {
         self.stack.push(immediate);
@@ -152,11 +118,57 @@ impl Processor {
     fn popl(&mut self, immediate: Immediate) {
         println!("Called popl with immediate {immediate}");
     }
+    pub fn execute_binary(&mut self, arg: &str) {
+        if arg.starts_with('-') {
+            NinjaVM::unknown_arg(arg)
+        }
+        let mut file = match read(arg) {
+            Ok(file) => file,
+            Err(_) => {
+                eprintln!("Error: cannot open code file '{arg}'");
+                exit(1);
+            }
+        };
+        let mut instructions = file.split_off(16);
+        if file.len() < 16 {
+            eprintln!("Error: code file is corrupted'");
+            exit(1);
+        }
+        let ninja_binary_format = &[78, 74, 66, 70];
+        if !file.starts_with(ninja_binary_format) {
+            eprintln!("Error: file '{arg}' is not a Ninja binary");
+            exit(1);
+        }
+        let version = file
+            .chunks_mut(4)
+            .nth(1)
+            .map(|c| u32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+            .expect("Failed to read version");
+        if VERSION != version {
+            eprintln!("Error: invalid version");
+            exit(1)
+        }
+        instructions.chunks_mut(4).for_each(|c| {
+            let instruction = u32::from_be_bytes([c[3], c[2], c[1], c[0]]);
+            let instruction = Instruction::decode_instruction(instruction);
+            let opcode = instruction.opcode;
+            let immediate = instruction.immediate;
+            self.program_memory.register_instruction(opcode, immediate);
+        });
+        NinjaVM::init();
+        self.program_memory.print();
+        self.halt();
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn test_execute_binary() {
+        let mut cpu = Processor::default();
+        cpu.execute_binary("tests/data/a2/prog2.bin");
+    }
     #[test]
     fn test_execute() {
         let mut cpu = Processor::default();
