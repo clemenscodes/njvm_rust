@@ -163,6 +163,12 @@ mod tests {
         assert_eq!(Instruction::encode_opcode(Opcode::Wrint), 0x08000000);
         assert_eq!(Instruction::encode_opcode(Opcode::Rdchr), 0x09000000);
         assert_eq!(Instruction::encode_opcode(Opcode::Wrchr), 0x0a000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Pushg), 0x0b000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Popg), 0x0c000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Asf), 0x0d000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Rsf), 0x0e000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Pushl), 0x0f000000);
+        assert_eq!(Instruction::encode_opcode(Opcode::Popl), 0x10000000);
     }
     #[test]
     fn test_decode_opcode() {
@@ -177,6 +183,12 @@ mod tests {
         assert_eq!(Instruction::decode_opcode(0x0800f001), Opcode::Wrint);
         assert_eq!(Instruction::decode_opcode(0x0900c0f1), Opcode::Rdchr);
         assert_eq!(Instruction::decode_opcode(0x0a000f01), Opcode::Wrchr);
+        assert_eq!(Instruction::decode_opcode(0x0b000f01), Opcode::Pushg);
+        assert_eq!(Instruction::decode_opcode(0x0c000f01), Opcode::Popg);
+        assert_eq!(Instruction::decode_opcode(0x0d000f01), Opcode::Asf);
+        assert_eq!(Instruction::decode_opcode(0x0e000f01), Opcode::Rsf);
+        assert_eq!(Instruction::decode_opcode(0x0f000f01), Opcode::Pushl);
+        assert_eq!(Instruction::decode_opcode(0x10000f01), Opcode::Popl);
     }
     #[test]
     #[should_panic(expected = "Unknown opcode")]
