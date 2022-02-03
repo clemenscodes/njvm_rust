@@ -7,7 +7,7 @@ use std::fs::read;
 use std::io::stdin;
 use std::process::exit;
 
-pub const MAXITEMS: u8 = 100;
+pub const MAXITEMS: u32 = 10000;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct NinjaVM {
@@ -88,6 +88,7 @@ impl NinjaVM {
             vm.program_memory.register_instruction(opcode, immediate);
         }
         vm.program_memory.print();
+        vm.halt();
     }
     pub fn work(&mut self) {
         for i in 0..self.program_memory.pc {
@@ -209,9 +210,7 @@ mod tests {
     fn test_ninja_vm() {
         let vm = NinjaVM::default();
         assert_eq!(vm.stack.sp, 0);
-        assert_eq!(vm.stack.memory.len(), 100);
-        assert_eq!(vm.stack.memory[0], 0);
-        assert_eq!(vm.stack.memory[99], 0);
+        assert_eq!(vm.stack.memory.len(), 0);
         assert_eq!(vm.program_memory.pc, 0);
         assert_eq!(vm.program_memory.memory.len(), 0);
     }
