@@ -57,6 +57,24 @@ impl Encoding for Immediate {
 mod tests {
     use super::*;
     #[test]
+    fn test_immediate_macro() {
+        let instruction_with_opcode: Bytecode = 0xFFFFFFFF;
+        let instruction_without_opcode: Bytecode = 0x00000000;
+        let opcode_immediate = immediate!(instruction_with_opcode);
+        let no_opcode_immediate = immediate!(instruction_without_opcode);
+        assert_eq!(opcode_immediate, 0x00FFFFFF);
+        assert_eq!(no_opcode_immediate, 0x00000000);
+    }
+    #[test]
+    fn test_sign_extend_macro() {
+        let mut positive: Immediate = 0x00000001;
+        let mut negative: Immediate = 0x00FFFFFF;
+        let positive = sign_extend!(positive);
+        let negative = sign_extend!(negative);
+        assert_eq!(positive, 1);
+        assert_eq!(negative, -1);
+    }
+    #[test]
     fn test_decode_immediate() {
         assert_eq!(Immediate::decode_immediate(0x00000001), 1);
         assert_eq!(Immediate::decode_immediate(0x00ffffff), -1)
