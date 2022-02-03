@@ -157,7 +157,12 @@ impl Processor {
         });
         NinjaVM::init();
         self.program_memory.print();
-        self.halt();
+    }
+    pub fn work(&mut self) {
+        for i in 0..self.program_memory.pc {
+            self.execute(self.program_memory.memory[i as usize]);
+        }
+        self.program_memory = ProgramMemory::default();
     }
 }
 

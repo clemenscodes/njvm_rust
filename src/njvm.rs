@@ -1,4 +1,4 @@
-use crate::{Processor, ProgramMemory, VERSION};
+use crate::{Processor, VERSION};
 use std::process::exit;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -48,12 +48,6 @@ impl NinjaVM {
         NinjaVM::help();
         exit(1)
     }
-    pub fn work(&mut self) {
-        for i in 0..self.cpu.program_memory.pc {
-            self.cpu.execute(self.cpu.program_memory.memory[i as usize]);
-        }
-        self.cpu.program_memory = ProgramMemory::default();
-    }
 }
 
 #[cfg(test)]
@@ -73,7 +67,7 @@ mod tests {
         vm.cpu.program_memory.register_instruction(Opcode::Pushc, 1);
         vm.cpu.program_memory.register_instruction(Opcode::Pushc, 2);
         vm.cpu.program_memory.register_instruction(Opcode::Add, 0);
-        vm.work();
+        vm.cpu.work();
         assert_eq!(vm.cpu.stack.sp, 1);
         assert_eq!(vm.cpu.stack.memory[0], 3);
         assert_eq!(vm.cpu.program_memory, ProgramMemory::default());
