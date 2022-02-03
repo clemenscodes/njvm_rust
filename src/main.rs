@@ -112,7 +112,7 @@ impl NinjaVM {
             Opcode::Pushg => self.pushg(instruction.immediate),
             Opcode::Popg => self.popg(instruction.immediate),
             Opcode::Asf => self.asf(instruction.immediate),
-            Opcode::Rsf => self.rsf(instruction.immediate),
+            Opcode::Rsf => self.rsf(),
             Opcode::Pushl => self.pushl(instruction.immediate),
             Opcode::Popl => self.popl(instruction.immediate),
         }
@@ -183,8 +183,8 @@ impl NinjaVM {
     fn asf(&mut self, immediate: Immediate) {
         println!("Called asf with immediate {immediate}");
     }
-    fn rsf(&mut self, immediate: Immediate) {
-        println!("Called rsf with immediate {immediate}");
+    fn rsf(&mut self) {
+        println!("Called rsf");
     }
     fn pushl(&mut self, immediate: Immediate) {
         println!("Called pushl with immediate {immediate}");

@@ -39,7 +39,7 @@ impl ProgramMemory {
                 Opcode::Pushg => println!("{i:03}:\tpushg\t{}", instruction.immediate),
                 Opcode::Popg => println!("{i:03}:\tpopg\t{}", instruction.immediate),
                 Opcode::Asf => println!("{i:03}:\tasf\t{}", instruction.immediate),
-                Opcode::Rsf => println!("{i:03}:\trsf\t{}", instruction.immediate),
+                Opcode::Rsf => println!("{i:03}:\trsf"),
                 Opcode::Pushl => println!("{i:03}:\tpushl\t{}", instruction.immediate),
                 Opcode::Popl => println!("{i:03}:\tpopl\t{}", instruction.immediate),
             }
