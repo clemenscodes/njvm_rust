@@ -1,6 +1,6 @@
 use crate::{Bytecode, Immediate, Instruction, Opcode};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ProgramMemory {
     pub pc: u32,
     pub memory: Vec<u32>,

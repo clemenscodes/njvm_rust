@@ -1,6 +1,6 @@
 use crate::{Immediate, MAXITEMS};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Stack {
     pub sp: u32,
     pub memory: Vec<Immediate>,
