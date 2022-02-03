@@ -49,7 +49,6 @@ impl NinjaVM {
         NinjaVM::help();
         exit(1)
     }
-    
     pub fn work(&mut self) {
         for i in 0..self.cpu.program_memory.pc {
             self.cpu.execute(self.cpu.program_memory.memory[i as usize]);
