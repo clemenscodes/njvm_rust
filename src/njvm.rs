@@ -1,21 +1,20 @@
 use crate::{Processor, VERSION};
+use std::io::{BufRead, Write};
 use std::process::exit;
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct NinjaVM {
-    pub cpu: Processor,
+pub struct NinjaVM<R, W> {
+    pub cpu: Processor<R, W>,
 }
 
-impl Default for NinjaVM {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl NinjaVM {
-    pub fn new() -> Self {
+impl<R, W> NinjaVM<R, W>
+where
+    R: BufRead,
+    W: Write,
+{
+    pub fn new(reader: R, writer: W) -> Self {
         Self {
-            cpu: Processor::default(),
+            cpu: Processor::new(reader, writer),
         }
     }
     pub fn help() {
@@ -35,8 +34,8 @@ impl NinjaVM {
     }
     pub fn check_arg(&mut self, arg: &str) {
         match arg {
-            "--help" => NinjaVM::help(),
-            "--version" => NinjaVM::version(),
+            "--help" => NinjaVM::<R, W>::help(),
+            "--version" => NinjaVM::<R, W>::version(),
             _ => self.cpu.execute_binary(arg),
         }
     }
@@ -45,7 +44,7 @@ impl NinjaVM {
         exit(1);
     }
     pub fn kill() {
-        NinjaVM::help();
+        NinjaVM::<R, W>::help();
         exit(1)
     }
 }
@@ -53,9 +52,11 @@ impl NinjaVM {
 #[cfg(test)]
 mod tests {
     use crate::{NinjaVM, Opcode, ProgramMemory};
+    use std::io::{stdin, stdout};
     #[test]
     fn test_ninja_vm() {
-        let vm = NinjaVM::default();
+        let stdin = stdin();
+        let vm = NinjaVM::new(stdin.lock(), stdout());
         assert_eq!(vm.cpu.stack.sp, 0);
         assert_eq!(vm.cpu.stack.memory.len(), 0);
         assert_eq!(vm.cpu.program_memory.pc, 0);
@@ -63,7 +64,8 @@ mod tests {
     }
     #[test]
     fn test_work() {
-        let mut vm = NinjaVM::default();
+        let stdin = stdin();
+        let mut vm = NinjaVM::new(stdin.lock(), stdout());
         vm.cpu.program_memory.register_instruction(Opcode::Pushc, 1);
         vm.cpu.program_memory.register_instruction(Opcode::Pushc, 2);
         vm.cpu.program_memory.register_instruction(Opcode::Add, 0);
