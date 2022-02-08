@@ -1,7 +1,5 @@
-use crate::{Bytecode, Immediate, Instruction, NinjaVM, Opcode, ProgramMemory, Stack, VERSION};
-use std::fs::read;
+use crate::{Immediate, ProgramMemory, Stack};
 use std::io::{BufRead, Write};
-use std::process::exit;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Processor<R, W> {
@@ -24,50 +22,28 @@ where
             writer,
         }
     }
-    pub fn execute(&mut self, bytecode: Bytecode) {
-        let instruction = Instruction::decode_instruction(bytecode);
-        match instruction.opcode {
-            Opcode::Halt => self.halt(),
-            Opcode::Pushc => self.pushc(instruction.immediate),
-            Opcode::Add => self.add(),
-            Opcode::Sub => self.sub(),
-            Opcode::Mul => self.mul(),
-            Opcode::Div => self.div(),
-            Opcode::Mod => self.modulo(),
-            Opcode::Rdint => self.rdint(),
-            Opcode::Wrint => self.wrint(),
-            Opcode::Rdchr => self.rdchr(),
-            Opcode::Wrchr => self.wrchr(),
-            Opcode::Pushg => self.pushg(instruction.immediate),
-            Opcode::Popg => self.popg(instruction.immediate),
-            Opcode::Asf => self.asf(instruction.immediate),
-            Opcode::Rsf => self.rsf(),
-            Opcode::Pushl => self.pushl(instruction.immediate),
-            Opcode::Popl => self.popl(instruction.immediate),
-        }
-    }
-    fn halt(&self) {
+    pub fn halt(&self) {
         println!("Ninja Virtual Machine stopped");
     }
-    fn pushc(&mut self, immediate: Immediate) {
+    pub fn pushc(&mut self, immediate: Immediate) {
         self.stack.push(immediate);
     }
-    fn add(&mut self) {
+    pub fn add(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 + n2);
     }
-    fn sub(&mut self) {
+    pub fn sub(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 - n2);
     }
-    fn mul(&mut self) {
+    pub fn mul(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 * n2);
     }
-    fn div(&mut self) {
+    pub fn div(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
@@ -75,7 +51,7 @@ where
         }
         self.stack.push(n1 / n2);
     }
-    fn modulo(&mut self) {
+    pub fn modulo(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
@@ -83,88 +59,42 @@ where
         }
         self.stack.push(n1 % n2);
     }
-    fn rdint(&mut self) {
+    pub fn rdint(&mut self) {
         let mut input = String::new();
         self.reader.read_line(&mut input).expect("Failed to read line");
         let immediate: Immediate = input.trim().parse::<i32>().expect("Input not an integer");
         self.stack.push(immediate)
     }
-    fn wrint(&mut self) {
+    pub fn wrint(&mut self) {
         write!(self.writer, "{}", self.stack.pop()).expect("Unable to write")
     }
-    fn rdchr(&mut self) {
+    pub fn rdchr(&mut self) {
         let mut input = String::new();
         self.reader.read_line(&mut input).expect("Failed to read line");
         let immediate = input.trim().chars().next().expect("Failed to read character") as Immediate;
         self.stack.push(immediate)
     }
-    fn wrchr(&mut self) {
+    pub fn wrchr(&mut self) {
         let character = self.stack.pop() as u8 as char;
         write!(self.writer, "{character}").expect("Unable to write")
     }
-    fn pushg(&mut self, immediate: Immediate) {
+    pub fn pushg(&mut self, immediate: Immediate) {
         println!("Called pushg with immediate {immediate}");
     }
-    fn popg(&mut self, immediate: Immediate) {
+    pub fn popg(&mut self, immediate: Immediate) {
         println!("Called popg with immediate {immediate}");
     }
-    fn asf(&mut self, immediate: Immediate) {
+    pub fn asf(&mut self, immediate: Immediate) {
         println!("Called asf with immediate {immediate}");
     }
-    fn rsf(&mut self) {
+    pub fn rsf(&mut self) {
         println!("Called rsf");
     }
-    fn pushl(&mut self, immediate: Immediate) {
+    pub fn pushl(&mut self, immediate: Immediate) {
         println!("Called pushl with immediate {immediate}");
     }
-    fn popl(&mut self, immediate: Immediate) {
+    pub fn popl(&mut self, immediate: Immediate) {
         println!("Called popl with immediate {immediate}");
-    }
-    pub fn execute_binary(&mut self, arg: &str) {
-        if arg.starts_with('-') {
-            NinjaVM::<R, W>::unknown_arg(arg)
-        }
-        let mut file = match read(arg) {
-            Ok(file) => file,
-            Err(_) => {
-                eprintln!("Error: cannot open code file '{arg}'");
-                exit(1);
-            }
-        };
-        let mut instructions = file.split_off(16);
-        if file.len() < 16 {
-            eprintln!("Error: code file is corrupted'");
-            exit(1);
-        }
-        let ninja_binary_format = &[78, 74, 66, 70];
-        if !file.starts_with(ninja_binary_format) {
-            eprintln!("Error: file '{arg}' is not a Ninja binary");
-            exit(1);
-        }
-        let version = file
-            .chunks_mut(4)
-            .nth(1)
-            .map(|c| u32::from_le_bytes([c[0], c[1], c[2], c[3]]))
-            .expect("Failed to read version");
-        if VERSION != version {
-            eprintln!("Error: invalid version");
-            exit(1)
-        }
-        instructions.chunks_mut(4).for_each(|c| {
-            let instruction = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
-            let instruction = Instruction::decode_instruction(instruction);
-            let opcode = instruction.opcode;
-            let immediate = instruction.immediate;
-            self.program_memory.register_instruction(opcode, immediate);
-        });
-        NinjaVM::<R, W>::init();
-        self.program_memory.print();
-    }
-    pub fn work(&mut self) {
-        for i in 0..self.program_memory.pc {
-            self.execute(self.program_memory.memory[i as usize]);
-        }
-        self.program_memory = ProgramMemory::default();
     }
 }
 
@@ -172,21 +102,6 @@ where
 mod tests {
     use super::*;
     use std::io::{stdin, stdout};
-    #[test]
-    fn test_execute_binary() {
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
-        cpu.execute_binary("tests/data/a2/prog2.bin");
-    }
-    #[test]
-    fn test_execute() {
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
-        let instruction = Instruction::encode_instruction(Opcode::Pushc, 1);
-        cpu.execute(instruction);
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], 1);
-    }
     #[test]
     fn test_pushc() {
         let stdin = stdin();
