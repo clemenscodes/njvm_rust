@@ -1,6 +1,6 @@
 use crate::{Bytecode, Immediate, Instruction, NinjaVM, Opcode, ProgramMemory, Stack, VERSION};
 use std::fs::read;
-use std::io::{stdin, BufRead};
+use std::io::{stdin, stdout, BufRead, Write};
 use std::process::exit;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -33,9 +33,9 @@ impl Processor {
             Opcode::Div => self.div(),
             Opcode::Mod => self.modulo(),
             Opcode::Rdint => self.rdint(stdin().lock()),
-            Opcode::Wrint => self.wrint(),
-            Opcode::Rdchr => self.rdchr(),
-            Opcode::Wrchr => self.wrchr(),
+            Opcode::Wrint => self.wrint(stdout()),
+            Opcode::Rdchr => self.rdchr(stdin().lock()),
+            Opcode::Wrchr => self.wrchr(stdout()),
             Opcode::Pushg => self.pushg(instruction.immediate),
             Opcode::Popg => self.popg(instruction.immediate),
             Opcode::Asf => self.asf(instruction.immediate),
@@ -90,18 +90,27 @@ impl Processor {
         let immediate: Immediate = input.trim().parse::<i32>().expect("Input not an integer");
         self.stack.push(immediate)
     }
-    fn wrint(&mut self) {
-        print!("{}", self.stack.pop())
+    fn wrint<W>(&mut self, mut writer: W)
+    where
+        W: Write,
+    {
+        write!(writer, "{}", self.stack.pop()).expect("Unable to write")
     }
-    fn rdchr(&mut self) {
+    fn rdchr<R>(&mut self, mut reader: R)
+    where
+        R: BufRead,
+    {
         let mut input = String::new();
-        stdin().read_line(&mut input).expect("Failed to read line");
+        reader.read_line(&mut input).expect("Failed to read line");
         let immediate = input.trim().chars().next().expect("Failed to read character") as Immediate;
         self.stack.push(immediate)
     }
-    fn wrchr(&mut self) {
+    fn wrchr<W>(&mut self, mut writer: W)
+    where
+        W: Write,
+    {
         let character = self.stack.pop() as u8 as char;
-        print!("{character}")
+        write!(writer, "{character}").expect("Unable to write")
     }
     fn pushg(&mut self, immediate: Immediate) {
         println!("Called pushg with immediate {immediate}");
@@ -270,5 +279,19 @@ mod tests {
         cpu.rdint(&input[..]);
         assert_eq!(cpu.stack.sp, 1);
         assert_eq!(cpu.stack.memory[0], 1)
+    }
+    #[test]
+    fn test_wrint() {
+        let mut cpu = Processor::default();
+        let mut output = Vec::new();
+        let immediate: Immediate = 42;
+        cpu.pushc(immediate);
+        assert_eq!(cpu.stack.sp, 1);
+        assert_eq!(cpu.stack.memory[0], immediate);
+        cpu.wrint(&mut output);
+        assert_eq!(cpu.stack.memory.len(), 0);
+        assert_eq!(cpu.stack.sp, 0);
+        let output = String::from_utf8(output).expect("Not utf-8"); 
+        assert_eq!(output, String::from("42"));
     }
 }
