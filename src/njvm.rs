@@ -56,7 +56,9 @@ mod tests {
     #[test]
     fn test_ninja_vm() {
         let stdin = stdin();
-        let vm = NinjaVM::new(stdin.lock(), stdout());
+        let input = stdin.lock();
+        let output = stdout();
+        let vm = NinjaVM::new(input, output);
         assert_eq!(vm.cpu.stack.sp, 0);
         assert_eq!(vm.cpu.stack.memory.len(), 0);
         assert_eq!(vm.cpu.program_memory.pc, 0);
@@ -65,7 +67,9 @@ mod tests {
     #[test]
     fn test_work() {
         let stdin = stdin();
-        let mut vm = NinjaVM::new(stdin.lock(), stdout());
+        let input = stdin.lock();
+        let output = stdout();
+        let mut vm = NinjaVM::new(input, output);
         vm.cpu.program_memory.register_instruction(Opcode::Pushc, 1);
         vm.cpu.program_memory.register_instruction(Opcode::Pushc, 2);
         vm.cpu.program_memory.register_instruction(Opcode::Add, 0);
