@@ -33,7 +33,6 @@ mod tests {
         assert_eq!(instruction.opcode, Opcode::Pushc);
         assert_eq!(instruction.immediate, 1);
     }
-
     #[test]
     fn test_encode_instruction() {
         assert_eq!(Instruction::encode_instruction(Opcode::Pushc, 1), 0x01000001);

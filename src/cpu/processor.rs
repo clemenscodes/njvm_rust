@@ -1,6 +1,6 @@
 use crate::{Bytecode, Immediate, Instruction, NinjaVM, Opcode, ProgramMemory, Stack, VERSION};
 use std::fs::read;
-use std::io::stdin;
+use std::io::{stdin, BufRead};
 use std::process::exit;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -32,7 +32,7 @@ impl Processor {
             Opcode::Mul => self.mul(),
             Opcode::Div => self.div(),
             Opcode::Mod => self.modulo(),
-            Opcode::Rdint => self.rdint(),
+            Opcode::Rdint => self.rdint(stdin().lock()),
             Opcode::Wrint => self.wrint(),
             Opcode::Rdchr => self.rdchr(),
             Opcode::Wrchr => self.wrchr(),
@@ -81,9 +81,12 @@ impl Processor {
         }
         self.stack.push(n1 % n2);
     }
-    fn rdint(&mut self) {
+    fn rdint<R>(&mut self, mut reader: R)
+    where
+        R: BufRead,
+    {
         let mut input = String::new();
-        stdin().read_line(&mut input).expect("Failed to read line");
+        reader.read_line(&mut input).expect("Failed to read line");
         let immediate: Immediate = input.trim().parse::<i32>().expect("Input not an integer");
         self.stack.push(immediate)
     }
@@ -259,5 +262,13 @@ mod tests {
         cpu.pushc(-4);
         cpu.add();
         cpu.modulo();
+    }
+    #[test]
+    fn test_rdint() {
+        let mut cpu = Processor::default();
+        let input = b"1";
+        cpu.rdint(&input[..]);
+        assert_eq!(cpu.stack.sp, 1);
+        assert_eq!(cpu.stack.memory[0], 1)
     }
 }
