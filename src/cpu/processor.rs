@@ -10,6 +10,14 @@ pub struct Processor<R, W> {
     writer: W,
 }
 
+impl Default for Processor<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
+    fn default() -> Self {
+        let stdin = Box::leak(Box::new(std::io::stdin()));
+        let stdout = Box::leak(Box::new(std::io::stdout()));
+        Processor::new(stdin.lock(), stdout.lock())
+    }
+}
+
 impl<R, W> Processor<R, W>
 where
     R: BufRead,
@@ -106,16 +114,14 @@ mod tests {
     use std::io::{stdin, stdout};
     #[test]
     fn test_pushc() {
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
+        let mut cpu = Processor::default();
         cpu.pushc(2);
         assert_eq!(cpu.stack.sp, 1);
         assert_eq!(cpu.stack.memory[0], 2);
     }
     #[test]
     fn test_add() {
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
+        let mut cpu = Processor::default();
         cpu.pushc(-1);
         cpu.pushc(2);
         cpu.add();
@@ -124,8 +130,7 @@ mod tests {
     }
     #[test]
     fn test_sub() {
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
+        let mut cpu = Processor::default();
         cpu.pushc(1);
         cpu.pushc(2);
         cpu.sub();
@@ -134,8 +139,7 @@ mod tests {
     }
     #[test]
     fn test_mul() {
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
+        let mut cpu = Processor::default();
         cpu.pushc(-1);
         cpu.pushc(-2);
         cpu.mul();
@@ -144,8 +148,7 @@ mod tests {
     }
     #[test]
     fn test_div() {
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
+        let mut cpu = Processor::default();
         cpu.pushc(-7);
         cpu.pushc(-2);
         cpu.div();
@@ -160,8 +163,7 @@ mod tests {
     #[should_panic(expected = "Division by zero error")]
     fn test_division_by_zero_should_fail() {
         std::panic::set_hook(Box::new(|_| {}));
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
+        let mut cpu = Processor::default();
         cpu.pushc(-2);
         cpu.pushc(4);
         cpu.pushc(-4);
@@ -170,8 +172,7 @@ mod tests {
     }
     #[test]
     fn test_modulo() {
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
+        let mut cpu = Processor::default();
         cpu.pushc(-9);
         cpu.pushc(4);
         cpu.modulo();
@@ -182,8 +183,7 @@ mod tests {
     #[should_panic(expected = "Division by zero error")]
     fn test_modulo_with_zero_should_fail() {
         std::panic::set_hook(Box::new(|_| {}));
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
+        let mut cpu = Processor::default();
         cpu.pushc(-2);
         cpu.pushc(4);
         cpu.pushc(-4);
@@ -229,23 +229,15 @@ mod tests {
         assert_eq!(output, String::from("1"));
     }
     #[test]
-    fn test_pushg() {
-        let stdin = stdin();
-        let mut cpu = Processor::new(stdin.lock(), stdout());
-        let immediate: Immediate = 5;
-        cpu.pushg(immediate);
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], 1);
-    }
+    fn test_pushg() {}
     #[test]
-    fn test_popg() {
-    }#[test]
-    fn test_asf() {
-    }#[test]
-    fn test_rsf() {
-    }#[test]
-    fn test_pushl() {
-    }#[test]
-    fn test_popl() {
-    }
+    fn test_popg() {}
+    #[test]
+    fn test_asf() {}
+    #[test]
+    fn test_rsf() {}
+    #[test]
+    fn test_pushl() {}
+    #[test]
+    fn test_popl() {}
 }

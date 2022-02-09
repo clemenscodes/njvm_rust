@@ -6,6 +6,14 @@ pub struct NinjaVM<R, W> {
     pub cpu: Processor<R, W>,
 }
 
+impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
+    fn default() -> Self {
+        let stdin = Box::leak(Box::new(std::io::stdin()));
+        let stdout = Box::leak(Box::new(std::io::stdout()));
+        NinjaVM::new(stdin.lock(), stdout.lock())
+    }
+}
+
 impl<R, W> NinjaVM<R, W>
 where
     R: BufRead,
@@ -79,13 +87,9 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{Instruction, NinjaVM, Opcode::*};
-    use std::io::{stdin, stdout};
     #[test]
     fn test_ninja_vm() {
-        let stdin = stdin();
-        let input = stdin.lock();
-        let output = stdout();
-        let vm = NinjaVM::new(input, output);
+        let vm = NinjaVM::default();
         assert_eq!(vm.cpu.stack.sp, 0);
         assert_eq!(vm.cpu.stack.memory.len(), 0);
         assert_eq!(vm.cpu.instruction_cache.pc, 0);
@@ -93,16 +97,12 @@ mod tests {
     }
     #[test]
     fn test_execute_binary() {
-        let stdin = stdin();
-        let mut vm = NinjaVM::new(stdin.lock(), stdout());
+        let mut vm = NinjaVM::default();
         vm.load_binary("tests/data/a2/prog2.bin");
     }
     #[test]
     fn test_work() {
-        let stdin = stdin();
-        let input = stdin.lock();
-        let output = stdout();
-        let mut vm = NinjaVM::new(input, output);
+        let mut vm = NinjaVM::default();
         vm.cpu.instruction_cache.register_instruction(Pushc, 1);
         vm.cpu.instruction_cache.register_instruction(Pushc, 2);
         vm.cpu.instruction_cache.register_instruction(Add, 0);
@@ -112,8 +112,7 @@ mod tests {
     }
     #[test]
     fn test_execute_instruction() {
-        let stdin = stdin();
-        let mut vm = NinjaVM::new(stdin.lock(), stdout());
+        let mut vm = NinjaVM::default();
         let instruction = Instruction::encode_instruction(Pushc, 1);
         vm.execute_instruction(instruction);
         assert_eq!(vm.cpu.stack.sp, 1);
@@ -121,19 +120,13 @@ mod tests {
     }
     #[test]
     fn test_load_instruction() {
-        let stdin = stdin();
-        let input = stdin.lock();
-        let output = stdout();
-        let mut vm = NinjaVM::new(input, output);
+        let mut vm = NinjaVM::default();
         let mut instructions = Vec::new();
         vm.load_instructions(&mut instructions);
     }
     #[test]
     fn test_load_binary() {
-        let stdin = stdin();
-        let input = stdin.lock();
-        let output = stdout();
-        let mut vm = NinjaVM::new(input, output);
+        let mut vm = NinjaVM::default();
         let path = "tests/data/a2/prog1.bin";
         vm.load_binary(path);
         assert_eq!(vm.cpu.instruction_cache.instructions.len(), 19)
@@ -141,10 +134,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Error: cannot open code file 'tests/data/a2/prog1.404'")]
     fn test_load_binary_fails() {
-        let stdin = stdin();
-        let input = stdin.lock();
-        let output = stdout();
-        let mut vm = NinjaVM::new(input, output);
+        let mut vm = NinjaVM::default();
         let path = "tests/data/a2/prog1.404";
         vm.load_binary(path);
     }
