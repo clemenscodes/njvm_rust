@@ -10,10 +10,7 @@ pub mod utils;
 pub use utils::*;
 
 fn main() {
-    let stdin = std::io::stdin();
-    let input = stdin.lock();
-    let output = std::io::stdout();
-    let mut vm = NinjaVM::new(input, output);
+    let mut vm = NinjaVM::default();
     match args().len() {
         1 => fatal_error("Error: no code file specified"),
         2 => {
@@ -59,7 +56,7 @@ pub fn help() {
 }
 
 pub fn version() {
-    println!("Ninja Virtual Machine version {VERSION} (compiled Sep 23 2015, 10:36:52)");
+    println!("Ninja Virtual Machine version {} (compiled Sep 23 2015, 10:36:52)", VERSION);
 }
 
 fn kill() {
