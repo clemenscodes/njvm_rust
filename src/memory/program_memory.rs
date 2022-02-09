@@ -6,7 +6,10 @@ pub struct ProgramMemory<U> {
     pub memory: Vec<U>,
 }
 
-impl Default for ProgramMemory<Bytecode> {
+impl Default for ProgramMemory<Bytecode>
+where
+    Bytecode: std::fmt::Debug + std::fmt::Display,
+{
     fn default() -> Self {
         Self::new()
     }
@@ -24,9 +27,10 @@ impl ProgramMemory<Bytecode> {
     pub fn print(&self) {
         for i in 0..self.pc {
             let instruction: Instruction = Instruction::decode_instruction(self.memory[i as usize]);
+            let immediate = instruction.immediate;
             match instruction.opcode {
                 Halt => println!("{i:03}:\thalt"),
-                Pushc => println!("{i:03}:\tpushc\t{}", instruction.immediate),
+                Pushc => println!("{i:03}:\tpushc\t{}", immediate),
                 Add => println!("{i:03}:\tadd"),
                 Sub => println!("{i:03}:\tsub"),
                 Mul => println!("{i:03}:\tmul"),
@@ -36,12 +40,12 @@ impl ProgramMemory<Bytecode> {
                 Wrint => println!("{i:03}:\twrint"),
                 Rdchr => println!("{i:03}:\trdchr"),
                 Wrchr => println!("{i:03}:\twrchr"),
-                Pushg => println!("{i:03}:\tpushg\t{}", instruction.immediate),
-                Popg => println!("{i:03}:\tpopg\t{}", instruction.immediate),
-                Asf => println!("{i:03}:\tasf\t{}", instruction.immediate),
+                Pushg => println!("{i:03}:\tpushg\t{}", immediate),
+                Popg => println!("{i:03}:\tpopg\t{}", immediate),
+                Asf => println!("{i:03}:\tasf\t{}", immediate),
                 Rsf => println!("{i:03}:\trsf"),
-                Pushl => println!("{i:03}:\tpushl\t{}", instruction.immediate),
-                Popl => println!("{i:03}:\tpopl\t{}", instruction.immediate),
+                Pushl => println!("{i:03}:\tpushl\t{}", immediate),
+                Popl => println!("{i:03}:\tpopl\t{}", immediate),
             }
         }
     }

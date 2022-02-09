@@ -1,4 +1,4 @@
-use crate::Bytecode;
+use crate::{fatal_error, Bytecode};
 
 #[macro_export]
 macro_rules! immediate {
@@ -48,7 +48,7 @@ impl Encoding for Immediate {
                 let bytes = immediate.to_be_bytes();
                 u32::from_be_bytes(bytes)
             }
-            _ => panic!("Immediate value out of range"),
+            _ => fatal_error("Immediate value out of range"),
         }
     }
 }

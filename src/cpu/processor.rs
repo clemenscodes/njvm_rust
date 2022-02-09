@@ -1,4 +1,4 @@
-use crate::{Bytecode, Immediate, ProgramMemory, Stack};
+use crate::{fatal_error, Bytecode, Immediate, ProgramMemory, Stack};
 use std::io::{BufRead, Write};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -47,7 +47,7 @@ where
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
-            panic!("Division by zero error");
+            fatal_error("Division by zero error");
         }
         self.stack.push(n1 / n2);
     }
@@ -55,7 +55,7 @@ where
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
-            panic!("Division by zero error");
+            fatal_error("Division by zero error");
         }
         self.stack.push(n1 % n2);
     }

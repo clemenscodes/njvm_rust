@@ -1,4 +1,4 @@
-use crate::Bytecode;
+use crate::{fatal_error, Bytecode};
 use Opcode::*;
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -46,7 +46,7 @@ impl Opcode {
             14 => Rsf,
             15 => Pushl,
             16 => Popl,
-            _ => panic!("Unknown opcode"),
+            _ => fatal_error("Unknown opcode"),
         }
     }
 }

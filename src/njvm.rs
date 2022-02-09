@@ -1,7 +1,6 @@
-use crate::{init, unknown_arg, Bytecode, Instruction, Opcode::*, Processor, ProgramMemory, VERSION};
+use crate::{fatal_error, init, unknown_arg, Bytecode, Instruction, Opcode::*, Processor, ProgramMemory, VERSION};
 use std::fs;
 use std::io::{BufRead, Write};
-use std::process::exit;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct NinjaVM<R, W> {
@@ -26,27 +25,34 @@ where
             Ok(file) => file,
             Err(_) => {
                 eprintln!("Error: cannot open code file '{arg}'");
-                exit(1);
+                #[cfg(not(test))]
+                std::process::exit(1);
+                #[cfg(test)]
+                panic!("Error: cannot open code file '{arg}'");
             }
         };
         let mut instructions = file.split_off(16);
         if file.len() < 16 {
-            eprintln!("Error: code file is corrupted'");
-            exit(1);
+            fatal_error("Error: code file is corrupted")
         }
         let ninja_binary_format = &[78, 74, 66, 70];
         if !file.starts_with(ninja_binary_format) {
             eprintln!("Error: file '{arg}' is not a Ninja binary");
-            exit(1);
+            #[cfg(not(test))]
+            std::process::exit(1);
+            #[cfg(test)]
+            panic!("Error: file '{arg}' is not a Ninja binary");
         }
-        let version = file
+        let version = match file
             .chunks_mut(4)
             .nth(1)
             .map(|c| u32::from_le_bytes([c[0], c[1], c[2], c[3]]))
-            .expect("Failed to read version");
+        {
+            Some(version) => version,
+            None => fatal_error("Failed to read version"),
+        };
         if VERSION != version {
-            eprintln!("Error: invalid version");
-            exit(1)
+            fatal_error("Error: invalid version")
         }
         instructions.chunks_mut(4).for_each(|c| {
             let instruction = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);

@@ -1,4 +1,4 @@
-use crate::MAXITEMS;
+use crate::{fatal_error, Immediate};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Stack<T> {
@@ -6,9 +6,9 @@ pub struct Stack<T> {
     pub memory: Vec<T>,
 }
 
-impl<T> Default for Stack<T>
+impl Default for Stack<Immediate>
 where
-    T: std::fmt::Debug + std::fmt::Display,
+    Immediate: std::fmt::Debug + std::fmt::Display,
 {
     fn default() -> Self {
         Self::new()
@@ -23,18 +23,18 @@ where
         Stack { sp: 0, memory: vec![] }
     }
     pub fn push(&mut self, immediate: T) {
-        if self.sp > MAXITEMS {
-            panic!("Stack overflow: Stack is full, not more than {MAXITEMS} allowed");
-        }
         self.memory.push(immediate);
         self.sp += 1;
     }
     pub fn pop(&mut self) -> T {
         if self.sp == 0 && self.memory.is_empty() {
-            panic!("Stack underflow: popped from empty stack");
+            fatal_error("Stack underflow: popped from empty stack");
         }
         self.sp -= 1;
-        self.memory.pop().expect("Stack underflow: popped from empty stack")
+        match self.memory.pop() {
+            Some(immediate) => immediate,
+            None => fatal_error("Stack underflow: popped from empty stack"),
+        }
     }
     pub fn print(&self) {
         println!("{self:#?}");
@@ -59,15 +59,6 @@ mod tests {
         stack.push(5);
         assert_eq!(stack.sp, 2);
         assert_eq!(stack.memory[1], 5);
-    }
-    #[test]
-    #[should_panic]
-    fn test_stack_overflow() {
-        std::panic::set_hook(Box::new(|_| {}));
-        let mut stack = Stack::<Immediate>::default();
-        for i in 0..=10001 {
-            stack.push(i);
-        }
     }
     #[test]
     fn test_pop() {

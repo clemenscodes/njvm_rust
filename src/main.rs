@@ -6,27 +6,24 @@ pub mod memory;
 pub use memory::*;
 use std::env;
 use std::io::{stdin, stdout, BufRead, Write};
-use std::process::exit;
 
 pub type Bytecode = u32;
 pub const VERSION: u32 = 2;
-pub const MAXITEMS: u32 = 10000;
 
 fn main() {
     let stdin = stdin();
     let input = stdin.lock();
     let output = stdout();
+    let mut vm = NinjaVM::new(input, output);
     match env::args().len() {
-        1 => no_arg(),
+        1 => fatal_error("Error: no code file specified"),
         2 => {
             let arg = &env::args().nth(1).unwrap();
-            let mut vm = NinjaVM::new(input, output);
             check_arg(&mut vm, arg)
         }
         3 => {
             let bin = &env::args().nth(1).unwrap();
             let debug_flag = &env::args().nth(2).unwrap();
-            let mut vm = NinjaVM::new(input, output);
             check_args(&mut vm, bin, debug_flag)
         }
         _ => kill(),
@@ -70,17 +67,26 @@ pub fn init() {
     println!("Ninja Virtual Machine started");
 }
 
-pub fn no_arg() {
-    eprintln!("Error: no code file specified");
-    exit(1)
-}
-
 pub fn unknown_arg(arg: &str) {
     eprintln!("unknown command line argument '{arg}', try './njvm --help'");
-    exit(1);
+    #[cfg(not(test))]
+    std::process::exit(1);
+    #[cfg(test)]
+    panic!("unknown command line argument '{arg}', try './njvm --help'");
 }
 
 pub fn kill() {
     help();
-    exit(1)
+    #[cfg(not(test))]
+    std::process::exit(1);
+    #[cfg(test)]
+    panic!();
+}
+
+pub fn fatal_error(error: &str) -> ! {
+    eprintln!("{error}");
+    #[cfg(not(test))]
+    std::process::exit(1);
+    #[cfg(test)]
+    panic!("{error}");
 }
