@@ -1,10 +1,10 @@
-use crate::{Immediate, ProgramMemory, Stack};
+use crate::{Bytecode, Immediate, ProgramMemory, Stack};
 use std::io::{BufRead, Write};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Processor<R, W> {
-    pub stack: Stack,
-    pub program_memory: ProgramMemory,
+    pub stack: Stack<Immediate>,
+    pub program_memory: ProgramMemory<Bytecode>,
     reader: R,
     writer: W,
 }

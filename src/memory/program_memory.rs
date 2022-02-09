@@ -1,18 +1,18 @@
 use crate::{Bytecode, Immediate, Instruction, Opcode, Opcode::*};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct ProgramMemory {
+pub struct ProgramMemory<U> {
     pub pc: u32,
-    pub memory: Vec<u32>,
+    pub memory: Vec<U>,
 }
 
-impl Default for ProgramMemory {
+impl Default for ProgramMemory<Bytecode> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl ProgramMemory {
+impl ProgramMemory<Bytecode> {
     pub fn new() -> Self {
         ProgramMemory { pc: 0, memory: vec![] }
     }
