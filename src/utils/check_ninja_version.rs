@@ -21,14 +21,14 @@ mod tests {
     use crate::{check_ninja_version, read_file};
     #[test]
     fn test_check_ninja_version() {
-        let path = "../tests/data/a2/prog1.bin";
+        let path = "tests/data/a2/prog1.bin";
         let mut f = read_file(path);
         check_ninja_version(&mut f);
     }
     #[test]
     #[should_panic(expected = "Error: code file is not a Ninja binary")]
     fn test_check_ninja_version_fails() {
-        let path = "../tests/data/a2/prog1.asm";
+        let path = "tests/data/a2/prog1.asm";
         let mut f = read_file(path);
         check_ninja_version(&mut f);
     }

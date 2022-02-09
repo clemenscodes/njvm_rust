@@ -134,14 +134,18 @@ mod tests {
         let input = stdin.lock();
         let output = stdout();
         let mut vm = NinjaVM::new(input, output);
-        vm.load_binary("");
+        let path = "tests/data/a2/prog1.bin";
+        vm.load_binary(path);
+        assert_eq!(vm.cpu.instruction_cache.instructions.len(), 19)
     }
     #[test]
-    fn test_debug_binary() {
+    #[should_panic(expected = "Error: cannot open code file 'tests/data/a2/prog1.404'")]
+    fn test_load_binary_fails() {
         let stdin = stdin();
         let input = stdin.lock();
         let output = stdout();
         let mut vm = NinjaVM::new(input, output);
-        vm.debug_binary("");
+        let path = "tests/data/a2/prog1.404";
+        vm.load_binary(path);
     }
 }

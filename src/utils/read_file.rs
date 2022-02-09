@@ -16,13 +16,13 @@ mod tests {
     use super::*;
     #[test]
     fn test_read_file() {
-        let path = "../tests/data/a2/prog1.bin";
+        let path = "tests/data/a2/prog1.bin";
         read_file(path);
     }
     #[test]
-    #[should_panic(expected = "Error: cannot open code file '../tests/data/a2/prog1.404'")]
+    #[should_panic(expected = "Error: cannot open code file 'tests/data/a2/prog1.404'")]
     fn test_read_file_fails() {
-        let path = "../tests/data/a2/prog1.404";
+        let path = "tests/data/a2/prog1.404";
         read_file(path);
     }
 }

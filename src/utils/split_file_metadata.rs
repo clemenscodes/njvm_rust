@@ -13,7 +13,7 @@ mod tests {
     use crate::{read_file, split_file_metadata};
     #[test]
     fn test_split_file_metadata() {
-        let path = "../tests/data/a2/prog1.bin";
+        let path = "tests/data/a2/prog1.bin";
         let mut f = read_file(&path);
         let len = f.len();
         let instructions = split_file_metadata(&mut f);

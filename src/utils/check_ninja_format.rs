@@ -14,14 +14,14 @@ mod tests {
     use crate::{check_ninja_format, read_file};
     #[test]
     fn test_check_ninja_format() {
-        let path = "../tests/data/a2/prog1.bin";
+        let path = "tests/data/a2/prog1.bin";
         let mut f = read_file(path);
         check_ninja_format(&mut f, path);
     }
     #[test]
-    #[should_panic(expected = "Error: file '../tests/data/a2/prog1.asm' is not a Ninja binary")]
+    #[should_panic(expected = "Error: file 'tests/data/a2/prog1.asm' is not a Ninja binary")]
     fn test_check_ninja_format_fails() {
-        let path = "../tests/data/a2/prog1.asm";
+        let path = "tests/data/a2/prog1.asm";
         let mut f = read_file(path);
         check_ninja_format(&mut f, path);
     }
