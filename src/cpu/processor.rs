@@ -1,10 +1,10 @@
-use crate::{fatal_error, Bytecode, Immediate, ProgramMemory, Stack};
+use crate::{fatal_error, Bytecode, Immediate, InstructionCache, Stack};
 use std::io::{BufRead, Write};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Processor<R, W> {
     pub stack: Stack<Immediate>,
-    pub program_memory: ProgramMemory<Bytecode>,
+    pub instruction_cache: InstructionCache<Bytecode>,
     reader: R,
     writer: W,
 }
@@ -17,7 +17,7 @@ where
     pub fn new(reader: R, writer: W) -> Self {
         Self {
             stack: Stack::default(),
-            program_memory: ProgramMemory::default(),
+            instruction_cache: InstructionCache::default(),
             reader,
             writer,
         }

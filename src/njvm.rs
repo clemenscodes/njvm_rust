@@ -1,5 +1,4 @@
-use crate::{fatal_error, init, unknown_arg, Bytecode, Instruction, Opcode::*, Processor, ProgramMemory, VERSION};
-use std::fs;
+use crate::{utils::*, Bytecode, Instruction, Opcode::*, Processor};
 use std::io::{BufRead, Write};
 
 #[derive(Debug, Eq, PartialEq)]
@@ -16,86 +15,6 @@ where
         Self {
             cpu: Processor::new(reader, writer),
         }
-    }
-    pub fn load_binary(&mut self, arg: &str) {
-        self.verify_arg(arg);
-        let mut file = self.read_file(arg);
-        let mut instructions = self.split_file(&mut file);
-        self.check_ninja_format(&mut file, arg);
-        self.check_ninja_version(&mut file);
-        self.load_instructions(&mut instructions);
-    }
-    fn verify_arg(&mut self, arg: &str) {
-        if arg.starts_with('-') {
-            unknown_arg(arg)
-        }
-    }
-    fn read_file(&mut self, arg: &str) -> Vec<u8> {
-        match fs::read(arg) {
-            Ok(file) => file,
-            Err(_) => {
-                eprintln!("Error: cannot open code file '{arg}'");
-                #[cfg(not(test))]
-                std::process::exit(1);
-                #[cfg(test)]
-                panic!("Error: cannot open code file '{arg}'");
-            }
-        }
-    }
-    fn split_file(&mut self, file: &mut Vec<u8>) -> Vec<u8> {
-        let instructions = file.split_off(16);
-        if file.len() < 16 {
-            fatal_error("Error: code file is corrupted")
-        }
-        instructions
-    }
-    fn check_ninja_format(&mut self, file: &mut Vec<u8>, arg: &str) {
-        let ninja_binary_format = &[78, 74, 66, 70];
-        if !file.starts_with(ninja_binary_format) {
-            eprintln!("Error: file '{arg}' is not a Ninja binary");
-            #[cfg(not(test))]
-            std::process::exit(1);
-            #[cfg(test)]
-            panic!("Error: file '{arg}' is not a Ninja binary");
-        }
-    }
-    fn check_ninja_version(&mut self, file: &mut Vec<u8>) {
-        let version = match file
-            .chunks_mut(4)
-            .nth(1)
-            .map(|c| u32::from_le_bytes([c[0], c[1], c[2], c[3]]))
-        {
-            Some(version) => version,
-            None => fatal_error("Failed to read version"),
-        };
-        if VERSION != version {
-            fatal_error("Error: invalid version")
-        }
-    }
-    fn load_instructions(&mut self, instructions: &mut Vec<u8>) {
-        instructions.chunks_mut(4).for_each(|c| {
-            let instruction = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
-            let instruction = Instruction::decode_instruction(instruction);
-            let opcode = instruction.opcode;
-            let immediate = instruction.immediate;
-            self.cpu.program_memory.register_instruction(opcode, immediate);
-        });
-    }
-    pub fn debug_binary(&mut self, bin: &str) {
-        println!("Debugging binary: {bin}");
-        self.load_binary(bin);
-    }
-    pub fn execute_binary(&mut self, bin: &str) {
-        self.load_binary(bin);
-        init();
-        self.cpu.program_memory.print();
-        self.work();
-    }
-    pub fn work(&mut self) {
-        for i in 0..self.cpu.program_memory.pc {
-            self.execute_instruction(self.cpu.program_memory.memory[i as usize]);
-        }
-        self.cpu.program_memory = ProgramMemory::default();
     }
     pub fn execute_instruction(&mut self, bytecode: Bytecode) {
         let instruction = Instruction::decode_instruction(bytecode);
@@ -120,11 +39,46 @@ where
             Popl => self.cpu.popl(immediate),
         }
     }
+    pub fn work(&mut self) {
+        for i in 0..self.cpu.instruction_cache.pc {
+            self.execute_instruction(self.cpu.instruction_cache.instructions[i as usize]);
+        }
+    }
+    pub fn execute_binary(&mut self, bin: &str) {
+        self.load_binary(bin);
+        self.init();
+        self.cpu.instruction_cache.print();
+        self.work();
+    }
+    pub fn debug_binary(&mut self, bin: &str) {
+        println!("Debugging binary: {bin}");
+        self.load_binary(bin);
+    }
+    fn load_binary(&mut self, arg: &str) {
+        verify_arg(arg);
+        let mut file = read_file(arg);
+        let mut instructions = split_file_metadata(&mut file);
+        check_ninja_format(&mut file, arg);
+        check_ninja_version(&mut file);
+        self.load_instructions(&mut instructions);
+    }
+    fn load_instructions(&mut self, instructions: &mut Vec<u8>) {
+        instructions.chunks_mut(4).for_each(|c| {
+            let instruction = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
+            let instruction = Instruction::decode_instruction(instruction);
+            let opcode = instruction.opcode;
+            let immediate = instruction.immediate;
+            self.cpu.instruction_cache.register_instruction(opcode, immediate);
+        });
+    }
+    fn init(&mut self) {
+        println!("Ninja Virtual Machine started");
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Instruction, NinjaVM, Opcode, ProgramMemory};
+    use crate::{Instruction, NinjaVM, Opcode::*};
     use std::io::{stdin, stdout};
     #[test]
     fn test_ninja_vm() {
@@ -134,8 +88,8 @@ mod tests {
         let vm = NinjaVM::new(input, output);
         assert_eq!(vm.cpu.stack.sp, 0);
         assert_eq!(vm.cpu.stack.memory.len(), 0);
-        assert_eq!(vm.cpu.program_memory.pc, 0);
-        assert_eq!(vm.cpu.program_memory.memory.len(), 0);
+        assert_eq!(vm.cpu.instruction_cache.pc, 0);
+        assert_eq!(vm.cpu.instruction_cache.instructions.len(), 0);
     }
     #[test]
     fn test_execute_binary() {
@@ -149,21 +103,45 @@ mod tests {
         let input = stdin.lock();
         let output = stdout();
         let mut vm = NinjaVM::new(input, output);
-        vm.cpu.program_memory.register_instruction(Opcode::Pushc, 1);
-        vm.cpu.program_memory.register_instruction(Opcode::Pushc, 2);
-        vm.cpu.program_memory.register_instruction(Opcode::Add, 0);
+        vm.cpu.instruction_cache.register_instruction(Pushc, 1);
+        vm.cpu.instruction_cache.register_instruction(Pushc, 2);
+        vm.cpu.instruction_cache.register_instruction(Add, 0);
         vm.work();
         assert_eq!(vm.cpu.stack.sp, 1);
         assert_eq!(vm.cpu.stack.memory[0], 3);
-        assert_eq!(vm.cpu.program_memory, ProgramMemory::default());
     }
     #[test]
     fn test_execute_instruction() {
         let stdin = stdin();
         let mut vm = NinjaVM::new(stdin.lock(), stdout());
-        let instruction = Instruction::encode_instruction(Opcode::Pushc, 1);
+        let instruction = Instruction::encode_instruction(Pushc, 1);
         vm.execute_instruction(instruction);
         assert_eq!(vm.cpu.stack.sp, 1);
         assert_eq!(vm.cpu.stack.memory[0], 1);
+    }
+    #[test]
+    fn test_load_instruction() {
+        let stdin = stdin();
+        let input = stdin.lock();
+        let output = stdout();
+        let mut vm = NinjaVM::new(input, output);
+        let mut instructions = Vec::new();
+        vm.load_instructions(&mut instructions);
+    }
+    #[test]
+    fn test_load_binary() {
+        let stdin = stdin();
+        let input = stdin.lock();
+        let output = stdout();
+        let mut vm = NinjaVM::new(input, output);
+        vm.load_binary("");
+    }
+    #[test]
+    fn test_debug_binary() {
+        let stdin = stdin();
+        let input = stdin.lock();
+        let output = stdout();
+        let mut vm = NinjaVM::new(input, output);
+        vm.debug_binary("");
     }
 }

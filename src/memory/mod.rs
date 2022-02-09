@@ -1,4 +1,4 @@
 pub mod stack;
 pub use stack::Stack;
-pub mod program_memory;
-pub use program_memory::ProgramMemory;
+pub mod instruction_cache;
+pub use instruction_cache::{Bytecode, InstructionCache};
