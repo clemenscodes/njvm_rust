@@ -17,11 +17,21 @@ where
             cpu: Processor::new(reader, writer),
         }
     }
-    pub fn execute_binary(&mut self, arg: &str) {
+    pub fn load_binary(&mut self, arg: &str) {
+        self.verify_arg(arg);
+        let mut file = self.read_file(arg);
+        let mut instructions = self.split_file(&mut file);
+        self.check_ninja_format(&mut file, arg);
+        self.check_ninja_version(&mut file);
+        self.load_instructions(&mut instructions);
+    }
+    fn verify_arg(&mut self, arg: &str) {
         if arg.starts_with('-') {
             unknown_arg(arg)
         }
-        let mut file = match fs::read(arg) {
+    }
+    fn read_file(&mut self, arg: &str) -> Vec<u8> {
+        match fs::read(arg) {
             Ok(file) => file,
             Err(_) => {
                 eprintln!("Error: cannot open code file '{arg}'");
@@ -30,11 +40,16 @@ where
                 #[cfg(test)]
                 panic!("Error: cannot open code file '{arg}'");
             }
-        };
-        let mut instructions = file.split_off(16);
+        }
+    }
+    fn split_file(&mut self, file: &mut Vec<u8>) -> Vec<u8> {
+        let instructions = file.split_off(16);
         if file.len() < 16 {
             fatal_error("Error: code file is corrupted")
         }
+        instructions
+    }
+    fn check_ninja_format(&mut self, file: &mut Vec<u8>, arg: &str) {
         let ninja_binary_format = &[78, 74, 66, 70];
         if !file.starts_with(ninja_binary_format) {
             eprintln!("Error: file '{arg}' is not a Ninja binary");
@@ -43,6 +58,8 @@ where
             #[cfg(test)]
             panic!("Error: file '{arg}' is not a Ninja binary");
         }
+    }
+    fn check_ninja_version(&mut self, file: &mut Vec<u8>) {
         let version = match file
             .chunks_mut(4)
             .nth(1)
@@ -54,6 +71,8 @@ where
         if VERSION != version {
             fatal_error("Error: invalid version")
         }
+    }
+    fn load_instructions(&mut self, instructions: &mut Vec<u8>) {
         instructions.chunks_mut(4).for_each(|c| {
             let instruction = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
             let instruction = Instruction::decode_instruction(instruction);
@@ -61,11 +80,15 @@ where
             let immediate = instruction.immediate;
             self.cpu.program_memory.register_instruction(opcode, immediate);
         });
-        init();
-        self.cpu.program_memory.print();
     }
     pub fn debug_binary(&mut self, bin: &str) {
         println!("Debugging binary: {bin}");
+        self.load_binary(bin);
+    }
+    pub fn execute_binary(&mut self, bin: &str) {
+        self.load_binary(bin);
+        init();
+        self.cpu.program_memory.print();
     }
     pub fn work(&mut self) {
         for i in 0..self.cpu.program_memory.pc {
@@ -116,7 +139,7 @@ mod tests {
     fn test_execute_binary() {
         let stdin = stdin();
         let mut vm = NinjaVM::new(stdin.lock(), stdout());
-        vm.execute_binary("tests/data/a2/prog2.bin");
+        vm.load_binary("tests/data/a2/prog2.bin");
     }
     #[test]
     fn test_work() {
