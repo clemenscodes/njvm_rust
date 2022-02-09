@@ -56,7 +56,10 @@ pub fn help() {
 }
 
 pub fn version() {
-    println!("Ninja Virtual Machine version {} (compiled Sep 23 2015, 10:36:52)", VERSION);
+    println!(
+        "Ninja Virtual Machine version {} (compiled Sep 23 2015, 10:36:52)",
+        VERSION
+    );
 }
 
 fn kill() {
