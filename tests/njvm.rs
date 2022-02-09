@@ -44,6 +44,24 @@ pub fn prog2_works() -> Result<()> {
     test_output("tests/data/a2/prog2.bin", &output)
 }
 
+#[test]
+pub fn prog1_1_works() -> Result<()> {
+    let output = read_file("tests/data/a1/prog1.out")?;
+    test_output("tests/data/a1/prog1.bin", &output)
+}
+
+#[test]
+pub fn prog2_1_works() -> Result<()> {
+    let output = read_file("tests/data/a1/prog2.out")?;
+    test_stdin_output("tests/data/a1/prog2.bin", "10", &output)
+}
+
+#[test]
+pub fn prog3_1_works() -> Result<()> {
+    let output = read_file("tests/data/a1/prog3.out")?;
+    test_stdin_output("tests/data/a1/prog3.bin", "10", &output)
+}
+
 fn read_file(filename: &str) -> Result<String> {
     let content = std::fs::read_to_string(filename)?;
     Ok(content)
@@ -52,6 +70,17 @@ fn read_file(filename: &str) -> Result<String> {
 fn test_output(arg: &str, output: &str) -> Result<()> {
     let mut cmd = Command::cargo_bin(crate_name!())?;
     let stdout = cmd.arg(arg).output()?.stdout;
+    let stdout = String::from_utf8(stdout)?;
+    let output = String::from(output);
+    let changeset = Changeset::new(&output, &stdout, "");
+    println!("{changeset}");
+    assert_eq!(output, stdout);
+    Ok(())
+}
+
+fn test_stdin_output(arg: &str, stdin: &str, output: &str) -> Result<()> {
+    let mut cmd = Command::cargo_bin(crate_name!())?;
+    let stdout = cmd.arg(arg).write_stdin(stdin).output()?.stdout;
     let stdout = String::from_utf8(stdout)?;
     let output = String::from(output);
     let changeset = Changeset::new(&output, &stdout, "");

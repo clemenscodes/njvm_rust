@@ -89,6 +89,7 @@ where
         self.load_binary(bin);
         init();
         self.cpu.program_memory.print();
+        self.work();
     }
     pub fn work(&mut self) {
         for i in 0..self.cpu.program_memory.pc {
@@ -98,9 +99,10 @@ where
     }
     pub fn execute_instruction(&mut self, bytecode: Bytecode) {
         let instruction = Instruction::decode_instruction(bytecode);
+        let immediate = instruction.immediate;
         match instruction.opcode {
             Halt => self.cpu.halt(),
-            Pushc => self.cpu.pushc(instruction.immediate),
+            Pushc => self.cpu.pushc(immediate),
             Add => self.cpu.add(),
             Sub => self.cpu.sub(),
             Mul => self.cpu.mul(),
@@ -110,12 +112,12 @@ where
             Wrint => self.cpu.wrint(),
             Rdchr => self.cpu.rdchr(),
             Wrchr => self.cpu.wrchr(),
-            Pushg => self.cpu.pushg(instruction.immediate),
-            Popg => self.cpu.popg(instruction.immediate),
-            Asf => self.cpu.asf(instruction.immediate),
+            Pushg => self.cpu.pushg(immediate),
+            Popg => self.cpu.popg(immediate),
+            Asf => self.cpu.asf(immediate),
             Rsf => self.cpu.rsf(),
-            Pushl => self.cpu.pushl(instruction.immediate),
-            Popl => self.cpu.popl(instruction.immediate),
+            Pushl => self.cpu.pushl(immediate),
+            Popl => self.cpu.popl(immediate),
         }
     }
 }
