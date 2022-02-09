@@ -1,10 +1,11 @@
-use crate::{fatal_error, Bytecode, Immediate, InstructionCache, Stack};
+use crate::{fatal_error, Bytecode, Immediate, InstructionCache, Stack, StaticDataArea};
 use std::io::{BufRead, Write};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Processor<R, W> {
     pub stack: Stack<Immediate>,
     pub instruction_cache: InstructionCache<Bytecode>,
+    pub sda: StaticDataArea<Immediate>,
     reader: R,
     writer: W,
 }
@@ -18,6 +19,7 @@ where
         Self {
             stack: Stack::default(),
             instruction_cache: InstructionCache::default(),
+            sda: StaticDataArea::default(),
             reader,
             writer,
         }
@@ -206,5 +208,44 @@ mod tests {
         cpu.wrint();
         let output = String::from_utf8(output).expect("Not utf-8");
         assert_eq!(output, String::from("42"));
+    }
+    #[test]
+    fn test_rdchr() {
+        let input = b"1";
+        let mut cpu = Processor::new(&input[..], stdout());
+        cpu.rdchr();
+        assert_eq!(cpu.stack.sp, 1);
+        assert_eq!(cpu.stack.memory[0], 49)
+    }
+    #[test]
+    fn test_wrchr() {
+        let stdin = stdin();
+        let mut output = Vec::new();
+        let mut cpu = Processor::new(stdin.lock(), &mut output);
+        let immediate: Immediate = '1'.to_ascii_lowercase() as i32;
+        cpu.pushc(immediate);
+        cpu.wrchr();
+        let output = String::from_utf8(output).expect("Not utf-8");
+        assert_eq!(output, String::from("1"));
+    }
+    #[test]
+    fn test_pushg() {
+        let stdin = stdin();
+        let mut cpu = Processor::new(stdin.lock(), stdout());
+        let immediate: Immediate = 5;
+        cpu.pushg(immediate);
+        assert_eq!(cpu.stack.sp, 1);
+        assert_eq!(cpu.stack.memory[0], 1);
+    }
+    #[test]
+    fn test_popg() {
+    }#[test]
+    fn test_asf() {
+    }#[test]
+    fn test_rsf() {
+    }#[test]
+    fn test_pushl() {
+    }#[test]
+    fn test_popl() {
     }
 }
