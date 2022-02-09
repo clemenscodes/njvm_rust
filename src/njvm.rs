@@ -1,5 +1,4 @@
-use crate::{Bytecode, Instruction, Opcode::*, Processor};
-use lib::*;
+use crate::{utils::*, Bytecode, Instruction, Opcode::*, Processor};
 use std::io::{BufRead, Write};
 
 #[derive(Debug, Eq, PartialEq)]

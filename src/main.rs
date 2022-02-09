@@ -1,5 +1,3 @@
-extern crate lib;
-use lib::*;
 use std::env::args;
 use std::io::{BufRead, Write};
 pub mod njvm;
@@ -8,6 +6,8 @@ pub mod cpu;
 pub use cpu::*;
 pub mod memory;
 pub use memory::*;
+pub mod utils;
+pub use utils::*;
 
 fn main() {
     let stdin = std::io::stdin();
