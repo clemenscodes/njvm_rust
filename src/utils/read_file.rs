@@ -17,7 +17,11 @@ mod tests {
     #[test]
     fn test_read_file_works() {
         let path = "Cargo.toml";
-        read_file(path);
+        let f = read_file(path);
+        assert_eq!(f[18] as char, 'n');
+        assert_eq!(f[19] as char, 'j');
+        assert_eq!(f[20] as char, 'v');
+        assert_eq!(f[21] as char, 'm');
     }
     #[test]
     #[should_panic(expected = "Error: cannot open code file 'tests/data/a2/prog1.404'")]
