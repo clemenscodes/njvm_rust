@@ -1,53 +1,33 @@
 use crate::{fatal_error, Immediate, NinjaVM};
 use std::io::{BufRead, Write};
 
-pub trait Processor {
-    fn halt(&self);
-    fn pushc(&mut self, immediate: Immediate);
-    fn add(&mut self);
-    fn sub(&mut self);
-    fn mul(&mut self);
-    fn div(&mut self);
-    fn modulo(&mut self);
-    fn rdint(&mut self);
-    fn wrint(&mut self);
-    fn rdchr(&mut self);
-    fn wrchr(&mut self);
-    fn pushg(&mut self, immediate: Immediate);
-    fn popg(&mut self, immediate: Immediate);
-    fn asf(&mut self, immediate: Immediate);
-    fn rsf(&mut self);
-    fn pushl(&mut self, immediate: Immediate);
-    fn popl(&mut self, immediate: Immediate);
-}
-
-impl<R, W> Processor for NinjaVM<R, W>
+impl<R, W> NinjaVM<R, W>
 where
     R: BufRead,
     W: Write,
 {
-    fn halt(&self) {
+    pub fn halt(&self) {
         println!("Ninja Virtual Machine stopped");
     }
-    fn pushc(&mut self, immediate: Immediate) {
+    pub fn pushc(&mut self, immediate: Immediate) {
         self.stack.push(immediate);
     }
-    fn add(&mut self) {
+    pub fn add(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 + n2);
     }
-    fn sub(&mut self) {
+    pub fn sub(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 - n2);
     }
-    fn mul(&mut self) {
+    pub fn mul(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 * n2);
     }
-    fn div(&mut self) {
+    pub fn div(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
@@ -55,7 +35,7 @@ where
         }
         self.stack.push(n1 / n2);
     }
-    fn modulo(&mut self) {
+    pub fn modulo(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
@@ -63,7 +43,7 @@ where
         }
         self.stack.push(n1 % n2);
     }
-    fn rdint(&mut self) {
+    pub fn rdint(&mut self) {
         let mut input = String::new();
         match self.reader.read_line(&mut input) {
             Ok(line) => line,
@@ -75,13 +55,13 @@ where
         };
         self.stack.push(immediate)
     }
-    fn wrint(&mut self) {
+    pub fn wrint(&mut self) {
         match write!(self.writer, "{}", self.stack.pop()) {
             Ok(_) => {}
             Err(_) => fatal_error("Error: unable to write"),
         }
     }
-    fn rdchr(&mut self) {
+    pub fn rdchr(&mut self) {
         let mut input = String::new();
         match self.reader.read_line(&mut input) {
             Ok(line) => line,
@@ -93,41 +73,41 @@ where
         } as Immediate;
         self.stack.push(immediate)
     }
-    fn wrchr(&mut self) {
+    pub fn wrchr(&mut self) {
         let character = self.stack.pop() as u8 as char;
         match write!(self.writer, "{character}") {
             Ok(_) => {}
             Err(_) => fatal_error("Error: unable to write"),
         }
     }
-    fn pushg(&mut self, immediate: Immediate) {
+    pub fn pushg(&mut self, immediate: Immediate) {
         self.stack.push(self.sda.memory[immediate as usize]);
     }
-    fn popg(&mut self, immediate: Immediate) {
+    pub fn popg(&mut self, immediate: Immediate) {
         self.sda.memory[immediate as usize] = self.stack.pop();
     }
-    fn asf(&mut self, immediate: Immediate) {
+    pub fn asf(&mut self, immediate: Immediate) {
         self.stack.push(self.stack.fp as Immediate);
         self.stack.fp = self.stack.sp;
         let mut stack_size = self.stack.memory.len();
         stack_size += immediate as usize;
         self.stack.memory.resize(stack_size, 0);
-        self.stack.sp += immediate as u32;
+        self.stack.sp += immediate as usize;
     }
-    fn rsf(&mut self) {
+    pub fn rsf(&mut self) {
         let fp = self.stack.fp as usize;
         let sp = self.stack.sp as usize;
         let stack_size = self.stack.memory.len() - (sp - fp);
         self.stack.memory.resize(stack_size, 0);
         self.stack.sp = self.stack.fp;
-        self.stack.fp = self.stack.pop() as u32;
+        self.stack.fp = self.stack.pop() as usize;
     }
-    fn pushl(&mut self, immediate: Immediate) {
+    pub fn pushl(&mut self, immediate: Immediate) {
         let fp = self.stack.fp as usize;
         let n = immediate as usize;
         self.stack.push(self.stack.memory[fp + n]);
     }
-    fn popl(&mut self, immediate: Immediate) {
+    pub fn popl(&mut self, immediate: Immediate) {
         let n = immediate as usize;
         let fp = self.stack.fp as usize;
         let sp = self.stack.sp as usize;
@@ -137,7 +117,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Immediate, NinjaVM, Processor, StaticDataArea};
+    use crate::{Immediate, NinjaVM, StaticDataArea};
     use std::io::{stdin, stdout};
     #[test]
     fn test_pushc() {
@@ -279,7 +259,7 @@ mod tests {
         let immediate = 100 as Immediate;
         let sp = vm.stack.sp;
         vm.asf(immediate);
-        assert_eq!(vm.stack.sp, (immediate + 1) as u32);
+        assert_eq!(vm.stack.sp, (immediate + 1) as usize);
         assert_eq!(vm.stack.fp, sp + 1);
         for i in 0..immediate as usize {
             assert_eq!(vm.stack.memory[i], 0)
@@ -296,7 +276,26 @@ mod tests {
         assert_eq!(vm.stack.memory.len(), 0);
     }
     #[test]
-    fn test_pushl() {}
+    fn test_pushl() {
+        let mut vm = NinjaVM::default();
+        let value_of_local_var = 10;
+        let nth_local_var = 2;
+        vm.asf(2);
+        vm.pushc(value_of_local_var);
+        vm.popl(nth_local_var);
+        let sp = vm.stack.sp;
+        vm.pushl(nth_local_var);
+        assert_eq!(vm.stack.sp, sp + 1);
+        assert_eq!(vm.stack.memory[vm.stack.sp - 1], value_of_local_var);
+    }
     #[test]
-    fn test_popl() {}
+    fn test_popl() {
+        let mut vm = NinjaVM::default();
+        let value_of_local_var = 10;
+        let nth_local_var: usize = 0;
+        vm.asf(2);
+        vm.pushc(value_of_local_var);
+        vm.popl(nth_local_var as i32);
+        assert_eq!(vm.stack.memory[vm.stack.fp + nth_local_var], value_of_local_var);
+    }
 }

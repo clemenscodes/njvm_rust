@@ -1,6 +1,4 @@
-use crate::{
-    utils::*, Bytecode, Immediate, Instruction, InstructionCache, Opcode::*, Processor, Stack, StaticDataArea,
-};
+use crate::{utils::*, Bytecode, Immediate, Instruction, InstructionCache, Opcode::*, Stack, StaticDataArea};
 use std::io::{BufRead, Write};
 
 #[derive(Debug, Eq, PartialEq)]
@@ -63,8 +61,8 @@ where
         }
     }
     pub fn execute_binary(&mut self, bin: &str) {
-        let mut instructions = self.load_binary(bin);
-        self.load_instructions(&mut instructions);
+        let instructions = self.load_binary(bin);
+        self.load_instructions(&instructions);
         self.init();
         self.instruction_cache.print();
         self.work();
@@ -85,8 +83,8 @@ where
         self.instruction_cache = InstructionCache::new(instruction_count, 0);
         instructions
     }
-    fn load_instructions(&mut self, instructions: &mut Vec<u8>) {
-        instructions.chunks_mut(4).for_each(|c| {
+    fn load_instructions(&mut self, instructions: &[u8]) {
+        instructions.chunks(4).for_each(|c| {
             let instruction = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
             let instruction = Instruction::decode_instruction(instruction);
             let opcode = instruction.opcode;

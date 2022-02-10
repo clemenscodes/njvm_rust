@@ -2,8 +2,8 @@ use crate::{fatal_error, Immediate};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Stack<T> {
-    pub sp: u32,
-    pub fp: u32,
+    pub sp: usize,
+    pub fp: usize,
     pub memory: Vec<T>,
 }
 

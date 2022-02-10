@@ -5,4 +5,3 @@ pub use opcode::Opcode;
 pub mod immediate;
 pub mod processor;
 pub use immediate::{Decoding, Encoding, Immediate};
-pub use processor::Processor;
