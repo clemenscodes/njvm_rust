@@ -5,7 +5,7 @@ pub type Bytecode = u32;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct InstructionCache<U> {
     pub pc: u32,
-    pub instructions: Vec<U>,
+    pub register: Vec<U>,
 }
 
 impl Default for InstructionCache<Bytecode> {
@@ -18,19 +18,16 @@ impl InstructionCache<Bytecode> {
     pub fn new(size: usize, value: Bytecode) -> Self {
         let mut register: Vec<Bytecode> = Vec::new();
         register.resize(size, value);
-        InstructionCache {
-            pc: 0,
-            instructions: register,
-        }
+        InstructionCache { pc: 0, register }
     }
     pub fn register_instruction(&mut self, opcode: Opcode, immediate: Immediate) {
         let instruction: Bytecode = Instruction::encode_instruction(opcode, immediate);
-        self.instructions[self.pc as usize] = instruction;
+        self.register[self.pc as usize] = instruction;
         self.pc += 1;
     }
     pub fn print(&self) {
         for i in 0..self.pc {
-            let instruction: Instruction = Instruction::decode_instruction(self.instructions[i as usize]);
+            let instruction: Instruction = Instruction::decode_instruction(self.register[i as usize]);
             let immediate = instruction.immediate;
             match instruction.opcode {
                 Halt => println!("{i:03}:\thalt"),
@@ -62,16 +59,16 @@ mod tests {
     fn test_program_memory() {
         let instruction_cache = InstructionCache::default();
         assert_eq!(instruction_cache.pc, 0);
-        assert_eq!(instruction_cache.instructions.len(), 0);
+        assert_eq!(instruction_cache.register.len(), 0);
     }
     #[test]
     fn test_register_instruction() {
         let mut instruction_cache = InstructionCache::new(2, 0);
         instruction_cache.register_instruction(Pushc, 1);
         assert_eq!(instruction_cache.pc, 1);
-        assert_eq!(instruction_cache.instructions[0], 0x01000001);
+        assert_eq!(instruction_cache.register[0], 0x01000001);
         instruction_cache.register_instruction(Pushc, 2);
         assert_eq!(instruction_cache.pc, 2);
-        assert_eq!(instruction_cache.instructions[1], 0x01000002);
+        assert_eq!(instruction_cache.register[1], 0x01000002);
     }
 }

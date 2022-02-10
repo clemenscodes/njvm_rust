@@ -1,33 +1,53 @@
 use crate::{fatal_error, Immediate, NinjaVM};
 use std::io::{BufRead, Write};
 
-impl<R, W> NinjaVM<R, W>
+pub trait Processor {
+    fn halt(&self);
+    fn pushc(&mut self, immediate: Immediate);
+    fn add(&mut self);
+    fn sub(&mut self);
+    fn mul(&mut self);
+    fn div(&mut self);
+    fn modulo(&mut self);
+    fn rdint(&mut self);
+    fn wrint(&mut self);
+    fn rdchr(&mut self);
+    fn wrchr(&mut self);
+    fn pushg(&mut self, immediate: Immediate);
+    fn popg(&mut self, immediate: Immediate);
+    fn asf(&mut self, immediate: Immediate);
+    fn rsf(&mut self);
+    fn pushl(&mut self, immediate: Immediate);
+    fn popl(&mut self, immediate: Immediate);
+}
+
+impl<R, W> Processor for NinjaVM<R, W>
 where
     R: BufRead,
     W: Write,
 {
-    pub fn halt(&self) {
+    fn halt(&self) {
         println!("Ninja Virtual Machine stopped");
     }
-    pub fn pushc(&mut self, immediate: Immediate) {
+    fn pushc(&mut self, immediate: Immediate) {
         self.stack.push(immediate);
     }
-    pub fn add(&mut self) {
+    fn add(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 + n2);
     }
-    pub fn sub(&mut self) {
+    fn sub(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 - n2);
     }
-    pub fn mul(&mut self) {
+    fn mul(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 * n2);
     }
-    pub fn div(&mut self) {
+    fn div(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
@@ -35,7 +55,7 @@ where
         }
         self.stack.push(n1 / n2);
     }
-    pub fn modulo(&mut self) {
+    fn modulo(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
@@ -43,48 +63,61 @@ where
         }
         self.stack.push(n1 % n2);
     }
-    pub fn rdint(&mut self) {
+    fn rdint(&mut self) {
         let mut input = String::new();
         self.reader.read_line(&mut input).expect("Failed to read line");
         let immediate: Immediate = input.trim().parse::<i32>().expect("Input not an integer");
         self.stack.push(immediate)
     }
-    pub fn wrint(&mut self) {
+    fn wrint(&mut self) {
         write!(self.writer, "{}", self.stack.pop()).expect("Unable to write")
     }
-    pub fn rdchr(&mut self) {
+    fn rdchr(&mut self) {
         let mut input = String::new();
         self.reader.read_line(&mut input).expect("Failed to read line");
         let immediate = input.trim().chars().next().expect("Failed to read character") as Immediate;
         self.stack.push(immediate)
     }
-    pub fn wrchr(&mut self) {
+    fn wrchr(&mut self) {
         let character = self.stack.pop() as u8 as char;
         write!(self.writer, "{character}").expect("Unable to write")
     }
-    pub fn pushg(&mut self, immediate: Immediate) {
+    fn pushg(&mut self, immediate: Immediate) {
         self.stack.push(self.sda.memory[immediate as usize]);
     }
-    pub fn popg(&mut self, immediate: Immediate) {
+    fn popg(&mut self, immediate: Immediate) {
         self.sda.memory[immediate as usize] = self.stack.pop();
     }
-    pub fn asf(&mut self, immediate: Immediate) {
-        println!("Called asf with immediate {immediate}");
+    fn asf(&mut self, immediate: Immediate) {
+        self.stack.push(self.stack.fp as Immediate);
+        self.stack.fp = self.stack.sp;
+        let mut stack_size = self.stack.memory.len();
+        stack_size += immediate as usize;
+        self.stack.memory.resize(stack_size, 0);
+        self.stack.sp += immediate as u32;
     }
-    pub fn rsf(&mut self) {
-        println!("Called rsf");
+    fn rsf(&mut self) {
+        let stack_size = self.stack.memory.len() - (self.stack.sp as usize - self.stack.fp as usize);
+        self.stack.memory.resize(stack_size, 0);
+        self.stack.sp = self.stack.fp;
+        self.stack.fp = self.stack.pop() as u32;
     }
-    pub fn pushl(&mut self, immediate: Immediate) {
-        println!("Called pushl with immediate {immediate}");
+    fn pushl(&mut self, immediate: Immediate) {
+        let fp = self.stack.fp as usize;
+        let n = immediate as usize;
+        self.stack.push(self.stack.memory[fp + n]);
     }
-    pub fn popl(&mut self, immediate: Immediate) {
-        println!("Called popl with immediate {immediate}");
+    fn popl(&mut self, immediate: Immediate) {
+        let fp = self.stack.fp as usize;
+        let n = immediate as usize;
+        let sp = self.stack.sp as usize;
+        self.stack.memory[fp + n] = self.stack.memory[sp - 1];
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Immediate, NinjaVM, StaticDataArea};
+    use crate::{Immediate, NinjaVM, Processor, StaticDataArea};
     use std::io::{stdin, stdout};
     #[test]
     fn test_pushc() {

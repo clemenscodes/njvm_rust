@@ -1,4 +1,6 @@
-use crate::{utils::*, Bytecode, Immediate, Instruction, InstructionCache, Opcode::*, Stack, StaticDataArea};
+use crate::{
+    utils::*, Bytecode, Immediate, Instruction, InstructionCache, Opcode::*, Processor, Stack, StaticDataArea,
+};
 use std::io::{BufRead, Write};
 
 #[derive(Debug, Eq, PartialEq)]
@@ -57,7 +59,7 @@ where
     }
     pub fn work(&mut self) {
         for i in 0..self.instruction_cache.pc {
-            self.execute_instruction(self.instruction_cache.instructions[i as usize]);
+            self.execute_instruction(self.instruction_cache.register[i as usize]);
         }
     }
     pub fn execute_binary(&mut self, bin: &str) {
@@ -106,7 +108,7 @@ mod tests {
         assert_eq!(vm.stack.sp, 0);
         assert_eq!(vm.stack.memory.len(), 0);
         assert_eq!(vm.instruction_cache.pc, 0);
-        assert_eq!(vm.instruction_cache.instructions.len(), 0);
+        assert_eq!(vm.instruction_cache.register.len(), 0);
     }
     #[test]
     fn test_execute_binary() {
@@ -143,7 +145,7 @@ mod tests {
         let mut vm = NinjaVM::default();
         let path = "tests/data/a2/prog1.bin";
         vm.load_binary(path);
-        assert_eq!(vm.instruction_cache.instructions.len(), 19)
+        assert_eq!(vm.instruction_cache.register.len(), 19)
     }
     #[test]
     #[should_panic(expected = "Error: cannot open code file 'tests/data/a2/prog1.404'")]
