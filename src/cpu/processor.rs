@@ -65,22 +65,40 @@ where
     }
     fn rdint(&mut self) {
         let mut input = String::new();
-        self.reader.read_line(&mut input).expect("Failed to read line");
-        let immediate: Immediate = input.trim().parse::<i32>().expect("Input not an integer");
+        match self.reader.read_line(&mut input) {
+            Ok(line) => line,
+            Err(_) => fatal_error("Error: failed to read line"),
+        };
+        let immediate: Immediate = match input.trim().parse::<i32>() {
+            Ok(line) => line,
+            Err(_) => fatal_error("Error: input not an integer"),
+        };
         self.stack.push(immediate)
     }
     fn wrint(&mut self) {
-        write!(self.writer, "{}", self.stack.pop()).expect("Unable to write")
+        match write!(self.writer, "{}", self.stack.pop()) {
+            Ok(_) => {}
+            Err(_) => fatal_error("Error: unable to write"),
+        }
     }
     fn rdchr(&mut self) {
         let mut input = String::new();
-        self.reader.read_line(&mut input).expect("Failed to read line");
-        let immediate = input.trim().chars().next().expect("Failed to read character") as Immediate;
+        match self.reader.read_line(&mut input) {
+            Ok(line) => line,
+            Err(_) => fatal_error("Error: failed to read line"),
+        };
+        let immediate = match input.trim().chars().next() {
+            Some(char) => char,
+            None => fatal_error("Error: failed to read character"),
+        } as Immediate;
         self.stack.push(immediate)
     }
     fn wrchr(&mut self) {
         let character = self.stack.pop() as u8 as char;
-        write!(self.writer, "{character}").expect("Unable to write")
+        match write!(self.writer, "{character}") {
+            Ok(_) => {}
+            Err(_) => fatal_error("Error: unable to write"),
+        }
     }
     fn pushg(&mut self, immediate: Immediate) {
         self.stack.push(self.sda.memory[immediate as usize]);
