@@ -12,6 +12,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "should panic")]
     fn test_fatal_error() {
+        std::panic::set_hook(Box::new(|_| {}));
         fatal_error("should panic")
     }
 }

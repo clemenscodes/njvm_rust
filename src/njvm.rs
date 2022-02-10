@@ -75,10 +75,10 @@ where
         verify_arg(arg);
         let mut file = read_file(arg);
         let instructions = split_file_metadata(&mut file);
-        check_ninja_format(&mut file, arg);
-        check_ninja_version(&mut file);
-        let variable_count = check_variables(&mut file);
-        let instruction_count = check_instructions(&mut file);
+        check_ninja_format(&file, arg);
+        check_ninja_version(&file);
+        let variable_count = check_variables(&file);
+        let instruction_count = check_instructions(&file);
         self.sda = StaticDataArea::new(variable_count, 0);
         self.instruction_cache = InstructionCache::new(instruction_count, 0);
         instructions
