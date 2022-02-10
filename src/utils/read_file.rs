@@ -1,4 +1,9 @@
+use crate::fatal_error;
+
 pub fn read_file(arg: &str) -> Vec<u8> {
+    if arg.is_empty() {
+        fatal_error("Error: no code file specified");
+    }
     match std::fs::read(arg) {
         Ok(file) => file,
         Err(_) => {
@@ -24,10 +29,9 @@ mod tests {
         assert_eq!(f[21] as char, 'm');
     }
     #[test]
-    #[should_panic(expected = "Error: cannot open code file 'tests/data/a2/prog1.404'")]
+    #[should_panic(expected = "Error: cannot open code file '/'")]
     fn test_read_file_fails() {
         std::panic::set_hook(Box::new(|_| {}));
-        let path = "tests/data/a2/prog1.404";
-        read_file(path);
+        read_file("/");
     }
 }
