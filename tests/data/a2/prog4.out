@@ -1,0 +1,22 @@
+Ninja Virtual Machine started
+000:	asf	4
+001:	pushc	-6
+002:	popl	0
+003:	pushc	2
+004:	popl	1
+005:	pushc	4
+006:	popl	2
+007:	pushl	0
+008:	pushl	1
+009:	pushl	2
+010:	add
+011:	add
+012:	popl	3
+013:	pushl	3
+014:	wrint
+015:	pushc	10
+016:	wrchr
+017:	rsf
+018:	halt
+0
+Ninja Virtual Machine stopped

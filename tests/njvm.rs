@@ -51,6 +51,12 @@ pub fn prog3_works() -> Result<()> {
 }
 
 #[test]
+pub fn prog4_works() -> Result<()> {
+    let output = read_file("tests/data/a2/prog4.out")?;
+    test_output("tests/data/a2/prog4.bin", &output)
+}
+
+#[test]
 pub fn prog1_1_works() -> Result<()> {
     let output = read_file("tests/data/a1/prog1.out")?;
     test_output("tests/data/a1/prog1.bin", &output)

@@ -18,6 +18,7 @@ Ninja Virtual Machine started
 016:	wrint
 017:	pushc	10
 018:	wrchr
-019:	halt
+019:	rsf
+020:	halt
 -24
 Ninja Virtual Machine stopped

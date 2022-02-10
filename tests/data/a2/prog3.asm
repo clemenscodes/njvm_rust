@@ -30,4 +30,5 @@
     wrint
     pushc   '\n'
     wrchr   
+    rsf
     halt
