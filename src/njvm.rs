@@ -1,9 +1,13 @@
-use crate::{utils::*, Bytecode, Instruction, Opcode::*, Processor};
+use crate::{utils::*, Bytecode, Immediate, Instruction, InstructionCache, Opcode::*, Stack, StaticDataArea};
 use std::io::{BufRead, Write};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct NinjaVM<R, W> {
-    pub cpu: Processor<R, W>,
+    pub stack: Stack<Immediate>,
+    pub instruction_cache: InstructionCache<Bytecode>,
+    pub sda: StaticDataArea<Immediate>,
+    pub reader: R,
+    pub writer: W,
 }
 
 impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
@@ -21,54 +25,63 @@ where
 {
     pub fn new(reader: R, writer: W) -> Self {
         Self {
-            cpu: Processor::new(reader, writer),
+            stack: Stack::default(),
+            instruction_cache: InstructionCache::default(),
+            sda: StaticDataArea::default(),
+            reader,
+            writer,
         }
     }
     pub fn execute_instruction(&mut self, bytecode: Bytecode) {
         let instruction = Instruction::decode_instruction(bytecode);
         let immediate = instruction.immediate;
         match instruction.opcode {
-            Halt => self.cpu.halt(),
-            Pushc => self.cpu.pushc(immediate),
-            Add => self.cpu.add(),
-            Sub => self.cpu.sub(),
-            Mul => self.cpu.mul(),
-            Div => self.cpu.div(),
-            Mod => self.cpu.modulo(),
-            Rdint => self.cpu.rdint(),
-            Wrint => self.cpu.wrint(),
-            Rdchr => self.cpu.rdchr(),
-            Wrchr => self.cpu.wrchr(),
-            Pushg => self.cpu.pushg(immediate),
-            Popg => self.cpu.popg(immediate),
-            Asf => self.cpu.asf(immediate),
-            Rsf => self.cpu.rsf(),
-            Pushl => self.cpu.pushl(immediate),
-            Popl => self.cpu.popl(immediate),
+            Halt => self.halt(),
+            Pushc => self.pushc(immediate),
+            Add => self.add(),
+            Sub => self.sub(),
+            Mul => self.mul(),
+            Div => self.div(),
+            Mod => self.modulo(),
+            Rdint => self.rdint(),
+            Wrint => self.wrint(),
+            Rdchr => self.rdchr(),
+            Wrchr => self.wrchr(),
+            Pushg => self.pushg(immediate),
+            Popg => self.popg(immediate),
+            Asf => self.asf(immediate),
+            Rsf => self.rsf(),
+            Pushl => self.pushl(immediate),
+            Popl => self.popl(immediate),
         }
     }
     pub fn work(&mut self) {
-        for i in 0..self.cpu.instruction_cache.pc {
-            self.execute_instruction(self.cpu.instruction_cache.instructions[i as usize]);
+        for i in 0..self.instruction_cache.pc {
+            self.execute_instruction(self.instruction_cache.instructions[i as usize]);
         }
     }
     pub fn execute_binary(&mut self, bin: &str) {
-        self.load_binary(bin);
+        let mut instructions = self.load_binary(bin);
+        self.load_instructions(&mut instructions);
         self.init();
-        self.cpu.instruction_cache.print();
+        self.instruction_cache.print();
         self.work();
     }
     pub fn debug_binary(&mut self, bin: &str) {
         println!("Debugging binary: {bin}");
         self.load_binary(bin);
     }
-    fn load_binary(&mut self, arg: &str) {
+    fn load_binary(&mut self, arg: &str) -> Vec<u8> {
         verify_arg(arg);
         let mut file = read_file(arg);
-        let mut instructions = split_file_metadata(&mut file);
+        let instructions = split_file_metadata(&mut file);
         check_ninja_format(&mut file, arg);
         check_ninja_version(&mut file);
-        self.load_instructions(&mut instructions);
+        let variable_count = check_variables(&mut file);
+        let instruction_count = check_instructions(&mut file);
+        self.sda = StaticDataArea::new(variable_count, 0);
+        self.instruction_cache = InstructionCache::new(instruction_count, 0);
+        instructions
     }
     fn load_instructions(&mut self, instructions: &mut Vec<u8>) {
         instructions.chunks_mut(4).for_each(|c| {
@@ -76,7 +89,7 @@ where
             let instruction = Instruction::decode_instruction(instruction);
             let opcode = instruction.opcode;
             let immediate = instruction.immediate;
-            self.cpu.instruction_cache.register_instruction(opcode, immediate);
+            self.instruction_cache.register_instruction(opcode, immediate);
         });
     }
     fn init(&mut self) {
@@ -86,14 +99,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Instruction, NinjaVM, Opcode::*};
+    use crate::{Instruction, InstructionCache, NinjaVM, Opcode::*};
     #[test]
     fn test_ninja_vm() {
         let vm = NinjaVM::default();
-        assert_eq!(vm.cpu.stack.sp, 0);
-        assert_eq!(vm.cpu.stack.memory.len(), 0);
-        assert_eq!(vm.cpu.instruction_cache.pc, 0);
-        assert_eq!(vm.cpu.instruction_cache.instructions.len(), 0);
+        assert_eq!(vm.stack.sp, 0);
+        assert_eq!(vm.stack.memory.len(), 0);
+        assert_eq!(vm.instruction_cache.pc, 0);
+        assert_eq!(vm.instruction_cache.instructions.len(), 0);
     }
     #[test]
     fn test_execute_binary() {
@@ -103,20 +116,21 @@ mod tests {
     #[test]
     fn test_work() {
         let mut vm = NinjaVM::default();
-        vm.cpu.instruction_cache.register_instruction(Pushc, 1);
-        vm.cpu.instruction_cache.register_instruction(Pushc, 2);
-        vm.cpu.instruction_cache.register_instruction(Add, 0);
+        vm.instruction_cache = InstructionCache::new(3, 0);
+        vm.instruction_cache.register_instruction(Pushc, 1);
+        vm.instruction_cache.register_instruction(Pushc, 2);
+        vm.instruction_cache.register_instruction(Add, 0);
         vm.work();
-        assert_eq!(vm.cpu.stack.sp, 1);
-        assert_eq!(vm.cpu.stack.memory[0], 3);
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 3);
     }
     #[test]
     fn test_execute_instruction() {
         let mut vm = NinjaVM::default();
         let instruction = Instruction::encode_instruction(Pushc, 1);
         vm.execute_instruction(instruction);
-        assert_eq!(vm.cpu.stack.sp, 1);
-        assert_eq!(vm.cpu.stack.memory[0], 1);
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 1);
     }
     #[test]
     fn test_load_instruction() {
@@ -129,7 +143,7 @@ mod tests {
         let mut vm = NinjaVM::default();
         let path = "tests/data/a2/prog1.bin";
         vm.load_binary(path);
-        assert_eq!(vm.cpu.instruction_cache.instructions.len(), 19)
+        assert_eq!(vm.instruction_cache.instructions.len(), 19)
     }
     #[test]
     #[should_panic(expected = "Error: cannot open code file 'tests/data/a2/prog1.404'")]

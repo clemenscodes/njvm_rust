@@ -1,5 +1,9 @@
 pub mod check_ninja_format;
 pub use check_ninja_format::check_ninja_format;
+pub mod check_variables;
+pub use check_variables::check_variables;
+pub mod check_instructions;
+pub use check_instructions::check_instructions;
 pub mod check_ninja_version;
 pub use check_ninja_version::{check_ninja_version, VERSION};
 pub mod read_file;

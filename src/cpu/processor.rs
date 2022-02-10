@@ -1,37 +1,11 @@
-use crate::{fatal_error, Bytecode, Immediate, InstructionCache, Stack, StaticDataArea};
+use crate::{fatal_error, Immediate, NinjaVM};
 use std::io::{BufRead, Write};
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Processor<R, W> {
-    pub stack: Stack<Immediate>,
-    pub instruction_cache: InstructionCache<Bytecode>,
-    pub sda: StaticDataArea<Immediate>,
-    reader: R,
-    writer: W,
-}
-
-impl Default for Processor<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
-    fn default() -> Self {
-        let stdin = Box::leak(Box::new(std::io::stdin()));
-        let stdout = Box::leak(Box::new(std::io::stdout()));
-        Processor::new(stdin.lock(), stdout.lock())
-    }
-}
-
-impl<R, W> Processor<R, W>
+impl<R, W> NinjaVM<R, W>
 where
     R: BufRead,
     W: Write,
 {
-    pub fn new(reader: R, writer: W) -> Self {
-        Self {
-            stack: Stack::default(),
-            instruction_cache: InstructionCache::default(),
-            sda: StaticDataArea::default(),
-            reader,
-            writer,
-        }
-    }
     pub fn halt(&self) {
         println!("Ninja Virtual Machine stopped");
     }
@@ -89,10 +63,10 @@ where
         write!(self.writer, "{character}").expect("Unable to write")
     }
     pub fn pushg(&mut self, immediate: Immediate) {
-        println!("Called pushg with immediate {immediate}");
+        self.stack.push(self.sda.memory[immediate as usize]);
     }
     pub fn popg(&mut self, immediate: Immediate) {
-        println!("Called popg with immediate {immediate}");
+        self.sda.memory[immediate as usize] = self.stack.pop();
     }
     pub fn asf(&mut self, immediate: Immediate) {
         println!("Called asf with immediate {immediate}");
@@ -110,128 +84,142 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{Immediate, NinjaVM, StaticDataArea};
     use std::io::{stdin, stdout};
     #[test]
     fn test_pushc() {
-        let mut cpu = Processor::default();
-        cpu.pushc(2);
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], 2);
+        let mut vm = NinjaVM::default();
+        vm.pushc(2);
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 2);
     }
     #[test]
     fn test_add() {
-        let mut cpu = Processor::default();
-        cpu.pushc(-1);
-        cpu.pushc(2);
-        cpu.add();
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], 1);
+        let mut vm = NinjaVM::default();
+        vm.pushc(-1);
+        vm.pushc(2);
+        vm.add();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 1);
     }
     #[test]
     fn test_sub() {
-        let mut cpu = Processor::default();
-        cpu.pushc(1);
-        cpu.pushc(2);
-        cpu.sub();
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], -1);
+        let mut vm = NinjaVM::default();
+        vm.pushc(1);
+        vm.pushc(2);
+        vm.sub();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], -1);
     }
     #[test]
     fn test_mul() {
-        let mut cpu = Processor::default();
-        cpu.pushc(-1);
-        cpu.pushc(-2);
-        cpu.mul();
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], 2);
+        let mut vm = NinjaVM::default();
+        vm.pushc(-1);
+        vm.pushc(-2);
+        vm.mul();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 2);
     }
     #[test]
     fn test_div() {
-        let mut cpu = Processor::default();
-        cpu.pushc(-7);
-        cpu.pushc(-2);
-        cpu.div();
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], 3);
-        cpu.pushc(-3);
-        cpu.div();
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], -1);
+        let mut vm = NinjaVM::default();
+        vm.pushc(-7);
+        vm.pushc(-2);
+        vm.div();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 3);
+        vm.pushc(-3);
+        vm.div();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], -1);
     }
     #[test]
     #[should_panic(expected = "Division by zero error")]
     fn test_division_by_zero_should_fail() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut cpu = Processor::default();
-        cpu.pushc(-2);
-        cpu.pushc(4);
-        cpu.pushc(-4);
-        cpu.add();
-        cpu.div();
+        let mut vm = NinjaVM::default();
+        vm.pushc(-2);
+        vm.pushc(4);
+        vm.pushc(-4);
+        vm.add();
+        vm.div();
     }
     #[test]
     fn test_modulo() {
-        let mut cpu = Processor::default();
-        cpu.pushc(-9);
-        cpu.pushc(4);
-        cpu.modulo();
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], -1);
+        let mut vm = NinjaVM::default();
+        vm.pushc(-9);
+        vm.pushc(4);
+        vm.modulo();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], -1);
     }
     #[test]
     #[should_panic(expected = "Division by zero error")]
     fn test_modulo_with_zero_should_fail() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut cpu = Processor::default();
-        cpu.pushc(-2);
-        cpu.pushc(4);
-        cpu.pushc(-4);
-        cpu.add();
-        cpu.modulo();
+        let mut vm = NinjaVM::default();
+        vm.pushc(-2);
+        vm.pushc(4);
+        vm.pushc(-4);
+        vm.add();
+        vm.modulo();
     }
     #[test]
     fn test_rdint() {
         let input = b"1";
-        let mut cpu = Processor::new(&input[..], stdout());
-        cpu.rdint();
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], 1)
+        let mut vm = NinjaVM::new(&input[..], stdout());
+        vm.rdint();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 1)
     }
     #[test]
     fn test_wrint() {
         let stdin = stdin();
         let mut output = Vec::new();
-        let mut cpu = Processor::new(stdin.lock(), &mut output);
+        let mut vm = NinjaVM::new(stdin.lock(), &mut output);
         let immediate: Immediate = 42;
-        cpu.pushc(immediate);
-        cpu.wrint();
+        vm.pushc(immediate);
+        vm.wrint();
         let output = String::from_utf8(output).expect("Not utf-8");
         assert_eq!(output, String::from("42"));
     }
     #[test]
     fn test_rdchr() {
         let input = b"1";
-        let mut cpu = Processor::new(&input[..], stdout());
-        cpu.rdchr();
-        assert_eq!(cpu.stack.sp, 1);
-        assert_eq!(cpu.stack.memory[0], 49)
+        let mut vm = NinjaVM::new(&input[..], stdout());
+        vm.rdchr();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.memory[0], 49)
     }
     #[test]
     fn test_wrchr() {
         let stdin = stdin();
         let mut output = Vec::new();
-        let mut cpu = Processor::new(stdin.lock(), &mut output);
+        let mut vm = NinjaVM::new(stdin.lock(), &mut output);
         let immediate: Immediate = '1'.to_ascii_lowercase() as i32;
-        cpu.pushc(immediate);
-        cpu.wrchr();
+        vm.pushc(immediate);
+        vm.wrchr();
         let output = String::from_utf8(output).expect("Not utf-8");
         assert_eq!(output, String::from("1"));
     }
     #[test]
-    fn test_pushg() {}
+    fn test_pushg() {
+        let mut vm = NinjaVM::default();
+        vm.sda = StaticDataArea::new(1, 0);
+        let value = 2;
+        vm.sda.memory[0] = value;
+        vm.pushg(0);
+        assert_eq!(vm.sda.memory[0], value);
+    }
     #[test]
-    fn test_popg() {}
+    fn test_popg() {
+        let mut vm = NinjaVM::default();
+        vm.sda = StaticDataArea::new(1, 0);
+        let value = 2;
+        vm.stack.push(value);
+        vm.popg(0);
+        assert_eq!(vm.sda.memory[0], value);
+    }
     #[test]
     fn test_asf() {}
     #[test]

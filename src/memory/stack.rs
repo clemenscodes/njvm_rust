@@ -3,13 +3,11 @@ use crate::{fatal_error, Immediate};
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Stack<T> {
     pub sp: u32,
+    pub fp: u32,
     pub memory: Vec<T>,
 }
 
-impl Default for Stack<Immediate>
-where
-    Immediate: std::fmt::Debug + std::fmt::Display,
-{
+impl Default for Stack<Immediate> {
     fn default() -> Self {
         Self::new()
     }
@@ -20,7 +18,11 @@ where
     T: std::fmt::Debug + std::fmt::Display,
 {
     pub fn new() -> Self {
-        Stack { sp: 0, memory: vec![] }
+        Stack {
+            sp: 0,
+            fp: 0,
+            memory: vec![],
+        }
     }
     pub fn push(&mut self, immediate: T) {
         self.memory.push(immediate);

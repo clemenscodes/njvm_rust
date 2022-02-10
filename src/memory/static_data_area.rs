@@ -5,24 +5,20 @@ pub struct StaticDataArea<T> {
     pub memory: Vec<T>,
 }
 
-impl Default for StaticDataArea<Immediate>
-where
-    Immediate: std::fmt::Debug + std::fmt::Display,
-{
+impl Default for StaticDataArea<Immediate> {
     fn default() -> Self {
-        Self::new()
+        Self::new(0, 0)
     }
 }
 
 impl<T> StaticDataArea<T>
 where
-    T: std::fmt::Debug + std::fmt::Display,
+    T: Clone + std::fmt::Debug + std::fmt::Display,
 {
-    pub fn new() -> Self {
-        StaticDataArea { memory: Vec::new() }
-    }
-    pub fn push(&mut self, immediate: T) {
-        self.memory.push(immediate);
+    pub fn new(size: usize, value: T) -> Self {
+        let mut memory = Vec::new();
+        memory.resize(size, value);
+        StaticDataArea { memory }
     }
     pub fn print(&self) {
         println!("{self:#?}");
@@ -36,11 +32,5 @@ mod tests {
     fn test_sda() {
         let sda = StaticDataArea::default();
         assert_eq!(sda.memory.len(), 0);
-    }
-    #[test]
-    fn test_push() {
-        let mut sda = StaticDataArea::default();
-        sda.push(1);
-        assert_eq!(sda.memory[0], 1);
     }
 }

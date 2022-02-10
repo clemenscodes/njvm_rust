@@ -8,25 +8,24 @@ pub struct InstructionCache<U> {
     pub instructions: Vec<U>,
 }
 
-impl Default for InstructionCache<Bytecode>
-where
-    Bytecode: std::fmt::Debug + std::fmt::Display,
-{
+impl Default for InstructionCache<Bytecode> {
     fn default() -> Self {
-        Self::new()
+        Self::new(0, 0)
     }
 }
 
 impl InstructionCache<Bytecode> {
-    pub fn new() -> Self {
+    pub fn new(size: usize, value: Bytecode) -> Self {
+        let mut register: Vec<Bytecode> = Vec::new();
+        register.resize(size, value);
         InstructionCache {
             pc: 0,
-            instructions: vec![],
+            instructions: register,
         }
     }
     pub fn register_instruction(&mut self, opcode: Opcode, immediate: Immediate) {
         let instruction: Bytecode = Instruction::encode_instruction(opcode, immediate);
-        self.instructions.push(instruction);
+        self.instructions[self.pc as usize] = instruction;
         self.pc += 1;
     }
     pub fn print(&self) {
@@ -67,7 +66,7 @@ mod tests {
     }
     #[test]
     fn test_register_instruction() {
-        let mut instruction_cache = InstructionCache::default();
+        let mut instruction_cache = InstructionCache::new(2, 0);
         instruction_cache.register_instruction(Pushc, 1);
         assert_eq!(instruction_cache.pc, 1);
         assert_eq!(instruction_cache.instructions[0], 0x01000001);
