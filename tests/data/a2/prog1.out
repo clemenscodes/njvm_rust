@@ -1,0 +1,22 @@
+Ninja Virtual Machine started
+000:	pushc	2
+001:	popg	0
+002:	pushg	0
+003:	pushc	3
+004:	add
+005:	popg	1
+006:	pushc	7
+007:	pushg	1
+008:	mul
+009:	pushg	0
+010:	add
+011:	popg	0
+012:	pushg	0
+013:	pushc	-33
+014:	add
+015:	wrint
+016:	pushc	10
+017:	wrchr
+018:	halt
+4
+Ninja Virtual Machine stopped

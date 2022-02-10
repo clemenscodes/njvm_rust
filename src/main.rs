@@ -1,287 +1,71 @@
+use std::env::args;
+use std::io::{BufRead, Write};
+pub mod njvm;
+pub use njvm::*;
 pub mod cpu;
 pub use cpu::*;
 pub mod memory;
 pub use memory::*;
-use std::env;
-use std::io::stdin;
-use std::process::exit;
-
-pub const MAXITEMS: u8 = 100;
-
-#[derive(Debug, Eq, PartialEq)]
-pub struct NinjaVM {
-    pub stack: Stack,
-    pub program_memory: ProgramMemory,
-}
-
-impl Default for NinjaVM {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl NinjaVM {
-    pub fn new() -> Self {
-        Self {
-            stack: Stack::default(),
-            program_memory: ProgramMemory::default(),
-        }
-    }
-    pub fn init(&self) {
-        println!("Ninja Virtual Machine started");
-    }
-    pub fn no_arg() {
-        let vm = NinjaVM::default();
-        vm.init();
-        vm.halt();
-    }
-    pub fn check_arg(arg: &str) {
-        match arg {
-            "--help" => NinjaVM::help(),
-            "--version" => NinjaVM::version(),
-            "--prog1" => NinjaVM::prog1(),
-            "--prog2" => NinjaVM::prog2(),
-            "--prog3" => NinjaVM::prog3(),
-            _ => NinjaVM::unknown_arg(arg),
-        }
-    }
-    pub fn help() {
-        println!("usage: ./njvm [option] [option] ...");
-        println!("  --prog1          select program 1 to execute");
-        println!("  --prog2          select program 2 to execute");
-        println!("  --prog3          select program 3 to execute");
-        println!("  --version        show version and exit");
-        println!("  --help           show this help and exit");
-    }
-    pub fn version() {
-        println!("Ninja Virtual Machine version 1 (compiled Sep 23 2015, 10:36:52)");
-        exit(0);
-    }
-    pub fn prog1() {
-        let mut vm = NinjaVM::default();
-        vm.init();
-        vm.program_memory.load_prog1();
-        vm.work()
-    }
-    pub fn prog2() {
-        let mut vm = NinjaVM::default();
-        vm.init();
-        vm.program_memory.load_prog2();
-        vm.work()
-    }
-    pub fn prog3() {
-        let mut vm = NinjaVM::default();
-        vm.init();
-        vm.program_memory.load_prog3();
-        vm.work()
-    }
-    pub fn unknown_arg(arg: &str) {
-        eprintln!("unknown command line argument '{arg}', try './njvm --help'");
-        exit(1);
-    }
-    pub fn kill() {
-        NinjaVM::help();
-        exit(1)
-    }
-    pub fn work(&mut self) {
-        for i in 0..self.program_memory.pc {
-            self.execute(self.program_memory.memory[i as usize]);
-        }
-        self.program_memory = ProgramMemory::default();
-    }
-    fn execute(&mut self, bytecode: Bytecode) {
-        let instruction = Instruction::decode_instruction(bytecode);
-        match instruction.opcode {
-            Opcode::Halt => self.halt(),
-            Opcode::Pushc => self.pushc(instruction.immediate),
-            Opcode::Add => self.add(),
-            Opcode::Sub => self.sub(),
-            Opcode::Mul => self.mul(),
-            Opcode::Div => self.div(),
-            Opcode::Mod => self.modulo(),
-            Opcode::Rdint => self.rdint(),
-            Opcode::Wrint => self.wrint(),
-            Opcode::Rdchr => self.rdchr(),
-            Opcode::Wrchr => self.wrchr(),
-        }
-    }
-    fn halt(&self) {
-        println!("Ninja Virtual Machine stopped");
-        exit(0);
-    }
-    fn pushc(&mut self, immediate: Immediate) {
-        self.stack.push(immediate);
-    }
-    fn add(&mut self) {
-        let n2 = self.stack.pop();
-        let n1 = self.stack.pop();
-        self.stack.push(n1 + n2);
-    }
-    fn sub(&mut self) {
-        let n2 = self.stack.pop();
-        let n1 = self.stack.pop();
-        self.stack.push(n1 - n2);
-    }
-    fn mul(&mut self) {
-        let n2 = self.stack.pop();
-        let n1 = self.stack.pop();
-        self.stack.push(n1 * n2);
-    }
-    fn div(&mut self) {
-        let n2 = self.stack.pop();
-        let n1 = self.stack.pop();
-        if n2 == 0 {
-            panic!("Division by zero error");
-        }
-        self.stack.push(n1 / n2);
-    }
-    fn modulo(&mut self) {
-        let n2 = self.stack.pop();
-        let n1 = self.stack.pop();
-        if n2 == 0 {
-            panic!("Division by zero error");
-        }
-        self.stack.push(n1 % n2);
-    }
-    fn rdint(&mut self) {
-        let mut input = String::new();
-        stdin().read_line(&mut input).expect("Failed to read line");
-        let immediate: Immediate = input.trim().parse::<i32>().expect("Input not an integer");
-        self.stack.push(immediate)
-    }
-    fn wrint(&mut self) {
-        print!("{}", self.stack.pop())
-    }
-    fn rdchr(&mut self) {
-        let mut input = String::new();
-        stdin().read_line(&mut input).expect("Failed to read line");
-        let immediate = input.trim().chars().next().expect("Failed to read character") as Immediate;
-        self.stack.push(immediate)
-    }
-    fn wrchr(&mut self) {
-        let character = self.stack.pop() as u8 as char;
-        print!("{character}")
-    }
-}
+pub mod utils;
+pub use utils::*;
 
 fn main() {
-    match env::args().len() {
-        1 => NinjaVM::no_arg(),
-        2 => NinjaVM::check_arg(&env::args().nth(1).expect("Failed to parse argument")),
-        _ => NinjaVM::kill(),
+    let mut vm = NinjaVM::default();
+    match args().len() {
+        1 => fatal_error("Error: no code file specified"),
+        2 => {
+            let arg = &args().nth(1).unwrap();
+            check_arg(&mut vm, arg)
+        }
+        3 => {
+            let bin = &args().nth(1).unwrap();
+            let debug_flag = &args().nth(2).unwrap();
+            check_args(&mut vm, bin, debug_flag)
+        }
+        _ => kill(),
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_ninja_vm() {
-        let vm = NinjaVM::default();
-        assert_eq!(vm.stack.sp, 0);
-        assert_eq!(vm.stack.memory.len(), 100);
-        assert_eq!(vm.stack.memory[0], 0);
-        assert_eq!(vm.stack.memory[99], 0);
-        assert_eq!(vm.program_memory.pc, 0);
-        assert_eq!(vm.program_memory.memory.len(), 100);
-        assert_eq!(vm.program_memory.memory[0], 0);
-        assert_eq!(vm.program_memory.memory[99], 0);
+fn check_arg<R, W>(vm: &mut NinjaVM<R, W>, arg: &str)
+where
+    R: BufRead,
+    W: Write,
+{
+    match arg {
+        "--help" => help(),
+        "--version" => version(),
+        _ => vm.execute_binary(arg),
     }
-    #[test]
-    fn test_work() {
-        let mut vm = NinjaVM::default();
-        vm.program_memory.register_instruction(Opcode::Pushc, 1);
-        vm.program_memory.register_instruction(Opcode::Pushc, 2);
-        vm.program_memory.register_instruction(Opcode::Add, 0);
-        vm.work();
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 3);
-        assert_eq!(vm.program_memory, ProgramMemory::default());
+}
+
+fn check_args<R, W>(vm: &mut NinjaVM<R, W>, bin: &str, debug_flag: &str)
+where
+    R: BufRead,
+    W: Write,
+{
+    match debug_flag {
+        "--debug" => vm.debug_binary(bin),
+        _ => unknown_arg(debug_flag),
     }
-    #[test]
-    fn test_execute() {
-        let mut vm = NinjaVM::default();
-        let instruction = Instruction::encode_instruction(Opcode::Pushc, 1);
-        vm.execute(instruction);
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 1);
-    }
-    #[test]
-    fn test_pushc() {
-        let mut vm = NinjaVM::default();
-        vm.pushc(2);
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 2);
-    }
-    #[test]
-    fn test_add() {
-        let mut vm = NinjaVM::default();
-        vm.pushc(-1);
-        vm.pushc(2);
-        vm.add();
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 1);
-    }
-    #[test]
-    fn test_sub() {
-        let mut vm = NinjaVM::default();
-        vm.pushc(1);
-        vm.pushc(2);
-        vm.sub();
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], -1);
-    }
-    #[test]
-    fn test_mul() {
-        let mut vm = NinjaVM::default();
-        vm.pushc(-1);
-        vm.pushc(-2);
-        vm.mul();
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 2);
-    }
-    #[test]
-    fn test_div() {
-        let mut vm = NinjaVM::default();
-        vm.pushc(-7);
-        vm.pushc(-2);
-        vm.div();
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 3);
-        vm.pushc(-3);
-        vm.div();
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], -1);
-    }
-    #[test]
-    #[should_panic(expected = "Division by zero error")]
-    fn test_division_by_zero_should_fail() {
-        std::panic::set_hook(Box::new(|_| {}));
-        let mut vm = NinjaVM::default();
-        vm.pushc(-2);
-        vm.pushc(4);
-        vm.pushc(-4);
-        vm.add();
-        vm.div();
-    }
-    #[test]
-    fn test_modulo() {
-        let mut vm = NinjaVM::default();
-        vm.pushc(-9);
-        vm.pushc(4);
-        vm.modulo();
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], -1);
-    }
-    #[test]
-    #[should_panic(expected = "Division by zero error")]
-    fn test_modulo_with_zero_should_fail() {
-        std::panic::set_hook(Box::new(|_| {}));
-        let mut vm = NinjaVM::default();
-        vm.pushc(-2);
-        vm.pushc(4);
-        vm.pushc(-4);
-        vm.add();
-        vm.modulo();
-    }
+}
+
+pub fn help() {
+    println!("usage: ./njvm [options] <code file>");
+    println!("  --version        show version and exit");
+    println!("  --help           show this help and exit");
+}
+
+pub fn version() {
+    println!(
+        "Ninja Virtual Machine version {} (compiled Sep 23 2015, 10:36:52)",
+        VERSION
+    );
+}
+
+fn kill() {
+    help();
+    #[cfg(not(test))]
+    std::process::exit(1);
+    #[cfg(test)]
+    panic!();
 }
