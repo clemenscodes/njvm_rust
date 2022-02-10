@@ -115,7 +115,9 @@ where
         self.stack.sp += immediate as u32;
     }
     fn rsf(&mut self) {
-        let stack_size = self.stack.memory.len() - (self.stack.sp as usize - self.stack.fp as usize);
+        let fp = self.stack.fp as usize;
+        let sp = self.stack.sp as usize;
+        let stack_size = self.stack.memory.len() - (sp - fp);
         self.stack.memory.resize(stack_size, 0);
         self.stack.sp = self.stack.fp;
         self.stack.fp = self.stack.pop() as u32;
@@ -126,8 +128,8 @@ where
         self.stack.push(self.stack.memory[fp + n]);
     }
     fn popl(&mut self, immediate: Immediate) {
-        let fp = self.stack.fp as usize;
         let n = immediate as usize;
+        let fp = self.stack.fp as usize;
         let sp = self.stack.sp as usize;
         self.stack.memory[fp + n] = self.stack.memory[sp - 1];
     }
@@ -272,9 +274,27 @@ mod tests {
         assert_eq!(vm.sda.memory[0], value);
     }
     #[test]
-    fn test_asf() {}
+    fn test_asf() {
+        let mut vm = NinjaVM::default();
+        let immediate = 100 as Immediate;
+        let sp = vm.stack.sp;
+        vm.asf(immediate);
+        assert_eq!(vm.stack.sp, (immediate + 1) as u32);
+        assert_eq!(vm.stack.fp, sp + 1);
+        for i in 0..immediate as usize {
+            assert_eq!(vm.stack.memory[i], 0)
+        }
+    }
     #[test]
-    fn test_rsf() {}
+    fn test_rsf() {
+        let mut vm = NinjaVM::default();
+        let immediate = 100 as Immediate;
+        vm.asf(immediate);
+        vm.rsf();
+        assert_eq!(vm.stack.sp, 0);
+        assert_eq!(vm.stack.fp, 0);
+        assert_eq!(vm.stack.memory.len(), 0);
+    }
     #[test]
     fn test_pushl() {}
     #[test]
