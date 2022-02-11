@@ -86,8 +86,7 @@ where
                 fatal_error("Error: could not read character")
             }
         }
-        let integer_string = String::from_utf8(buffer).unwrap();
-        let immediate = integer_string.parse().unwrap();
+        let immediate = String::from_utf8(buffer).unwrap().parse().unwrap();
         self.stack.push(immediate)
     }
     pub fn wrint(&mut self) {
