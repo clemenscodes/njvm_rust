@@ -4,7 +4,7 @@ pub type Bytecode = u32;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct InstructionCache<U> {
-    pub pc: u32,
+    pub pc: usize,
     pub register: Vec<U>,
 }
 
@@ -16,18 +16,18 @@ impl Default for InstructionCache<Bytecode> {
 
 impl InstructionCache<Bytecode> {
     pub fn new(size: usize, value: Bytecode) -> Self {
-        let mut register: Vec<Bytecode> = Vec::new();
+        let mut register = vec![];
         register.resize(size, value);
         InstructionCache { pc: 0, register }
     }
     pub fn register_instruction(&mut self, opcode: Opcode, immediate: Immediate) {
-        let instruction: Bytecode = Instruction::encode_instruction(opcode, immediate);
-        self.register[self.pc as usize] = instruction;
+        let instruction = Instruction::encode_instruction(opcode, immediate);
+        self.register[self.pc] = instruction;
         self.pc += 1;
     }
     pub fn print(&self) {
         for i in 0..self.pc {
-            let instruction: Instruction = Instruction::decode_instruction(self.register[i as usize]);
+            let instruction: Instruction = Instruction::decode_instruction(self.register[i]);
             let immediate = instruction.immediate;
             match instruction.opcode {
                 Halt => println!("{i:03}:\thalt"),

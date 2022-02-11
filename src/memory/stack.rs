@@ -1,4 +1,5 @@
 use crate::{fatal_error, Immediate};
+use std::fmt::{Debug, Display};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Stack<T> {
@@ -13,10 +14,7 @@ impl Default for Stack<Immediate> {
     }
 }
 
-impl<T> Stack<T>
-where
-    T: std::fmt::Debug + std::fmt::Display,
-{
+impl<T: Debug + Display> Stack<T> {
     pub fn new() -> Self {
         Stack {
             sp: 0,

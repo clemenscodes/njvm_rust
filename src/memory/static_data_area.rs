@@ -16,7 +16,7 @@ where
     T: Clone + std::fmt::Debug + std::fmt::Display,
 {
     pub fn new(size: usize, value: T) -> Self {
-        let mut memory = Vec::new();
+        let mut memory = vec![];
         memory.resize(size, value);
         StaticDataArea { memory }
     }

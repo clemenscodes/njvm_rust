@@ -1,6 +1,7 @@
 use crate::{fatal_error, Bytecode};
 use Opcode::*;
 
+#[repr(u8)]
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Opcode {
     Halt = 0,

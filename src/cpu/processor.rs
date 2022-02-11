@@ -126,22 +126,22 @@ where
         self.stack.sp += immediate as usize;
     }
     pub fn rsf(&mut self) {
-        let fp = self.stack.fp as usize;
-        let sp = self.stack.sp as usize;
+        let fp = self.stack.fp;
+        let sp = self.stack.sp;
         let stack_size = self.stack.memory.len() - (sp - fp);
         self.stack.memory.resize(stack_size, 0);
         self.stack.sp = self.stack.fp;
         self.stack.fp = self.stack.pop() as usize;
     }
     pub fn pushl(&mut self, immediate: Immediate) {
-        let fp = self.stack.fp as usize;
+        let fp = self.stack.fp;
         let n = immediate as usize;
         self.stack.push(self.stack.memory[fp + n]);
     }
     pub fn popl(&mut self, immediate: Immediate) {
         let n = immediate as usize;
-        let fp = self.stack.fp as usize;
-        let sp = self.stack.sp as usize;
+        let fp = self.stack.fp;
+        let sp = self.stack.sp;
         self.stack.memory[fp + n] = self.stack.memory[sp - 1];
     }
     pub fn eq(&mut self) {

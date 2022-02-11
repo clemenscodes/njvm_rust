@@ -47,4 +47,9 @@ mod tests {
         assert_eq!(decoded_instruction.opcode, Pushc);
         assert_eq!(decoded_instruction.immediate, -1);
     }
+    #[test]
+    fn test_print_instruction() {
+        let instruction = Instruction::decode_instruction(0x01000001);
+        instruction.print();
+    }
 }
