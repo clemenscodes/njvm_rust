@@ -48,6 +48,7 @@ where
         loop {
             if let Ok(()) = self.reader.read_exact(&mut byte_buffer) {
                 match byte_buffer[0] {
+                    b'-' => break,
                     b'0' => break,
                     b'1' => break,
                     b'2' => break,
@@ -257,14 +258,14 @@ mod tests {
     }
     #[test]
     fn test_rdint_works() {
-        let input = b" 123   456  789   ";
+        let input = b" -123   456  -789   ";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.rdint();
-        assert_eq!(vm.stack.memory[0], 123);
+        assert_eq!(vm.stack.memory[0], -123);
         vm.rdint();
         assert_eq!(vm.stack.memory[1], 456);
         vm.rdint();
-        assert_eq!(vm.stack.memory[2], 789);
+        assert_eq!(vm.stack.memory[2], -789);
     }
     #[test]
     #[should_panic(expected = "Error: input is not an integer")]
