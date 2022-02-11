@@ -1,7 +1,7 @@
 use crate::{utils::*, Bytecode, Immediate, Instruction, InstructionCache, Opcode::*, Stack, StaticDataArea};
 use std::io::{BufRead, Write};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct NinjaVM<R, W> {
     pub stack: Stack<Immediate>,
     pub instruction_cache: InstructionCache<Bytecode>,

@@ -1,6 +1,6 @@
 use crate::{Bytecode, Decoding, Encoding, Immediate, Opcode};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub struct Instruction {
     pub opcode: Opcode,
     pub immediate: Immediate,

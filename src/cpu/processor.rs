@@ -44,15 +44,49 @@ where
         self.stack.push(n1 % n2);
     }
     pub fn rdint(&mut self) {
-        let mut input = String::new();
-        match self.reader.read_line(&mut input) {
-            Ok(line) => line,
-            Err(_) => fatal_error("Error: failed to read line"),
-        };
-        let immediate: Immediate = match input.trim().parse::<i32>() {
-            Ok(line) => line,
-            Err(_) => fatal_error("Error: input not an integer"),
-        };
+        let mut byte_buffer = [0];
+        loop {
+            if let Ok(()) = self.reader.read_exact(&mut byte_buffer) {
+                match byte_buffer[0] {
+                    b'0' => break,
+                    b'1' => break,
+                    b'2' => break,
+                    b'3' => break,
+                    b'4' => break,
+                    b'5' => break,
+                    b'6' => break,
+                    b'7' => break,
+                    b'8' => break,
+                    b'9' => break,
+                    b' ' => continue,
+                    _ => fatal_error("Error: input is not an integer"),
+                }
+            } else {
+                fatal_error("Error: could not read character")
+            }
+        }
+        let mut buffer = vec![byte_buffer[0]];
+        loop {
+            if let Ok(()) = self.reader.read_exact(&mut byte_buffer) {
+                match byte_buffer[0] {
+                    b'0' => buffer.push(byte_buffer[0]),
+                    b'1' => buffer.push(byte_buffer[0]),
+                    b'2' => buffer.push(byte_buffer[0]),
+                    b'3' => buffer.push(byte_buffer[0]),
+                    b'4' => buffer.push(byte_buffer[0]),
+                    b'5' => buffer.push(byte_buffer[0]),
+                    b'6' => buffer.push(byte_buffer[0]),
+                    b'7' => buffer.push(byte_buffer[0]),
+                    b'8' => buffer.push(byte_buffer[0]),
+                    b'9' => buffer.push(byte_buffer[0]),
+                    _ => break,
+                }
+            } else {
+                fatal_error("Error: could not read character")
+            }
+        }
+        let integer_string = String::from_utf8(buffer).unwrap();
+        let immediate = integer_string.parse().unwrap();
         self.stack.push(immediate)
     }
     pub fn wrint(&mut self) {
@@ -62,15 +96,12 @@ where
         }
     }
     pub fn rdchr(&mut self) {
-        let mut input = String::new();
-        match self.reader.read_line(&mut input) {
-            Ok(line) => line,
-            Err(_) => fatal_error("Error: failed to read line"),
+        let mut byte_buffer = [0];
+        match self.reader.read_exact(&mut byte_buffer) {
+            Ok(_) => {}
+            Err(_) => fatal_error("Error: could not read character"),
         };
-        let immediate = match input.trim().chars().next() {
-            Some(char) => char,
-            None => fatal_error("Error: failed to read character"),
-        } as Immediate;
+        let immediate = byte_buffer[0] as Immediate;
         self.stack.push(immediate)
     }
     pub fn wrchr(&mut self) {
@@ -225,12 +256,25 @@ mod tests {
         vm.modulo();
     }
     #[test]
-    fn test_rdint() {
-        let input = b"1";
+    fn test_rdint_works() {
+        let input = b" 123   456  789   ";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.rdint();
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 1)
+        assert_eq!(vm.stack.memory[0], 123);
+        vm.rdint();
+        assert_eq!(vm.stack.memory[1], 456);
+        vm.rdint();
+        assert_eq!(vm.stack.memory[2], 789);
+    }
+    #[test]
+    #[should_panic(expected = "Error: input is not an integer")]
+    fn test_rdint_fails() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let input = b" 123 s  456  789   ";
+        let mut vm = NinjaVM::new(&input[..], stdout());
+        vm.rdint();
+        assert_eq!(vm.stack.memory[0], 123);
+        vm.rdint();
     }
     #[test]
     fn test_wrint() {
@@ -244,12 +288,31 @@ mod tests {
         assert_eq!(output, String::from("42"));
     }
     #[test]
-    fn test_rdchr() {
-        let input = b"1";
+    fn test_rdchr_works() {
+        let input = b"123 456";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.rdchr();
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 49)
+        assert_eq!(vm.stack.memory[0], '1' as Immediate);
+        vm.rdchr();
+        assert_eq!(vm.stack.memory[1], '2' as Immediate);
+        vm.rdchr();
+        assert_eq!(vm.stack.memory[2], '3' as Immediate);
+        vm.rdchr();
+        assert_eq!(vm.stack.memory[3], ' ' as Immediate);
+        vm.rdchr();
+        assert_eq!(vm.stack.memory[4], '4' as Immediate);
+        vm.rdchr();
+        assert_eq!(vm.stack.memory[5], '5' as Immediate);
+        vm.rdchr();
+        assert_eq!(vm.stack.memory[6], '6' as Immediate);
+    }
+    #[test]
+    #[should_panic(expected = "Error: could not read character")]
+    fn test_rdchr_fails() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let input = b"";
+        let mut vm = NinjaVM::new(&input[..], stdout());
+        vm.rdchr();
     }
     #[test]
     fn test_wrchr() {
