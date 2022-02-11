@@ -109,11 +109,6 @@ mod tests {
         assert_eq!(vm.instruction_cache.register.len(), 0);
     }
     #[test]
-    fn test_execute_binary() {
-        let mut vm = NinjaVM::default();
-        vm.load_binary("tests/data/a2/prog2.bin");
-    }
-    #[test]
     fn test_work() {
         let mut vm = NinjaVM::default();
         vm.instruction_cache = InstructionCache::new(3, 0);
@@ -137,13 +132,6 @@ mod tests {
         let mut vm = NinjaVM::default();
         let mut instructions = Vec::new();
         vm.load_instructions(&mut instructions);
-    }
-    #[test]
-    fn test_load_binary() {
-        let mut vm = NinjaVM::default();
-        let path = "tests/data/a2/prog1.bin";
-        vm.load_binary(path);
-        assert_eq!(vm.instruction_cache.register.len(), 19)
     }
     #[test]
     #[should_panic(expected = "Error: cannot open code file 'tests/data/a2/prog1.404'")]
