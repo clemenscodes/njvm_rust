@@ -113,6 +113,33 @@ where
         let sp = self.stack.sp as usize;
         self.stack.memory[fp + n] = self.stack.memory[sp - 1];
     }
+    pub fn eq(&mut self) {
+        println!("Called eq");
+    }
+    pub fn ne(&mut self) {
+        println!("Called ne");
+    }
+    pub fn lt(&mut self) {
+        println!("Called lt");
+    }
+    pub fn le(&mut self) {
+        println!("Called le");
+    }
+    pub fn gt(&mut self) {
+        println!("Called gt");
+    }
+    pub fn ge(&mut self) {
+        println!("Called ge");
+    }
+    pub fn jmp(&mut self, immediate: Immediate) {
+        println!("Called jmp with immediate {immediate}");
+    }
+    pub fn brf(&mut self, immediate: Immediate) {
+        println!("Called brf with immediate {immediate}");
+    }
+    pub fn brt(&mut self, immediate: Immediate) {
+        println!("Called brt with immediate {immediate}");
+    }
 }
 
 #[cfg(test)]
@@ -298,4 +325,22 @@ mod tests {
         vm.popl(nth_local_var as i32);
         assert_eq!(vm.stack.memory[vm.stack.fp + nth_local_var], value_of_local_var);
     }
+    #[test]
+    fn test_eq() {}
+    #[test]
+    fn test_ne() {}
+    #[test]
+    fn test_lt() {}
+    #[test]
+    fn test_le() {}
+    #[test]
+    fn test_gt() {}
+    #[test]
+    fn test_ge() {}
+    #[test]
+    fn test_jmp() {}
+    #[test]
+    fn test_brf() {}
+    #[test]
+    fn test_brt() {}
 }

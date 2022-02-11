@@ -47,6 +47,15 @@ impl InstructionCache<Bytecode> {
                 Rsf => println!("{i:03}:\trsf"),
                 Pushl => println!("{i:03}:\tpushl\t{}", immediate),
                 Popl => println!("{i:03}:\tpopl\t{}", immediate),
+                Eq => println!("{i:03}:\teq\t{}"),
+                Ne => println!("{i:03}:\tne\t{}"),
+                Lt => println!("{i:03}:\tlt\t{}"),
+                Le => println!("{i:03}:\tle\t{}"),
+                Gt => println!("{i:03}:\tgt\t{}"),
+                Ge => println!("{i:03}:\tge\t{}"),
+                Jmp => println!("{i:03}:\tjmp\t{}", immediate),
+                Brf => println!("{i:03}:\tbrf\t{}", immediate),
+                Brt => println!("{i:03}:\tbrt\t{}", immediate),
             }
         }
     }

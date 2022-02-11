@@ -53,6 +53,15 @@ where
             Rsf => self.rsf(),
             Pushl => self.pushl(immediate),
             Popl => self.popl(immediate),
+            Eq => self.eq(),
+            Ne => self.ne(),
+            Lt => self.lt(),
+            Le => self.le(),
+            Gt => self.gt(),
+            Ge => self.ge(),
+            Jmp => self.jmp(immediate),
+            Brf => self.brf(immediate),
+            Brt => self.brt(immediate),
         }
     }
     pub fn work(&mut self) {
