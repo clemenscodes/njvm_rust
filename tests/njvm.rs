@@ -2,6 +2,7 @@ use anyhow::Result;
 use assert_cmd::{crate_name, Command};
 use difference::Changeset;
 use predicates::str::contains;
+use std::process::Command as Cmd;
 
 #[test]
 pub fn njvm_works() -> Result<()> {
@@ -49,7 +50,7 @@ fn test_output_failure(arg: &str, output: &str) -> Result<()> {
 #[test]
 pub fn prog1_works() -> Result<()> {
     let output = read_file("tests/data/a3/prog1.out")?;
-    test_stdin_output("tests/data/a3/prog2.bin", "8 16", &output)
+    test_stdin_output("tests/data/a3/prog1.bin", "8 16", &output)
 }
 
 #[test]
@@ -64,8 +65,15 @@ fn read_file(filename: &str) -> Result<String> {
 }
 
 fn test_stdin_output(arg: &str, stdin: &str, output: &str) -> Result<()> {
-    let mut cmd = Command::cargo_bin(crate_name!())?;
-    let stdout = cmd.arg(arg).write_stdin(stdin).output()?.stdout;
+    let custom_arg = format!("echo {} | target/x86_64-unknown-linux-gnu/release/njvm {}", stdin, arg);
+    println!("{custom_arg}");
+    let mut cmd = Cmd::new("sh");
+    let stdout = cmd
+        .arg("-c")
+        .arg(custom_arg)
+        .stdout(std::process::Stdio::piped())
+        .output()?
+        .stdout;
     let stdout = String::from_utf8(stdout)?;
     let output = String::from(output);
     let changeset = Changeset::new(&output, &stdout, "");
