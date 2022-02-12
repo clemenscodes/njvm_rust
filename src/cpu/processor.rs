@@ -389,21 +389,113 @@ mod tests {
         assert_eq!(vm.stack.memory[vm.stack.fp + nth_local_var], value_of_local_var);
     }
     #[test]
-    fn test_eq() {}
+    fn test_eq() {
+        let mut vm = NinjaVM::default();
+        vm.pushc(1);
+        vm.pushc(2);
+        vm.eq();
+        assert_eq!(vm.stack.memory[0], 0);
+        vm.pushc(-1);
+        vm.eq();
+        assert_eq!(vm.stack.memory[0], 0);
+        vm.pushc(0);
+        vm.eq();
+        assert_eq!(vm.stack.memory[0], 1);
+    }
     #[test]
-    fn test_ne() {}
+    fn test_ne() {
+        let mut vm = NinjaVM::default();
+        vm.pushc(1);
+        vm.pushc(2);
+        vm.ne();
+        assert_eq!(vm.stack.memory[0], 1);
+        vm.pushc(-1);
+        vm.ne();
+        assert_eq!(vm.stack.memory[0], 1);
+        vm.pushc(1);
+        vm.ne();
+        assert_eq!(vm.stack.memory[0], 0);
+    }
     #[test]
-    fn test_lt() {}
+    fn test_lt() {
+        let mut vm = NinjaVM::default();
+        vm.pushc(1);
+        vm.pushc(2);
+        vm.lt();
+        assert_eq!(vm.stack.memory[0], 1);
+        vm.pushc(0);
+        vm.lt();
+        assert_eq!(vm.stack.memory[0], 0);
+        vm.pushc(1);
+        vm.lt();
+        assert_eq!(vm.stack.memory[0], 1);
+    }
     #[test]
-    fn test_le() {}
+    fn test_le() {
+        let mut vm = NinjaVM::default();
+        vm.pushc(1);
+        vm.pushc(2);
+        vm.le();
+        assert_eq!(vm.stack.memory[0], 1);
+        vm.pushc(1);
+        vm.le();
+        assert_eq!(vm.stack.memory[0], 1);
+        vm.pushc(2);
+        vm.le();
+        assert_eq!(vm.stack.memory[0], 0);
+    }
     #[test]
-    fn test_gt() {}
+    fn test_gt() {
+        let mut vm = NinjaVM::default();
+        vm.pushc(1);
+        vm.pushc(2);
+        vm.gt();
+        assert_eq!(vm.stack.memory[0], 0);
+        vm.pushc(0);
+        vm.gt();
+        assert_eq!(vm.stack.memory[0], 0);
+        vm.pushc(-1);
+        vm.gt();
+        assert_eq!(vm.stack.memory[0], 1);
+    }
     #[test]
-    fn test_ge() {}
+    fn test_ge() {
+        let mut vm = NinjaVM::default();
+        vm.pushc(1);
+        vm.pushc(2);
+        vm.ge();
+        assert_eq!(vm.stack.memory[0], 0);
+        vm.pushc(0);
+        vm.ge();
+        assert_eq!(vm.stack.memory[1], 1);
+    }
     #[test]
-    fn test_jmp() {}
+    fn test_jmp() {
+        let mut vm = NinjaVM::default();
+        let immediate = 5;
+        vm.jmp(immediate);
+        assert_eq!(vm.instruction_cache.pc, immediate as usize);
+    }
     #[test]
-    fn test_brf() {}
+    fn test_brf() {
+        let mut vm = NinjaVM::default();
+        let immediate = 5;
+        vm.pushc(1);
+        vm.brf(immediate);
+        assert_eq!(vm.instruction_cache.pc, 0);
+        vm.pushc(0);
+        vm.brf(immediate);
+        assert_eq!(vm.instruction_cache.pc, immediate as usize);
+    }
     #[test]
-    fn test_brt() {}
+    fn test_brt() {
+        let mut vm = NinjaVM::default();
+        let immediate = 5;
+        vm.pushc(0);
+        vm.brf(immediate);
+        assert_eq!(vm.instruction_cache.pc, 0);
+        vm.pushc(1);
+        vm.brf(immediate);
+        assert_eq!(vm.instruction_cache.pc, immediate as usize);
+    }
 }
