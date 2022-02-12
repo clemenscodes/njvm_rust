@@ -86,7 +86,10 @@ where
                 fatal_error("Error: could not read character")
             }
         }
-        let immediate = String::from_utf8(buffer).unwrap().parse().unwrap();
+        let immediate = match String::from_utf8(buffer).unwrap().parse() {
+            Ok(immediate) => immediate,
+            Err(_) => fatal_error("Error: integer is too big"),
+        };
         self.stack.push(immediate)
     }
     pub fn wrint(&mut self) {
@@ -115,7 +118,7 @@ where
         self.stack.push(self.sda.memory[immediate as usize]);
     }
     pub fn popg(&mut self, immediate: Immediate) {
-        self.sda.memory[immediate as usize] = self.stack.pop();
+        self.sda.memory[immediate as usize] = self.stack.pop()
     }
     pub fn asf(&mut self, immediate: Immediate) {
         self.stack.push(self.stack.fp as Immediate);
@@ -145,31 +148,53 @@ where
         self.stack.memory[fp + n] = self.stack.memory[sp - 1];
     }
     pub fn eq(&mut self) {
-        println!("Called eq");
+        let b = self.stack.pop();
+        let a = self.stack.pop();
+        let result = if a == b { 1 } else { 0 };
+        self.stack.push(result);
     }
     pub fn ne(&mut self) {
-        println!("Called ne");
+        let b = self.stack.pop();
+        let a = self.stack.pop();
+        let result = if a != b { 1 } else { 0 };
+        self.stack.push(result);
     }
     pub fn lt(&mut self) {
-        println!("Called lt");
+        let b = self.stack.pop();
+        let a = self.stack.pop();
+        let result = if a < b { 1 } else { 0 };
+        self.stack.push(result);
     }
     pub fn le(&mut self) {
-        println!("Called le");
+        let b = self.stack.pop();
+        let a = self.stack.pop();
+        let result = if a <= b { 1 } else { 0 };
+        self.stack.push(result);
     }
     pub fn gt(&mut self) {
-        println!("Called gt");
+        let b = self.stack.pop();
+        let a = self.stack.pop();
+        let result = if a > b { 1 } else { 0 };
+        self.stack.push(result);
     }
     pub fn ge(&mut self) {
-        println!("Called ge");
+        let b = self.stack.pop();
+        let a = self.stack.pop();
+        let result = if a >= b { 1 } else { 0 };
+        self.stack.push(result);
     }
     pub fn jmp(&mut self, immediate: Immediate) {
-        println!("Called jmp with immediate {immediate}");
+        self.instruction_cache.pc = immediate as usize;
     }
     pub fn brf(&mut self, immediate: Immediate) {
-        println!("Called brf with immediate {immediate}");
+        if self.stack.pop() == 0 {
+            self.instruction_cache.pc = immediate as usize;
+        }
     }
     pub fn brt(&mut self, immediate: Immediate) {
-        println!("Called brt with immediate {immediate}");
+        if self.stack.pop() == 1 {
+            self.instruction_cache.pc = immediate as usize;
+        }
     }
 }
 
@@ -257,7 +282,7 @@ mod tests {
     }
     #[test]
     fn test_rdint_works() {
-        let input = b" -123   456  -789   ";
+        let input = b" -123  456 -789   ";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.rdint();
         assert_eq!(vm.stack.memory[0], -123);
@@ -268,12 +293,22 @@ mod tests {
     }
     #[test]
     #[should_panic(expected = "Error: input is not an integer")]
-    fn test_rdint_fails() {
+    fn test_rdint_fails_not_an_integer() {
         std::panic::set_hook(Box::new(|_| {}));
         let input = b" 123 s  456  789   ";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.rdint();
         assert_eq!(vm.stack.memory[0], 123);
+        vm.rdint();
+    }
+    #[test]
+    #[should_panic(expected = "Error: integer is too big")]
+    fn test_rdint_fails_too_big() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let input = b" 12345 67892424234242   ";
+        let mut vm = NinjaVM::new(&input[..], stdout());
+        vm.rdint();
+        assert_eq!(vm.stack.memory[0], 12345);
         vm.rdint();
     }
     #[test]
@@ -440,7 +475,7 @@ mod tests {
         vm.pushc(1);
         vm.le();
         assert_eq!(vm.stack.memory[0], 1);
-        vm.pushc(2);
+        vm.pushc(0);
         vm.le();
         assert_eq!(vm.stack.memory[0], 0);
     }
@@ -467,7 +502,7 @@ mod tests {
         assert_eq!(vm.stack.memory[0], 0);
         vm.pushc(0);
         vm.ge();
-        assert_eq!(vm.stack.memory[1], 1);
+        assert_eq!(vm.stack.memory[0], 1);
     }
     #[test]
     fn test_jmp() {
@@ -492,10 +527,10 @@ mod tests {
         let mut vm = NinjaVM::default();
         let immediate = 5;
         vm.pushc(0);
-        vm.brf(immediate);
+        vm.brt(immediate);
         assert_eq!(vm.instruction_cache.pc, 0);
         vm.pushc(1);
-        vm.brf(immediate);
+        vm.brt(immediate);
         assert_eq!(vm.instruction_cache.pc, immediate as usize);
     }
 }
