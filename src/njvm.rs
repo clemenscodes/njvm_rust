@@ -20,8 +20,8 @@ impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
 
 impl<R, W> NinjaVM<R, W>
 where
-    R: BufRead,
-    W: Write,
+    R: BufRead + std::fmt::Debug,
+    W: Write + std::fmt::Debug,
 {
     pub fn new(reader: R, writer: W) -> Self {
         Self {
@@ -66,8 +66,15 @@ where
     }
     pub fn work(&mut self) {
         self.init();
-        for i in 0..self.instruction_cache.pc {
-            self.execute_instruction(self.instruction_cache.register[i as usize]);
+        let mut instruction = self.instruction_cache.register[self.instruction_cache.pc];
+        let mut decoded_instruction = Instruction::decode_instruction(instruction);
+        let mut opcode = decoded_instruction.opcode;
+        while opcode != Halt {
+            instruction = self.instruction_cache.register[self.instruction_cache.pc];
+            decoded_instruction = Instruction::decode_instruction(instruction);
+            opcode = decoded_instruction.opcode;
+            self.instruction_cache.pc += 1;
+            self.execute_instruction(instruction);
         }
     }
     pub fn execute_binary(&mut self, bin: &str) {
@@ -98,12 +105,13 @@ where
     }
     pub fn init(&mut self) {
         println!("Ninja Virtual Machine started");
+        self.instruction_cache.pc = 0;
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Instruction, InstructionCache, NinjaVM, Opcode::*};
+    use crate::{Immediate, Instruction, InstructionCache, NinjaVM, Opcode::*};
     #[test]
     fn test_ninja_vm() {
         let vm = NinjaVM::default();
@@ -115,13 +123,17 @@ mod tests {
     #[test]
     fn test_work() {
         let mut vm = NinjaVM::default();
-        vm.instruction_cache = InstructionCache::new(3, 0);
+        vm.instruction_cache = InstructionCache::new(8, 0);
         vm.instruction_cache.register_instruction(Pushc, 1);
         vm.instruction_cache.register_instruction(Pushc, 2);
         vm.instruction_cache.register_instruction(Add, 0);
+        vm.instruction_cache.register_instruction(Wrint, 0);
+        vm.instruction_cache.register_instruction(Pushc, '\n' as Immediate);
+        vm.instruction_cache.register_instruction(Wrchr, 0);
+        vm.instruction_cache.register_instruction(Halt, 0);
         vm.work();
-        assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 3);
+        assert_eq!(vm.stack.sp, 0);
+        assert_eq!(vm.stack.memory.len(), 0);
     }
     #[test]
     fn test_execute_instruction() {

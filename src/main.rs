@@ -28,8 +28,8 @@ fn main() {
 
 fn check_arg<R, W>(vm: &mut NinjaVM<R, W>, arg: &str)
 where
-    R: BufRead,
-    W: Write,
+    R: BufRead + std::fmt::Debug,
+    W: Write + std::fmt::Debug,
 {
     match arg {
         "--help" => help(),
@@ -40,8 +40,8 @@ where
 
 fn check_args<R, W>(vm: &mut NinjaVM<R, W>, bin: &str, debug_flag: &str)
 where
-    R: BufRead,
-    W: Write,
+    R: BufRead + std::fmt::Debug,
+    W: Write + std::fmt::Debug,
 {
     match debug_flag {
         "--debug" => vm.debug_binary(bin),
