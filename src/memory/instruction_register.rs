@@ -21,7 +21,7 @@ impl InstructionRegister {
         data.resize(size, value);
         InstructionRegister { pc: 0, data }
     }
-    pub fn data_instruction(&mut self, opcode: Opcode, immediate: Immediate) {
+    pub fn register_instruction(&mut self, opcode: Opcode, immediate: Immediate) {
         let instruction = Instruction::encode_instruction(opcode, immediate);
         self.data[self.pc] = instruction;
         self.pc += 1;
@@ -79,10 +79,10 @@ mod tests {
     #[test]
     fn test_data_instruction() {
         let mut instruction_cache = InstructionRegister::new(2, 0);
-        instruction_cache.data_instruction(Pushc, 1);
+        instruction_cache.register_instruction(Pushc, 1);
         assert_eq!(instruction_cache.pc, 1);
         assert_eq!(instruction_cache.data[0], 0x01000001);
-        instruction_cache.data_instruction(Pushc, 2);
+        instruction_cache.register_instruction(Pushc, 2);
         assert_eq!(instruction_cache.pc, 2);
         assert_eq!(instruction_cache.data[1], 0x01000002);
     }

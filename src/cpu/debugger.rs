@@ -14,6 +14,9 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     }
     pub fn prompt(&mut self) {
         loop {
+            if self.ir.pc == self.ir.data.len() {
+                break;
+            }
             self.print_next_instruction();
             println!("DEBUG: inspect, list, breakpoint, step, run, quit?");
             let mut input = String::new();
@@ -24,7 +27,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             if let Some(input) = input.chars().next() {
                 match input {
                     'i' => self.inspect(),
-                    'l' => self.print_instructions(),
+                    'l' => self.print_ir(),
                     'b' => self.set_breakpoint(),
                     's' => self.step(),
                     'r' => self.run(),
@@ -59,7 +62,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         self.sda.print();
         println!("------------------");
     }
-    pub fn print_instructions(&mut self) {
+    pub fn print_ir(&mut self) {
         println!("------------------");
         self.ir.print();
         println!("------------------");
@@ -74,6 +77,9 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     }
     pub fn run(&mut self) {
         loop {
+            if self.ir.pc == self.ir.data.len() {
+                break;
+            }
             if let Some(bp) = self.bp {
                 if bp == self.ir.pc {
                     self.prompt()
@@ -120,9 +126,16 @@ mod tests {
     use std::io::stdout;
     #[test]
     fn test_debug() {
-        let input = b"quit";
+        let input = b"r\n8\n12\n";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.debug("tests/data/a3/prog1.bin");
+        assert_eq!(vm.ir.data.len(), 27);
+        assert_eq!(vm.sda.data.len(), 2);
+        assert_eq!(vm.sda.data[0], 4);
+        assert_eq!(vm.sda.data[1], 4);
+        assert_eq!(vm.stack.sp, 0);
+        assert_eq!(vm.stack.fp, 0);
+        assert_eq!(vm.stack.data.len(), 0);
     }
     #[test]
     fn test_prompt() {}
@@ -138,9 +151,9 @@ mod tests {
     fn test_print_next_instruction() {
         let mut vm = NinjaVM::default();
         vm.ir = InstructionRegister::new(3, 0);
-        vm.ir.data_instruction(Pushc, 1);
-        vm.ir.data_instruction(Pushc, 2);
-        vm.ir.data_instruction(Add, 0);
+        vm.ir.register_instruction(Pushc, 1);
+        vm.ir.register_instruction(Pushc, 2);
+        vm.ir.register_instruction(Add, 0);
         vm.init();
         vm.print_next_instruction();
         vm.ir.pc += 1;

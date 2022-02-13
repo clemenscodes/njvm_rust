@@ -68,8 +68,13 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     pub fn work(&mut self) {
         loop {
             let instruction = self.ir.data[self.ir.pc];
+            let decoded = Instruction::decode_instruction(instruction);
+            let opcode = decoded.opcode;
             self.ir.pc += 1;
             self.execute_instruction(instruction);
+            if opcode == Halt {
+                break;
+            }
         }
     }
     pub fn execute_binary(&mut self, bin: &str) {
@@ -96,7 +101,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             let instruction = Instruction::decode_instruction(instruction);
             let opcode = instruction.opcode;
             let immediate = instruction.immediate;
-            self.ir.data_instruction(opcode, immediate);
+            self.ir.register_instruction(opcode, immediate);
         });
     }
     pub fn init(&mut self) {
@@ -120,9 +125,10 @@ mod tests {
     fn test_work() {
         let mut vm = NinjaVM::default();
         vm.ir = InstructionRegister::new(3, 0);
-        vm.ir.data_instruction(Pushc, 1);
-        vm.ir.data_instruction(Pushc, 2);
-        vm.ir.data_instruction(Halt, 0);
+        vm.ir.register_instruction(Pushc, 1);
+        vm.ir.register_instruction(Pushc, 2);
+        vm.ir.register_instruction(Halt, 0);
+        vm.init();
         vm.work();
         assert_eq!(vm.stack.data.len(), 2);
     }
