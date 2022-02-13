@@ -14,7 +14,7 @@ impl Default for Stack<Immediate> {
     }
 }
 
-impl<T: Clone + Debug + Display> Stack<T> {
+impl<T: Debug + Display> Stack<T> {
     pub fn new() -> Self {
         Stack {
             sp: 0,
@@ -27,7 +27,7 @@ impl<T: Clone + Debug + Display> Stack<T> {
         self.sp += 1;
     }
     pub fn pop(&mut self) -> T {
-        if self.sp == 0 && self.memory.is_empty() {
+        if self.sp == 0 || self.memory.is_empty() {
             fatal_error("Stack underflow: popped from empty stack");
         }
         self.sp -= 1;

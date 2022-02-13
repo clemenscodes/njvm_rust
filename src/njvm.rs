@@ -1,4 +1,5 @@
 use crate::{utils::*, Bytecode, Immediate, Instruction, InstructionRegister, Opcode::*, Stack, StaticDataArea};
+use std::fmt::Debug;
 use std::io::{BufRead, Write};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -18,11 +19,7 @@ impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
     }
 }
 
-impl<R, W> NinjaVM<R, W>
-where
-    R: BufRead + std::fmt::Debug,
-    W: Write + std::fmt::Debug,
-{
+impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     pub fn new(reader: R, writer: W) -> Self {
         Self {
             stack: Stack::default(),

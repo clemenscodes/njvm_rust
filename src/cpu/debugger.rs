@@ -1,12 +1,8 @@
 use crate::{fatal_error, NinjaVM};
-
+use std::fmt::Debug;
 use std::io::{BufRead, Write};
 
-impl<R, W> NinjaVM<R, W>
-where
-    R: BufRead + std::fmt::Debug,
-    W: Write + std::fmt::Debug,
-{
+impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     pub fn debug(&mut self, bin: &str) {
         let instructions = self.load_binary(bin);
         self.load_instructions(&instructions);

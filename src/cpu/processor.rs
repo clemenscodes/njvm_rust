@@ -1,11 +1,8 @@
 use crate::{fatal_error, Immediate, NinjaVM};
+use std::fmt::Debug;
 use std::io::{BufRead, Write};
 
-impl<R, W> NinjaVM<R, W>
-where
-    R: BufRead,
-    W: Write,
-{
+impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     pub fn halt(&self) {
         println!("Ninja Virtual Machine stopped");
         std::process::exit(0);

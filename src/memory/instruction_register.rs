@@ -25,11 +25,16 @@ impl InstructionRegister {
         self.register[self.pc] = instruction;
         self.pc += 1;
     }
+    pub fn print(&mut self) {
+        for i in 0..self.register.len() {
+            self.print_instruction(i);
+        }
+    }
     pub fn print_instruction(&mut self, pc: usize) {
-        let next_instruction = self.register[pc];
-        let decoded_instruction = Instruction::decode_instruction(next_instruction);
-        let opcode = decoded_instruction.opcode;
-        let immediate = decoded_instruction.immediate;
+        let instruction = self.register[pc];
+        let decoded = Instruction::decode_instruction(instruction);
+        let opcode = decoded.opcode;
+        let immediate = decoded.immediate;
         match opcode {
             Halt => println!("{pc:04}:\thalt"),
             Pushc => println!("{pc:04}:\tpushc\t{immediate}"),
@@ -57,11 +62,6 @@ impl InstructionRegister {
             Jmp => println!("{pc:04}:\tjmp\t{immediate}"),
             Brf => println!("{pc:04}:\tbrf\t{immediate}"),
             Brt => println!("{pc:04}:\tbrt\t{immediate}"),
-        }
-    }
-    pub fn print(&mut self) {
-        for i in 0..self.register.len() {
-            self.print_instruction(i);
         }
     }
 }
