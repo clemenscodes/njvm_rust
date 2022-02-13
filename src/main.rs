@@ -44,7 +44,7 @@ where
     W: Write + std::fmt::Debug,
 {
     match debug_flag {
-        "--debug" => vm.debug_binary(bin),
+        "--debug" => vm.debug(bin),
         _ => unknown_arg(debug_flag),
     }
 }

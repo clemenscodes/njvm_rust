@@ -26,36 +26,36 @@ impl InstructionCache<Bytecode> {
         self.pc += 1;
     }
     pub fn print(&self) {
-        for i in 0..self.pc {
+        for i in 0..self.register.len() {
             let instruction: Instruction = Instruction::decode_instruction(self.register[i]);
             let immediate = instruction.immediate;
             match instruction.opcode {
-                Halt => println!("{i:03}:\thalt"),
-                Pushc => println!("{i:03}:\tpushc\t{}", immediate),
-                Add => println!("{i:03}:\tadd"),
-                Sub => println!("{i:03}:\tsub"),
-                Mul => println!("{i:03}:\tmul"),
-                Div => println!("{i:03}:\tdiv"),
-                Mod => println!("{i:03}:\tmod"),
-                Rdint => println!("{i:03}:\trdint"),
-                Wrint => println!("{i:03}:\twrint"),
-                Rdchr => println!("{i:03}:\trdchr"),
-                Wrchr => println!("{i:03}:\twrchr"),
-                Pushg => println!("{i:03}:\tpushg\t{}", immediate),
-                Popg => println!("{i:03}:\tpopg\t{}", immediate),
-                Asf => println!("{i:03}:\tasf\t{}", immediate),
-                Rsf => println!("{i:03}:\trsf"),
-                Pushl => println!("{i:03}:\tpushl\t{}", immediate),
-                Popl => println!("{i:03}:\tpopl\t{}", immediate),
-                Eq => println!("{i:03}:\teq"),
-                Ne => println!("{i:03}:\tne"),
-                Lt => println!("{i:03}:\tlt"),
-                Le => println!("{i:03}:\tle"),
-                Gt => println!("{i:03}:\tgt"),
-                Ge => println!("{i:03}:\tge"),
-                Jmp => println!("{i:03}:\tjmp\t{}", immediate),
-                Brf => println!("{i:03}:\tbrf\t{}", immediate),
-                Brt => println!("{i:03}:\tbrt\t{}", immediate),
+                Halt => println!("{i:04}:\thalt"),
+                Pushc => println!("{i:04}:\tpushc\t{immediate}"),
+                Add => println!("{i:04}:\tadd"),
+                Sub => println!("{i:04}:\tsub"),
+                Mul => println!("{i:04}:\tmul"),
+                Div => println!("{i:04}:\tdiv"),
+                Mod => println!("{i:04}:\tmod"),
+                Rdint => println!("{i:04}:\trdint"),
+                Wrint => println!("{i:04}:\twrint"),
+                Rdchr => println!("{i:04}:\trdchr"),
+                Wrchr => println!("{i:04}:\twrchr"),
+                Pushg => println!("{i:04}:\tpushg\t{immediate}"),
+                Popg => println!("{i:04}:\tpopg\t{immediate}"),
+                Asf => println!("{i:04}:\tasf\t{immediate}"),
+                Rsf => println!("{i:04}:\trsf"),
+                Pushl => println!("{i:04}:\tpushl\t{immediate}"),
+                Popl => println!("{i:04}:\tpopl\t{immediate}"),
+                Eq => println!("{i:04}:\teq"),
+                Ne => println!("{i:04}:\tne"),
+                Lt => println!("{i:04}:\tlt"),
+                Le => println!("{i:04}:\tle"),
+                Gt => println!("{i:04}:\tgt"),
+                Ge => println!("{i:04}:\tge"),
+                Jmp => println!("{i:04}:\tjmp\t{immediate}"),
+                Brf => println!("{i:04}:\tbrf\t{immediate}"),
+                Brt => println!("{i:04}:\tbrt\t{immediate}"),
             }
         }
     }
