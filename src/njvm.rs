@@ -111,7 +111,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Immediate, Instruction, InstructionCache, NinjaVM, Opcode::*};
+    use crate::{Instruction, InstructionCache, NinjaVM, Opcode::*};
     #[test]
     fn test_ninja_vm() {
         let vm = NinjaVM::default();
@@ -123,17 +123,12 @@ mod tests {
     #[test]
     fn test_work() {
         let mut vm = NinjaVM::default();
-        vm.instruction_cache = InstructionCache::new(8, 0);
+        vm.instruction_cache = InstructionCache::new(3, 0);
         vm.instruction_cache.register_instruction(Pushc, 1);
         vm.instruction_cache.register_instruction(Pushc, 2);
-        vm.instruction_cache.register_instruction(Add, 0);
-        vm.instruction_cache.register_instruction(Wrint, 0);
-        vm.instruction_cache.register_instruction(Pushc, '\n' as Immediate);
-        vm.instruction_cache.register_instruction(Wrchr, 0);
         vm.instruction_cache.register_instruction(Halt, 0);
         vm.work();
-        assert_eq!(vm.stack.sp, 0);
-        assert_eq!(vm.stack.memory.len(), 0);
+        assert_eq!(vm.stack.memory.len(), 2);
     }
     #[test]
     fn test_execute_instruction() {

@@ -25,38 +25,43 @@ impl InstructionCache<Bytecode> {
         self.register[self.pc] = instruction;
         self.pc += 1;
     }
-    pub fn print(&self) {
+    pub fn print_instruction(&mut self, pc: usize) {
+        let next_instruction = self.register[pc];
+        let decoded_instruction = Instruction::decode_instruction(next_instruction);
+        let opcode = decoded_instruction.opcode;
+        let immediate = decoded_instruction.immediate;
+        match opcode {
+            Halt => println!("{pc:04}:\thalt"),
+            Pushc => println!("{pc:04}:\tpushc\t{immediate}"),
+            Add => println!("{pc:04}:\tadd"),
+            Sub => println!("{pc:04}:\tsub"),
+            Mul => println!("{pc:04}:\tmul"),
+            Div => println!("{pc:04}:\tdiv"),
+            Mod => println!("{pc:04}:\tmod"),
+            Rdint => println!("{pc:04}:\trdint"),
+            Wrint => println!("{pc:04}:\twrint"),
+            Rdchr => println!("{pc:04}:\trdchr"),
+            Wrchr => println!("{pc:04}:\twrchr"),
+            Pushg => println!("{pc:04}:\tpushg\t{immediate}"),
+            Popg => println!("{pc:04}:\tpopg\t{immediate}"),
+            Asf => println!("{pc:04}:\tasf\t{immediate}"),
+            Rsf => println!("{pc:04}:\trsf"),
+            Pushl => println!("{pc:04}:\tpushl\t{immediate}"),
+            Popl => println!("{pc:04}:\tpopl\t{immediate}"),
+            Eq => println!("{pc:04}:\teq"),
+            Ne => println!("{pc:04}:\tne"),
+            Lt => println!("{pc:04}:\tlt"),
+            Le => println!("{pc:04}:\tle"),
+            Gt => println!("{pc:04}:\tgt"),
+            Ge => println!("{pc:04}:\tge"),
+            Jmp => println!("{pc:04}:\tjmp\t{immediate}"),
+            Brf => println!("{pc:04}:\tbrf\t{immediate}"),
+            Brt => println!("{pc:04}:\tbrt\t{immediate}"),
+        }
+    }
+    pub fn print(&mut self) {
         for i in 0..self.register.len() {
-            let instruction: Instruction = Instruction::decode_instruction(self.register[i]);
-            let immediate = instruction.immediate;
-            match instruction.opcode {
-                Halt => println!("{i:04}:\thalt"),
-                Pushc => println!("{i:04}:\tpushc\t{immediate}"),
-                Add => println!("{i:04}:\tadd"),
-                Sub => println!("{i:04}:\tsub"),
-                Mul => println!("{i:04}:\tmul"),
-                Div => println!("{i:04}:\tdiv"),
-                Mod => println!("{i:04}:\tmod"),
-                Rdint => println!("{i:04}:\trdint"),
-                Wrint => println!("{i:04}:\twrint"),
-                Rdchr => println!("{i:04}:\trdchr"),
-                Wrchr => println!("{i:04}:\twrchr"),
-                Pushg => println!("{i:04}:\tpushg\t{immediate}"),
-                Popg => println!("{i:04}:\tpopg\t{immediate}"),
-                Asf => println!("{i:04}:\tasf\t{immediate}"),
-                Rsf => println!("{i:04}:\trsf"),
-                Pushl => println!("{i:04}:\tpushl\t{immediate}"),
-                Popl => println!("{i:04}:\tpopl\t{immediate}"),
-                Eq => println!("{i:04}:\teq"),
-                Ne => println!("{i:04}:\tne"),
-                Lt => println!("{i:04}:\tlt"),
-                Le => println!("{i:04}:\tle"),
-                Gt => println!("{i:04}:\tgt"),
-                Ge => println!("{i:04}:\tge"),
-                Jmp => println!("{i:04}:\tjmp\t{immediate}"),
-                Brf => println!("{i:04}:\tbrf\t{immediate}"),
-                Brt => println!("{i:04}:\tbrt\t{immediate}"),
-            }
+            self.print_instruction(i);
         }
     }
 }

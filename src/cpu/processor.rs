@@ -8,6 +8,7 @@ where
 {
     pub fn halt(&self) {
         println!("Ninja Virtual Machine stopped");
+        std::process::exit(0);
     }
     pub fn pushc(&mut self, immediate: Immediate) {
         self.stack.push(immediate);
