@@ -24,50 +24,48 @@ where
             self.print_next_instruction();
             println!("DEBUG: inspect, list, breakpoint, step, run, quit?");
             let mut input = String::new();
-            if self.reader.read_line(&mut input).is_ok() {
+            if self.reader.read_line(&mut input).is_err() {
+                fatal_error("Error: could not read line")
+            }
+            let input = input.trim();
+            if input.starts_with('i') {
+                println!("DEBUG: [inspect]: stack, data?");
+                let mut input = String::new();
+                if self.reader.read_line(&mut input).is_err() {
+                    fatal_error("Error: could not read input")
+                }
                 let input = input.trim();
-                if input.starts_with('i') {
-                    println!("DEBUG: [inspect]: stack, data?");
-                    let mut input = String::new();
-                    if self.reader.read_line(&mut input).is_ok() {
-                        let input = input.trim();
-                        if input.starts_with('s') {
-                            self.print_stack();
-                            continue;
-                        }
-                        if input.starts_with('d') {
-                            self.print_sda();
-                            continue;
-                        }
-                        continue;
-                    } else {
-                        fatal_error("Error: could not read input")
-                    }
-                }
-                if input.starts_with('l') {
-                    self.print_instructions();
-                    continue;
-                }
-                if input.starts_with('b') {
-                    self.set_breakpoint();
-                    continue;
-                }
                 if input.starts_with('s') {
-                    self.step();
+                    self.print_stack();
                     continue;
                 }
-                if input.starts_with('r') {
-                    self.run();
+                if input.starts_with('d') {
+                    self.print_sda();
                     continue;
-                }
-                if input.starts_with('q') {
-                    self.quit();
-                    break;
                 }
                 continue;
-            } else {
-                fatal_error("Error: could not read character")
             }
+            if input.starts_with('l') {
+                self.print_instructions();
+                continue;
+            }
+            if input.starts_with('b') {
+                self.set_breakpoint();
+                continue;
+            }
+            if input.starts_with('s') {
+                self.step();
+                continue;
+            }
+            if input.starts_with('r') {
+                self.run();
+                continue;
+            }
+            if input.starts_with('q') {
+                self.quit();
+                break;
+            }
+            continue;
         }
     }
     pub fn print_stack(&mut self) {
@@ -90,10 +88,6 @@ where
     }
     pub fn step(&mut self) {
         let instruction = self.instruction_cache.register[self.instruction_cache.pc];
-        let decoded = Instruction::decode_instruction(instruction);
-        if decoded.opcode == Halt {
-            self.execute_instruction(instruction);
-        }
         self.instruction_cache.pc += 1;
         self.execute_instruction(instruction);
     }
