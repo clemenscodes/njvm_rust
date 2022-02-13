@@ -2,6 +2,8 @@ use crate::{utils::*, Bytecode, Immediate, Instruction, InstructionRegister, Opc
 use std::fmt::Debug;
 use std::io::{BufRead, Write};
 
+pub type Breakpoint = usize;
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct NinjaVM<R, W> {
     pub stack: Stack<Immediate>,
@@ -9,6 +11,7 @@ pub struct NinjaVM<R, W> {
     pub sda: StaticDataArea<Immediate>,
     pub reader: R,
     pub writer: W,
+    pub bp: Option<Breakpoint>,
 }
 
 impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
@@ -27,6 +30,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             sda: StaticDataArea::default(),
             reader,
             writer,
+            bp: None,
         }
     }
     pub fn execute_instruction(&mut self, bytecode: Bytecode) {
@@ -63,7 +67,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     }
     pub fn work(&mut self) {
         loop {
-            let instruction = self.ir.register[self.ir.pc];
+            let instruction = self.ir.data[self.ir.pc];
             self.ir.pc += 1;
             self.execute_instruction(instruction);
         }
@@ -92,7 +96,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             let instruction = Instruction::decode_instruction(instruction);
             let opcode = instruction.opcode;
             let immediate = instruction.immediate;
-            self.ir.register_instruction(opcode, immediate);
+            self.ir.data_instruction(opcode, immediate);
         });
     }
     pub fn init(&mut self) {
@@ -108,19 +112,19 @@ mod tests {
     fn test_ninja_vm() {
         let vm = NinjaVM::default();
         assert_eq!(vm.stack.sp, 0);
-        assert_eq!(vm.stack.memory.len(), 0);
+        assert_eq!(vm.stack.data.len(), 0);
         assert_eq!(vm.ir.pc, 0);
-        assert_eq!(vm.ir.register.len(), 0);
+        assert_eq!(vm.ir.data.len(), 0);
     }
     #[test]
     fn test_work() {
         let mut vm = NinjaVM::default();
         vm.ir = InstructionRegister::new(3, 0);
-        vm.ir.register_instruction(Pushc, 1);
-        vm.ir.register_instruction(Pushc, 2);
-        vm.ir.register_instruction(Halt, 0);
+        vm.ir.data_instruction(Pushc, 1);
+        vm.ir.data_instruction(Pushc, 2);
+        vm.ir.data_instruction(Halt, 0);
         vm.work();
-        assert_eq!(vm.stack.memory.len(), 2);
+        assert_eq!(vm.stack.data.len(), 2);
     }
     #[test]
     fn test_execute_instruction() {
@@ -128,7 +132,7 @@ mod tests {
         let instruction = Instruction::encode_instruction(Pushc, 1);
         vm.execute_instruction(instruction);
         assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
     }
     #[test]
     fn test_load_instruction() {

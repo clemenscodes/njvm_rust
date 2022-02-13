@@ -113,37 +113,37 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         }
     }
     pub fn pushg(&mut self, immediate: Immediate) {
-        self.stack.push(self.sda.memory[immediate as usize]);
+        self.stack.push(self.sda.data[immediate as usize]);
     }
     pub fn popg(&mut self, immediate: Immediate) {
-        self.sda.memory[immediate as usize] = self.stack.pop()
+        self.sda.data[immediate as usize] = self.stack.pop()
     }
     pub fn asf(&mut self, immediate: Immediate) {
         self.stack.push(self.stack.fp as Immediate);
         self.stack.fp = self.stack.sp;
-        let mut stack_size = self.stack.memory.len();
+        let mut stack_size = self.stack.data.len();
         stack_size += immediate as usize;
-        self.stack.memory.resize(stack_size, 0);
+        self.stack.data.resize(stack_size, 0);
         self.stack.sp += immediate as usize;
     }
     pub fn rsf(&mut self) {
         let fp = self.stack.fp;
         let sp = self.stack.sp;
-        let stack_size = self.stack.memory.len() - (sp - fp);
-        self.stack.memory.resize(stack_size, 0);
+        let stack_size = self.stack.data.len() - (sp - fp);
+        self.stack.data.resize(stack_size, 0);
         self.stack.sp = self.stack.fp;
         self.stack.fp = self.stack.pop() as usize;
     }
     pub fn pushl(&mut self, immediate: Immediate) {
         let fp = self.stack.fp;
         let n = immediate as usize;
-        self.stack.push(self.stack.memory[fp + n]);
+        self.stack.push(self.stack.data[fp + n]);
     }
     pub fn popl(&mut self, immediate: Immediate) {
         let n = immediate as usize;
         let fp = self.stack.fp;
         let sp = self.stack.sp;
-        self.stack.memory[fp + n] = self.stack.memory[sp - 1];
+        self.stack.data[fp + n] = self.stack.data[sp - 1];
     }
     pub fn eq(&mut self) {
         let b = self.stack.pop();
@@ -205,7 +205,7 @@ mod tests {
         let mut vm = NinjaVM::default();
         vm.pushc(2);
         assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 2);
+        assert_eq!(vm.stack.data[0], 2);
     }
     #[test]
     fn test_add() {
@@ -214,7 +214,7 @@ mod tests {
         vm.pushc(2);
         vm.add();
         assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
     }
     #[test]
     fn test_sub() {
@@ -223,7 +223,7 @@ mod tests {
         vm.pushc(2);
         vm.sub();
         assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], -1);
+        assert_eq!(vm.stack.data[0], -1);
     }
     #[test]
     fn test_mul() {
@@ -232,7 +232,7 @@ mod tests {
         vm.pushc(-2);
         vm.mul();
         assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 2);
+        assert_eq!(vm.stack.data[0], 2);
     }
     #[test]
     fn test_div() {
@@ -241,11 +241,11 @@ mod tests {
         vm.pushc(-2);
         vm.div();
         assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], 3);
+        assert_eq!(vm.stack.data[0], 3);
         vm.pushc(-3);
         vm.div();
         assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], -1);
+        assert_eq!(vm.stack.data[0], -1);
     }
     #[test]
     #[should_panic(expected = "Division by zero error")]
@@ -265,7 +265,7 @@ mod tests {
         vm.pushc(4);
         vm.modulo();
         assert_eq!(vm.stack.sp, 1);
-        assert_eq!(vm.stack.memory[0], -1);
+        assert_eq!(vm.stack.data[0], -1);
     }
     #[test]
     #[should_panic(expected = "Division by zero error")]
@@ -283,11 +283,11 @@ mod tests {
         let input = b" -123  456 -789   ";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.rdint();
-        assert_eq!(vm.stack.memory[0], -123);
+        assert_eq!(vm.stack.data[0], -123);
         vm.rdint();
-        assert_eq!(vm.stack.memory[1], 456);
+        assert_eq!(vm.stack.data[1], 456);
         vm.rdint();
-        assert_eq!(vm.stack.memory[2], -789);
+        assert_eq!(vm.stack.data[2], -789);
     }
     #[test]
     #[should_panic(expected = "Error: input is not an integer")]
@@ -296,7 +296,7 @@ mod tests {
         let input = b" 123 s  456  789   ";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.rdint();
-        assert_eq!(vm.stack.memory[0], 123);
+        assert_eq!(vm.stack.data[0], 123);
         vm.rdint();
     }
     #[test]
@@ -306,7 +306,7 @@ mod tests {
         let input = b" 12345 67892424234242   ";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.rdint();
-        assert_eq!(vm.stack.memory[0], 12345);
+        assert_eq!(vm.stack.data[0], 12345);
         vm.rdint();
     }
     #[test]
@@ -325,19 +325,19 @@ mod tests {
         let input = b"123 456";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.rdchr();
-        assert_eq!(vm.stack.memory[0], '1' as Immediate);
+        assert_eq!(vm.stack.data[0], '1' as Immediate);
         vm.rdchr();
-        assert_eq!(vm.stack.memory[1], '2' as Immediate);
+        assert_eq!(vm.stack.data[1], '2' as Immediate);
         vm.rdchr();
-        assert_eq!(vm.stack.memory[2], '3' as Immediate);
+        assert_eq!(vm.stack.data[2], '3' as Immediate);
         vm.rdchr();
-        assert_eq!(vm.stack.memory[3], ' ' as Immediate);
+        assert_eq!(vm.stack.data[3], ' ' as Immediate);
         vm.rdchr();
-        assert_eq!(vm.stack.memory[4], '4' as Immediate);
+        assert_eq!(vm.stack.data[4], '4' as Immediate);
         vm.rdchr();
-        assert_eq!(vm.stack.memory[5], '5' as Immediate);
+        assert_eq!(vm.stack.data[5], '5' as Immediate);
         vm.rdchr();
-        assert_eq!(vm.stack.memory[6], '6' as Immediate);
+        assert_eq!(vm.stack.data[6], '6' as Immediate);
     }
     #[test]
     #[should_panic(expected = "Error: could not read character")]
@@ -363,9 +363,9 @@ mod tests {
         let mut vm = NinjaVM::default();
         vm.sda = StaticDataArea::new(1, 0);
         let value = 2;
-        vm.sda.memory[0] = value;
+        vm.sda.data[0] = value;
         vm.pushg(0);
-        assert_eq!(vm.sda.memory[0], value);
+        assert_eq!(vm.sda.data[0], value);
     }
     #[test]
     fn test_popg() {
@@ -374,7 +374,7 @@ mod tests {
         let value = 2;
         vm.stack.push(value);
         vm.popg(0);
-        assert_eq!(vm.sda.memory[0], value);
+        assert_eq!(vm.sda.data[0], value);
     }
     #[test]
     fn test_asf() {
@@ -385,7 +385,7 @@ mod tests {
         assert_eq!(vm.stack.sp, (immediate + 1) as usize);
         assert_eq!(vm.stack.fp, sp + 1);
         for i in 0..immediate as usize {
-            assert_eq!(vm.stack.memory[i], 0)
+            assert_eq!(vm.stack.data[i], 0)
         }
     }
     #[test]
@@ -396,7 +396,7 @@ mod tests {
         vm.rsf();
         assert_eq!(vm.stack.sp, 0);
         assert_eq!(vm.stack.fp, 0);
-        assert_eq!(vm.stack.memory.len(), 0);
+        assert_eq!(vm.stack.data.len(), 0);
     }
     #[test]
     fn test_pushl() {
@@ -409,7 +409,7 @@ mod tests {
         let sp = vm.stack.sp;
         vm.pushl(nth_local_var);
         assert_eq!(vm.stack.sp, sp + 1);
-        assert_eq!(vm.stack.memory[vm.stack.sp - 1], value_of_local_var);
+        assert_eq!(vm.stack.data[vm.stack.sp - 1], value_of_local_var);
     }
     #[test]
     fn test_popl() {
@@ -419,7 +419,7 @@ mod tests {
         vm.asf(2);
         vm.pushc(value_of_local_var);
         vm.popl(nth_local_var as i32);
-        assert_eq!(vm.stack.memory[vm.stack.fp + nth_local_var], value_of_local_var);
+        assert_eq!(vm.stack.data[vm.stack.fp + nth_local_var], value_of_local_var);
     }
     #[test]
     fn test_eq() {
@@ -427,13 +427,13 @@ mod tests {
         vm.pushc(1);
         vm.pushc(2);
         vm.eq();
-        assert_eq!(vm.stack.memory[0], 0);
+        assert_eq!(vm.stack.data[0], 0);
         vm.pushc(-1);
         vm.eq();
-        assert_eq!(vm.stack.memory[0], 0);
+        assert_eq!(vm.stack.data[0], 0);
         vm.pushc(0);
         vm.eq();
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
     }
     #[test]
     fn test_ne() {
@@ -441,13 +441,13 @@ mod tests {
         vm.pushc(1);
         vm.pushc(2);
         vm.ne();
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
         vm.pushc(-1);
         vm.ne();
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
         vm.pushc(1);
         vm.ne();
-        assert_eq!(vm.stack.memory[0], 0);
+        assert_eq!(vm.stack.data[0], 0);
     }
     #[test]
     fn test_lt() {
@@ -455,13 +455,13 @@ mod tests {
         vm.pushc(1);
         vm.pushc(2);
         vm.lt();
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
         vm.pushc(0);
         vm.lt();
-        assert_eq!(vm.stack.memory[0], 0);
+        assert_eq!(vm.stack.data[0], 0);
         vm.pushc(1);
         vm.lt();
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
     }
     #[test]
     fn test_le() {
@@ -469,13 +469,13 @@ mod tests {
         vm.pushc(1);
         vm.pushc(2);
         vm.le();
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
         vm.pushc(1);
         vm.le();
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
         vm.pushc(0);
         vm.le();
-        assert_eq!(vm.stack.memory[0], 0);
+        assert_eq!(vm.stack.data[0], 0);
     }
     #[test]
     fn test_gt() {
@@ -483,13 +483,13 @@ mod tests {
         vm.pushc(1);
         vm.pushc(2);
         vm.gt();
-        assert_eq!(vm.stack.memory[0], 0);
+        assert_eq!(vm.stack.data[0], 0);
         vm.pushc(0);
         vm.gt();
-        assert_eq!(vm.stack.memory[0], 0);
+        assert_eq!(vm.stack.data[0], 0);
         vm.pushc(-1);
         vm.gt();
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
     }
     #[test]
     fn test_ge() {
@@ -497,10 +497,10 @@ mod tests {
         vm.pushc(1);
         vm.pushc(2);
         vm.ge();
-        assert_eq!(vm.stack.memory[0], 0);
+        assert_eq!(vm.stack.data[0], 0);
         vm.pushc(0);
         vm.ge();
-        assert_eq!(vm.stack.memory[0], 1);
+        assert_eq!(vm.stack.data[0], 1);
     }
     #[test]
     fn test_jmp() {

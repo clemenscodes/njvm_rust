@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct StaticDataArea<T> {
-    pub memory: Vec<T>,
+    pub data: Vec<T>,
 }
 
 impl Default for StaticDataArea<Immediate> {
@@ -14,9 +14,9 @@ impl Default for StaticDataArea<Immediate> {
 
 impl<T: Clone + Debug + Display> StaticDataArea<T> {
     pub fn new(size: usize, value: T) -> Self {
-        let mut memory = vec![];
-        memory.resize(size, value);
-        StaticDataArea { memory }
+        let mut data = vec![];
+        data.resize(size, value);
+        StaticDataArea { data }
     }
     pub fn print(&self) {
         println!("{self:#?}");
@@ -29,6 +29,6 @@ mod tests {
     #[test]
     fn test_sda() {
         let sda = StaticDataArea::default();
-        assert_eq!(sda.memory.len(), 0);
+        assert_eq!(sda.data.len(), 0);
     }
 }

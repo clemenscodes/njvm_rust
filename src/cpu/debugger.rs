@@ -6,8 +6,8 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     pub fn debug(&mut self, bin: &str) {
         let instructions = self.load_binary(bin);
         self.load_instructions(&instructions);
-        let code_size = self.ir.register.len();
-        let data_size = self.sda.memory.len();
+        let code_size = self.ir.data.len();
+        let data_size = self.sda.data.len();
         println!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
         self.init();
         self.prompt();
@@ -27,12 +27,10 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
                     'l' => self.print_instructions(),
                     'b' => self.set_breakpoint(),
                     's' => self.step(),
-                    'r' => self.work(),
+                    'r' => self.run(),
                     'q' => self.halt(),
                     _ => continue,
                 }
-            } else {
-                fatal_error("Error: could not read input")
             }
         }
     }
@@ -49,8 +47,6 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
                 'd' => self.print_sda(),
                 _ => {}
             }
-        } else {
-            fatal_error("Error: could not read input")
         }
     }
     pub fn print_stack(&mut self) {
@@ -72,12 +68,49 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         self.ir.print_instruction(self.ir.pc);
     }
     pub fn step(&mut self) {
-        let instruction = self.ir.register[self.ir.pc];
+        let instruction = self.ir.data[self.ir.pc];
         self.ir.pc += 1;
         self.execute_instruction(instruction);
     }
+    pub fn run(&mut self) {
+        loop {
+            if let Some(bp) = self.bp {
+                if bp == self.ir.pc {
+                    self.prompt()
+                }
+            }
+            self.step()
+        }
+    }
     pub fn set_breakpoint(&mut self) {
-        println!("Called set_breakpoint")
+        if let Some(bp) = self.bp {
+            println!("DEBUG [breakpoint]: breakpoint is set at {bp}");
+        } else {
+            println!("DEBUG [breakpoint]: cleared")
+        }
+        println!("DEBUG [breakpoint]: address to set, -1 to clear, <ret> for no change?");
+        let mut input = String::new();
+        if self.reader.read_line(&mut input).is_err() {
+            fatal_error("Error: could not read input")
+        }
+        let bp: isize = match String::from(input.trim()).parse() {
+            Ok(bp) => bp,
+            Err(_) => return,
+        };
+        if bp < -1 {
+            return;
+        }
+        match bp {
+            -1 => {
+                self.bp = None;
+                println!("DEBUG [breakpoint]: now cleared");
+            }
+            _ => {
+                let bp = bp as usize;
+                self.bp = Some(bp);
+                println!("DEBUG [breakpoint]: now set at {bp}");
+            }
+        }
     }
 }
 
@@ -105,9 +138,9 @@ mod tests {
     fn test_print_next_instruction() {
         let mut vm = NinjaVM::default();
         vm.ir = InstructionRegister::new(3, 0);
-        vm.ir.register_instruction(Pushc, 1);
-        vm.ir.register_instruction(Pushc, 2);
-        vm.ir.register_instruction(Add, 0);
+        vm.ir.data_instruction(Pushc, 1);
+        vm.ir.data_instruction(Pushc, 2);
+        vm.ir.data_instruction(Add, 0);
         vm.init();
         vm.print_next_instruction();
         vm.ir.pc += 1;
