@@ -1,10 +1,10 @@
-use crate::{utils::*, Bytecode, Immediate, Instruction, InstructionCache, Opcode::*, Stack, StaticDataArea};
+use crate::{utils::*, Bytecode, Immediate, Instruction, InstructionRegister, Opcode::*, Stack, StaticDataArea};
 use std::io::{BufRead, Write};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct NinjaVM<R, W> {
     pub stack: Stack<Immediate>,
-    pub instruction_cache: InstructionCache<Bytecode>,
+    pub ir: InstructionRegister,
     pub sda: StaticDataArea<Immediate>,
     pub reader: R,
     pub writer: W,
@@ -26,7 +26,7 @@ where
     pub fn new(reader: R, writer: W) -> Self {
         Self {
             stack: Stack::default(),
-            instruction_cache: InstructionCache::default(),
+            ir: InstructionRegister::default(),
             sda: StaticDataArea::default(),
             reader,
             writer,
@@ -66,8 +66,8 @@ where
     }
     pub fn work(&mut self) {
         loop {
-            let instruction = self.instruction_cache.register[self.instruction_cache.pc];
-            self.instruction_cache.pc += 1;
+            let instruction = self.ir.register[self.ir.pc];
+            self.ir.pc += 1;
             self.execute_instruction(instruction);
         }
     }
@@ -86,7 +86,7 @@ where
         let variable_count = check_variables(&file);
         let instruction_count = check_instructions(&file);
         self.sda = StaticDataArea::new(variable_count, 0);
-        self.instruction_cache = InstructionCache::new(instruction_count, 0);
+        self.ir = InstructionRegister::new(instruction_count, 0);
         instructions
     }
     pub fn load_instructions(&mut self, instructions: &[u8]) {
@@ -95,33 +95,33 @@ where
             let instruction = Instruction::decode_instruction(instruction);
             let opcode = instruction.opcode;
             let immediate = instruction.immediate;
-            self.instruction_cache.register_instruction(opcode, immediate);
+            self.ir.register_instruction(opcode, immediate);
         });
     }
     pub fn init(&mut self) {
         println!("Ninja Virtual Machine started");
-        self.instruction_cache.pc = 0;
+        self.ir.pc = 0;
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Instruction, InstructionCache, NinjaVM, Opcode::*};
+    use crate::{Instruction, InstructionRegister, NinjaVM, Opcode::*};
     #[test]
     fn test_ninja_vm() {
         let vm = NinjaVM::default();
         assert_eq!(vm.stack.sp, 0);
         assert_eq!(vm.stack.memory.len(), 0);
-        assert_eq!(vm.instruction_cache.pc, 0);
-        assert_eq!(vm.instruction_cache.register.len(), 0);
+        assert_eq!(vm.ir.pc, 0);
+        assert_eq!(vm.ir.register.len(), 0);
     }
     #[test]
     fn test_work() {
         let mut vm = NinjaVM::default();
-        vm.instruction_cache = InstructionCache::new(3, 0);
-        vm.instruction_cache.register_instruction(Pushc, 1);
-        vm.instruction_cache.register_instruction(Pushc, 2);
-        vm.instruction_cache.register_instruction(Halt, 0);
+        vm.ir = InstructionRegister::new(3, 0);
+        vm.ir.register_instruction(Pushc, 1);
+        vm.ir.register_instruction(Pushc, 2);
+        vm.ir.register_instruction(Halt, 0);
         vm.work();
         assert_eq!(vm.stack.memory.len(), 2);
     }

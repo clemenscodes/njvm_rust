@@ -1,4 +1,5 @@
 use crate::Immediate;
+use std::fmt::{Debug, Display};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct StaticDataArea<T> {
@@ -11,10 +12,7 @@ impl Default for StaticDataArea<Immediate> {
     }
 }
 
-impl<T> StaticDataArea<T>
-where
-    T: Clone + std::fmt::Debug + std::fmt::Display,
-{
+impl<T: Clone + Debug + Display> StaticDataArea<T> {
     pub fn new(size: usize, value: T) -> Self {
         let mut memory = vec![];
         memory.resize(size, value);

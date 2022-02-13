@@ -3,22 +3,22 @@ use crate::{Immediate, Instruction, Opcode, Opcode::*};
 pub type Bytecode = u32;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct InstructionCache<U> {
+pub struct InstructionRegister {
     pub pc: usize,
-    pub register: Vec<U>,
+    pub register: Vec<Bytecode>,
 }
 
-impl Default for InstructionCache<Bytecode> {
+impl Default for InstructionRegister {
     fn default() -> Self {
         Self::new(0, 0)
     }
 }
 
-impl InstructionCache<Bytecode> {
+impl InstructionRegister {
     pub fn new(size: usize, value: Bytecode) -> Self {
         let mut register = vec![];
         register.resize(size, value);
-        InstructionCache { pc: 0, register }
+        InstructionRegister { pc: 0, register }
     }
     pub fn register_instruction(&mut self, opcode: Opcode, immediate: Immediate) {
         let instruction = Instruction::encode_instruction(opcode, immediate);
@@ -68,16 +68,16 @@ impl InstructionCache<Bytecode> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{InstructionCache, Opcode::Pushc};
+    use crate::{InstructionRegister, Opcode::Pushc};
     #[test]
     fn test_program_memory() {
-        let instruction_cache = InstructionCache::default();
+        let instruction_cache = InstructionRegister::default();
         assert_eq!(instruction_cache.pc, 0);
         assert_eq!(instruction_cache.register.len(), 0);
     }
     #[test]
     fn test_register_instruction() {
-        let mut instruction_cache = InstructionCache::new(2, 0);
+        let mut instruction_cache = InstructionRegister::new(2, 0);
         instruction_cache.register_instruction(Pushc, 1);
         assert_eq!(instruction_cache.pc, 1);
         assert_eq!(instruction_cache.register[0], 0x01000001);

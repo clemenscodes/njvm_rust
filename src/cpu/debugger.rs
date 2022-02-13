@@ -10,7 +10,7 @@ where
     pub fn debug(&mut self, bin: &str) {
         let instructions = self.load_binary(bin);
         self.load_instructions(&instructions);
-        let code_size = self.instruction_cache.register.len();
+        let code_size = self.ir.register.len();
         let data_size = self.sda.memory.len();
         println!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
         self.init();
@@ -69,15 +69,15 @@ where
     }
     pub fn print_instructions(&mut self) {
         println!("------------------");
-        self.instruction_cache.print();
+        self.ir.print();
         println!("------------------");
     }
     pub fn print_next_instruction(&mut self) {
-        self.instruction_cache.print_instruction(self.instruction_cache.pc);
+        self.ir.print_instruction(self.ir.pc);
     }
     pub fn step(&mut self) {
-        let instruction = self.instruction_cache.register[self.instruction_cache.pc];
-        self.instruction_cache.pc += 1;
+        let instruction = self.ir.register[self.ir.pc];
+        self.ir.pc += 1;
         self.execute_instruction(instruction);
     }
     pub fn set_breakpoint(&mut self) {
@@ -87,7 +87,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{InstructionCache, NinjaVM, Opcode::*};
+    use crate::{InstructionRegister, NinjaVM, Opcode::*};
     use std::io::stdout;
     #[test]
     fn test_debug() {
@@ -108,15 +108,15 @@ mod tests {
     #[test]
     fn test_print_next_instruction() {
         let mut vm = NinjaVM::default();
-        vm.instruction_cache = InstructionCache::new(3, 0);
-        vm.instruction_cache.register_instruction(Pushc, 1);
-        vm.instruction_cache.register_instruction(Pushc, 2);
-        vm.instruction_cache.register_instruction(Add, 0);
+        vm.ir = InstructionRegister::new(3, 0);
+        vm.ir.register_instruction(Pushc, 1);
+        vm.ir.register_instruction(Pushc, 2);
+        vm.ir.register_instruction(Add, 0);
         vm.init();
         vm.print_next_instruction();
-        vm.instruction_cache.pc += 1;
+        vm.ir.pc += 1;
         vm.print_next_instruction();
-        vm.instruction_cache.pc += 1;
+        vm.ir.pc += 1;
         vm.print_next_instruction();
     }
     #[test]

@@ -185,16 +185,16 @@ where
         self.stack.push(result);
     }
     pub fn jmp(&mut self, immediate: Immediate) {
-        self.instruction_cache.pc = immediate as usize;
+        self.ir.pc = immediate as usize;
     }
     pub fn brf(&mut self, immediate: Immediate) {
         if self.stack.pop() == 0 {
-            self.instruction_cache.pc = immediate as usize;
+            self.ir.pc = immediate as usize;
         }
     }
     pub fn brt(&mut self, immediate: Immediate) {
         if self.stack.pop() == 1 {
-            self.instruction_cache.pc = immediate as usize;
+            self.ir.pc = immediate as usize;
         }
     }
 }
@@ -510,7 +510,7 @@ mod tests {
         let mut vm = NinjaVM::default();
         let immediate = 5;
         vm.jmp(immediate);
-        assert_eq!(vm.instruction_cache.pc, immediate as usize);
+        assert_eq!(vm.ir.pc, immediate as usize);
     }
     #[test]
     fn test_brf() {
@@ -518,10 +518,10 @@ mod tests {
         let immediate = 5;
         vm.pushc(1);
         vm.brf(immediate);
-        assert_eq!(vm.instruction_cache.pc, 0);
+        assert_eq!(vm.ir.pc, 0);
         vm.pushc(0);
         vm.brf(immediate);
-        assert_eq!(vm.instruction_cache.pc, immediate as usize);
+        assert_eq!(vm.ir.pc, immediate as usize);
     }
     #[test]
     fn test_brt() {
@@ -529,9 +529,9 @@ mod tests {
         let immediate = 5;
         vm.pushc(0);
         vm.brt(immediate);
-        assert_eq!(vm.instruction_cache.pc, 0);
+        assert_eq!(vm.ir.pc, 0);
         vm.pushc(1);
         vm.brt(immediate);
-        assert_eq!(vm.instruction_cache.pc, immediate as usize);
+        assert_eq!(vm.ir.pc, immediate as usize);
     }
 }
