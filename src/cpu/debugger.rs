@@ -1,4 +1,4 @@
-use crate::{fatal_error, Instruction, NinjaVM, Opcode::*};
+use crate::{fatal_error, NinjaVM};
 
 use std::io::{BufRead, Write};
 
@@ -10,14 +10,11 @@ where
     pub fn debug(&mut self, bin: &str) {
         let instructions = self.load_binary(bin);
         self.load_instructions(&instructions);
-        self.print_debug_info(bin);
-        self.init();
-        self.prompt();
-    }
-    pub fn print_debug_info(&mut self, bin: &str) {
         let code_size = self.instruction_cache.register.len();
         let data_size = self.sda.memory.len();
         println!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
+        self.init();
+        self.prompt();
     }
     pub fn prompt(&mut self) {
         loop {
@@ -28,44 +25,36 @@ where
                 fatal_error("Error: could not read line")
             }
             let input = input.trim();
-            if input.starts_with('i') {
-                println!("DEBUG: [inspect]: stack, data?");
-                let mut input = String::new();
-                if self.reader.read_line(&mut input).is_err() {
-                    fatal_error("Error: could not read input")
+            if let Some(input) = input.chars().next() {
+                match input {
+                    'i' => self.inspect(),
+                    'l' => self.print_instructions(),
+                    'b' => self.set_breakpoint(),
+                    's' => self.step(),
+                    'r' => self.work(),
+                    'q' => self.halt(),
+                    _ => continue,
                 }
-                let input = input.trim();
-                if input.starts_with('s') {
-                    self.print_stack();
-                    continue;
-                }
-                if input.starts_with('d') {
-                    self.print_sda();
-                    continue;
-                }
-                continue;
+            } else {
+                fatal_error("Error: could not read input")
             }
-            if input.starts_with('l') {
-                self.print_instructions();
-                continue;
+        }
+    }
+    pub fn inspect(&mut self) {
+        println!("DEBUG: [inspect]: stack, data?");
+        let mut input = String::new();
+        if self.reader.read_line(&mut input).is_err() {
+            fatal_error("Error: could not read input")
+        }
+        let input = input.trim();
+        if let Some(input) = input.chars().next() {
+            match input {
+                's' => self.print_stack(),
+                'd' => self.print_sda(),
+                _ => {}
             }
-            if input.starts_with('b') {
-                self.set_breakpoint();
-                continue;
-            }
-            if input.starts_with('s') {
-                self.step();
-                continue;
-            }
-            if input.starts_with('r') {
-                self.run();
-                continue;
-            }
-            if input.starts_with('q') {
-                self.quit();
-                break;
-            }
-            continue;
+        } else {
+            fatal_error("Error: could not read input")
         }
     }
     pub fn print_stack(&mut self) {
@@ -91,23 +80,8 @@ where
         self.instruction_cache.pc += 1;
         self.execute_instruction(instruction);
     }
-    pub fn run(&mut self) {
-        let mut instruction = self.instruction_cache.register[self.instruction_cache.pc];
-        let mut decoded_instruction = Instruction::decode_instruction(instruction);
-        let mut opcode = decoded_instruction.opcode;
-        while opcode != Halt {
-            instruction = self.instruction_cache.register[self.instruction_cache.pc];
-            decoded_instruction = Instruction::decode_instruction(instruction);
-            opcode = decoded_instruction.opcode;
-            self.instruction_cache.pc += 1;
-            self.execute_instruction(instruction);
-        }
-    }
     pub fn set_breakpoint(&mut self) {
         println!("Called set_breakpoint")
-    }
-    pub fn quit(&mut self) {
-        self.halt();
     }
 }
 

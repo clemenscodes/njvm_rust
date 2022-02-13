@@ -65,14 +65,8 @@ where
         }
     }
     pub fn work(&mut self) {
-        self.init();
-        let mut instruction = self.instruction_cache.register[self.instruction_cache.pc];
-        let mut decoded_instruction = Instruction::decode_instruction(instruction);
-        let mut opcode = decoded_instruction.opcode;
-        while opcode != Halt {
-            instruction = self.instruction_cache.register[self.instruction_cache.pc];
-            decoded_instruction = Instruction::decode_instruction(instruction);
-            opcode = decoded_instruction.opcode;
+        loop {
+            let instruction = self.instruction_cache.register[self.instruction_cache.pc];
             self.instruction_cache.pc += 1;
             self.execute_instruction(instruction);
         }
@@ -80,6 +74,7 @@ where
     pub fn execute_binary(&mut self, bin: &str) {
         let instructions = self.load_binary(bin);
         self.load_instructions(&instructions);
+        self.init();
         self.work();
     }
     pub fn load_binary(&mut self, arg: &str) -> Vec<u8> {
