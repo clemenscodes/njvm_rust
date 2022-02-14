@@ -30,8 +30,14 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
                     'l' => self.print_ir(),
                     'b' => self.set_breakpoint(),
                     's' => self.step(),
-                    'r' => self.run(),
-                    'q' => self.halt(),
+                    'r' => {
+                        self.run();
+                        break;
+                    }
+                    'q' => {
+                        self.halt();
+                        break;
+                    }
                     _ => continue,
                 }
             }
@@ -52,24 +58,6 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             }
         }
     }
-    pub fn print_stack(&mut self) {
-        println!("------------------");
-        self.stack.print();
-        println!("------------------");
-    }
-    pub fn print_sda(&mut self) {
-        println!("------------------");
-        self.sda.print();
-        println!("------------------");
-    }
-    pub fn print_ir(&mut self) {
-        println!("------------------");
-        self.ir.print();
-        println!("------------------");
-    }
-    pub fn print_next_instruction(&mut self) {
-        self.ir.print_instruction(self.ir.pc);
-    }
     pub fn step(&mut self) {
         let instruction = self.ir.data[self.ir.pc];
         self.ir.pc += 1;
@@ -82,7 +70,10 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             }
             if let Some(bp) = self.bp {
                 if bp == self.ir.pc {
-                    self.prompt()
+                    self.bp = None;
+                    println!("DEBUG [breakpoint]: cleared");
+                    self.prompt();
+                    break;
                 }
             }
             self.step()
@@ -118,6 +109,24 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             }
         }
     }
+    pub fn print_next_instruction(&mut self) {
+        self.ir.print_instruction(self.ir.pc);
+    }
+    pub fn print_stack(&mut self) {
+        println!("------------------");
+        self.stack.print();
+        println!("------------------");
+    }
+    pub fn print_sda(&mut self) {
+        println!("------------------");
+        self.sda.print();
+        println!("------------------");
+    }
+    pub fn print_ir(&mut self) {
+        println!("------------------");
+        self.ir.print();
+        println!("------------------");
+    }
 }
 
 #[cfg(test)]
@@ -125,7 +134,27 @@ mod tests {
     use crate::{InstructionRegister, NinjaVM, Opcode::*};
     use std::io::stdout;
     #[test]
-    fn test_debug() {
+    fn test_prompt() {
+        let input = b"r\n8\n12\n";
+        let mut vm = NinjaVM::new(&input[..], stdout());
+        vm.prompt();
+    }
+    #[test]
+    fn test_step() {
+        let input = b"9\n";
+        let mut vm = NinjaVM::new(&input[..], stdout());
+        let instructions = vm.load_binary("tests/data/a3/prog1.bin");
+        vm.load_instructions(&instructions);
+        vm.init();
+        vm.step();
+        vm.stack.print();
+        assert_eq!(vm.stack.sp, 1);
+        assert_eq!(vm.stack.fp, 0);
+        assert_eq!(vm.stack.data.len(), 1);
+        assert_eq!(vm.stack.data[0], 9)
+    }
+    #[test]
+    fn test_run() {
         let input = b"r\n8\n12\n";
         let mut vm = NinjaVM::new(&input[..], stdout());
         vm.debug("tests/data/a3/prog1.bin");
@@ -138,15 +167,27 @@ mod tests {
         assert_eq!(vm.stack.data.len(), 0);
     }
     #[test]
-    fn test_prompt() {}
+    fn test_set_breakpoint() {
+        let input = b"b\n25\nq\nb\n-1\nq\n";
+        let mut vm = NinjaVM::new(&input[..], stdout());
+        vm.debug("tests/data/a3/prog1.bin");
+        assert_eq!(vm.bp, Some(25));
+        vm.debug("tests/data/a3/prog1.bin");
+        assert_eq!(vm.bp, None);
+    }
     #[test]
-    fn test_print_debug_info() {}
-    #[test]
-    fn test_print_stack() {}
-    #[test]
-    fn test_print_sda() {}
-    #[test]
-    fn test_print_instructions() {}
+    fn test_debugger_breaks_at_breakpoint() {
+        let input = b"b\n5\nr\n8\n12\nq\nr\n";
+        let mut vm = NinjaVM::new(&input[..], stdout());
+        vm.debug("tests/data/a3/prog1.bin");
+        assert_eq!(vm.ir.pc, 5);
+        assert_eq!(vm.bp, None);
+        vm.prompt();
+        assert_eq!(vm.stack.data.len(), 0);
+        assert_eq!(vm.sda.data.len(), 2);
+        assert_eq!(vm.sda.data[0], 4);
+        assert_eq!(vm.sda.data[1], 4);
+    }
     #[test]
     fn test_print_next_instruction() {
         let mut vm = NinjaVM::default();
@@ -161,12 +202,4 @@ mod tests {
         vm.ir.pc += 1;
         vm.print_next_instruction();
     }
-    #[test]
-    fn test_step() {}
-    #[test]
-    fn test_run() {}
-    #[test]
-    fn test_set_breakpoint() {}
-    #[test]
-    fn test_quit() {}
 }
