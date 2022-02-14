@@ -1,6 +1,7 @@
 use crate::{fatal_error, Bytecode};
 use Opcode::*;
 
+#[repr(u8)]
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Opcode {
     Halt = 0,
@@ -20,6 +21,15 @@ pub enum Opcode {
     Rsf = 14,
     Pushl = 15,
     Popl = 16,
+    Eq = 17,
+    Ne = 18,
+    Lt = 19,
+    Le = 20,
+    Gt = 21,
+    Ge = 22,
+    Jmp = 23,
+    Brf = 24,
+    Brt = 25,
 }
 
 impl Opcode {
@@ -46,6 +56,15 @@ impl Opcode {
             14 => Rsf,
             15 => Pushl,
             16 => Popl,
+            17 => Eq,
+            18 => Ne,
+            19 => Lt,
+            20 => Le,
+            21 => Gt,
+            22 => Ge,
+            23 => Jmp,
+            24 => Brf,
+            25 => Brt,
             _ => fatal_error("Unknown opcode"),
         }
     }
@@ -73,6 +92,15 @@ mod tests {
         assert_eq!(Opcode::encode_opcode(Rsf), 0x0e000000);
         assert_eq!(Opcode::encode_opcode(Pushl), 0x0f000000);
         assert_eq!(Opcode::encode_opcode(Popl), 0x10000000);
+        assert_eq!(Opcode::encode_opcode(Eq), 0x11000000);
+        assert_eq!(Opcode::encode_opcode(Ne), 0x12000000);
+        assert_eq!(Opcode::encode_opcode(Lt), 0x13000000);
+        assert_eq!(Opcode::encode_opcode(Le), 0x14000000);
+        assert_eq!(Opcode::encode_opcode(Gt), 0x15000000);
+        assert_eq!(Opcode::encode_opcode(Ge), 0x16000000);
+        assert_eq!(Opcode::encode_opcode(Jmp), 0x17000000);
+        assert_eq!(Opcode::encode_opcode(Brf), 0x18000000);
+        assert_eq!(Opcode::encode_opcode(Brt), 0x19000000);
     }
     #[test]
     fn test_decode_opcode() {
@@ -93,6 +121,15 @@ mod tests {
         assert_eq!(Opcode::decode_opcode(0x0e000f01), Rsf);
         assert_eq!(Opcode::decode_opcode(0x0f000f01), Pushl);
         assert_eq!(Opcode::decode_opcode(0x10000f01), Popl);
+        assert_eq!(Opcode::decode_opcode(0x11000000), Eq);
+        assert_eq!(Opcode::decode_opcode(0x12000000), Ne);
+        assert_eq!(Opcode::decode_opcode(0x13000000), Lt);
+        assert_eq!(Opcode::decode_opcode(0x14000000), Le);
+        assert_eq!(Opcode::decode_opcode(0x15000000), Gt);
+        assert_eq!(Opcode::decode_opcode(0x16000000), Ge);
+        assert_eq!(Opcode::decode_opcode(0x17000000), Jmp);
+        assert_eq!(Opcode::decode_opcode(0x18000000), Brf);
+        assert_eq!(Opcode::decode_opcode(0x19000000), Brt);
     }
     #[test]
     #[should_panic(expected = "Unknown opcode")]

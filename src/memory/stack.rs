@@ -1,10 +1,14 @@
 use crate::{fatal_error, Immediate};
+use std::fmt::{Debug, Display};
+
+pub type StackPointer = usize;
+pub type FramePointer = usize;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Stack<T> {
-    pub sp: usize,
-    pub fp: usize,
-    pub memory: Vec<T>,
+    pub sp: StackPointer,
+    pub fp: FramePointer,
+    pub data: Vec<T>,
 }
 
 impl Default for Stack<Immediate> {
@@ -13,27 +17,24 @@ impl Default for Stack<Immediate> {
     }
 }
 
-impl<T> Stack<T>
-where
-    T: std::fmt::Debug + std::fmt::Display,
-{
+impl<T: Debug + Display> Stack<T> {
     pub fn new() -> Self {
         Stack {
             sp: 0,
             fp: 0,
-            memory: vec![],
+            data: vec![],
         }
     }
     pub fn push(&mut self, immediate: T) {
-        self.memory.push(immediate);
+        self.data.push(immediate);
         self.sp += 1;
     }
     pub fn pop(&mut self) -> T {
-        if self.sp == 0 && self.memory.is_empty() {
+        if self.sp == 0 || self.data.is_empty() {
             fatal_error("Stack underflow: popped from empty stack");
         }
         self.sp -= 1;
-        match self.memory.pop() {
+        match self.data.pop() {
             Some(immediate) => immediate,
             None => fatal_error("Stack underflow: popped from empty stack"),
         }
@@ -50,27 +51,27 @@ mod tests {
     fn test_stack() {
         let stack = Stack::<Immediate>::default();
         assert_eq!(stack.sp, 0);
-        assert_eq!(stack.memory.len(), 0);
+        assert_eq!(stack.data.len(), 0);
     }
     #[test]
     fn test_push() {
         let mut stack = Stack::<Immediate>::default();
         stack.push(1);
         assert_eq!(stack.sp, 1);
-        assert_eq!(stack.memory[0], 1);
+        assert_eq!(stack.data[0], 1);
         stack.push(5);
         assert_eq!(stack.sp, 2);
-        assert_eq!(stack.memory[1], 5);
+        assert_eq!(stack.data[1], 5);
     }
     #[test]
     fn test_pop() {
         let mut stack = Stack::<Immediate>::default();
         stack.push(1);
         assert_eq!(stack.sp, 1);
-        assert_eq!(stack.memory[0], 1);
+        assert_eq!(stack.data[0], 1);
         assert_eq!(stack.pop(), 1);
         assert_eq!(stack.sp, 0);
-        assert_eq!(stack.memory.len(), 0);
+        assert_eq!(stack.data.len(), 0);
     }
     #[test]
     #[should_panic(expected = "Stack underflow: popped from empty stack")]

@@ -1,6 +1,6 @@
 use crate::fatal_error;
 
-pub const VERSION: u8 = 2;
+pub const VERSION: u8 = 3;
 
 pub fn check_ninja_version(file: &[u8]) {
     let version = match file

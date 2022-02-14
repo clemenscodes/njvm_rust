@@ -1,6 +1,6 @@
 use crate::{Bytecode, Decoding, Encoding, Immediate, Opcode};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub struct Instruction {
     pub opcode: Opcode,
     pub immediate: Immediate,
@@ -46,5 +46,10 @@ mod tests {
         let decoded_instruction = Instruction::decode_instruction(0x01ffffff);
         assert_eq!(decoded_instruction.opcode, Pushc);
         assert_eq!(decoded_instruction.immediate, -1);
+    }
+    #[test]
+    fn test_print_instruction() {
+        let instruction = Instruction::decode_instruction(0x01000001);
+        instruction.print();
     }
 }
