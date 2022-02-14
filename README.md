@@ -38,7 +38,7 @@ The debugger has several features:
 - Inspect:
   - Stack
   - Static Data Area
-- List Instruction Iegister
+- List Instruction Register
 - Step through the binary an instruction at a time
 - Run the entire program until the end
 - Set a breakpoint at which the running program will jump in debug mode
