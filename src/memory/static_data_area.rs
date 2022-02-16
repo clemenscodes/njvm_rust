@@ -1,7 +1,7 @@
 use crate::Immediate;
-use std::fmt::{Debug, Display};
+use std::fmt::{Debug, Display, Formatter, Result};
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone)]
 pub struct StaticDataArea<T> {
     pub data: Vec<T>,
 }
@@ -20,6 +20,19 @@ impl<T: Clone + Debug + Display> StaticDataArea<T> {
     }
     pub fn print(&self) {
         println!("{self:#?}");
+    }
+}
+
+impl<T: Debug + Display> Debug for StaticDataArea<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        for data in 0..self.data.len() {
+            if data == (self.data.len() - 1) {
+                write!(f, "data[{data:04}]:\t{}", self.data[data])?;
+            } else {
+                writeln!(f, "data[{data:04}]:\t{}", self.data[data])?;
+            }
+        }
+        Ok(())
     }
 }
 

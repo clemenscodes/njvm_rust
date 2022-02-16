@@ -1,10 +1,10 @@
 use crate::{fatal_error, Immediate};
-use std::fmt::{Debug, Display};
+use std::fmt::{Debug, Display, Formatter, Result};
 
 pub type StackPointer = usize;
 pub type FramePointer = usize;
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone)]
 pub struct Stack<T> {
     pub sp: StackPointer,
     pub fp: FramePointer,
@@ -41,6 +41,34 @@ impl<T: Debug + Display> Stack<T> {
     }
     pub fn print(&self) {
         println!("{self:#?}");
+    }
+}
+
+impl<T: Debug + Display> Debug for Stack<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        let sp = self.sp;
+        let fp = self.fp;
+        for slot in (0..=self.data.len()).rev() {
+            if sp == 0 && fp == 0 {
+                write!(f, "sp, fp --->\t{slot:04}:\txxxx")?;
+            }
+            if sp == fp {
+                writeln!(f, "sp, fp --->\t{slot:04}:\t{}", self.data[slot])?;
+            }
+            if slot != sp && slot != fp {
+                writeln!(f, "\t\t{slot:04}:\t{}", self.data[slot])?;
+            }
+            if slot == sp && slot != fp {
+                writeln!(f, "sp \t --->\t{sp:04}:\txxxx")?;
+            }
+            if slot == fp && slot != sp && fp == 0 {
+                write!(f, "fp \t --->\t{fp:04}:\t{}", self.data[fp])?;
+            }
+            if slot == fp && slot != sp && fp != 0 {
+                writeln!(f, "fp \t --->\t{fp:04}:\t{}", self.data[fp])?;
+            }
+        }
+        Ok(())
     }
 }
 
