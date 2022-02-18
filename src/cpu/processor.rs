@@ -194,7 +194,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         }
     }
     pub fn call(&mut self, immediate: Immediate) {
-        let ra = (self.ir.pc + 1) as Immediate;
+        let ra = self.ir.pc as Immediate;
         self.stack.push(ra);
         self.ir.pc = immediate as usize;
     }
@@ -544,10 +544,9 @@ mod tests {
         vm.load("tests/data/a4/prog01.bin");
         vm.init();
         let immediate = 5;
-        let ra = vm.ir.pc + 1;
+        let ra = vm.ir.pc;
         vm.call(immediate);
         assert_eq!(vm.ir.pc, immediate as usize);
-        assert_eq!(vm.stack.sp, ra as usize);
         assert_eq!(vm.stack.data[vm.stack.sp - 1], ra as i32);
     }
     #[test]
@@ -556,7 +555,7 @@ mod tests {
         vm.load("tests/data/a4/prog01.bin");
         vm.init();
         let immediate = 5;
-        let ra = vm.ir.pc + 1;
+        let ra = vm.ir.pc;
         vm.pushc(2);
         vm.call(immediate);
         assert_eq!(vm.stack.data[1], ra as i32);

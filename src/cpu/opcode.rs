@@ -104,6 +104,7 @@ mod tests {
         assert_eq!(Opcode::encode_opcode(Ge), 0x16000000);
         assert_eq!(Opcode::encode_opcode(Jmp), 0x17000000);
         assert_eq!(Opcode::encode_opcode(Brf), 0x18000000);
+        assert_eq!(Opcode::encode_opcode(Brt), 0x19000000);
         assert_eq!(Opcode::encode_opcode(Call), 0x1a000000);
         assert_eq!(Opcode::encode_opcode(Ret), 0x1b000000);
     }
