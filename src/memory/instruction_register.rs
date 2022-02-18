@@ -65,6 +65,7 @@ impl InstructionRegister {
             Brt => println!("{pc:04}:\tbrt\t{immediate}"),
             Call => println!("{pc:04}:\tcall\t{immediate}"),
             Ret => println!("{pc:04}:\tret"),
+            Drop => println!("{pc:04}:\tdrop\t{immediate}"),
         }
     }
 }

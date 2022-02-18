@@ -201,6 +201,11 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     pub fn ret(&mut self) {
         self.ir.pc = self.stack.pop() as usize;
     }
+    pub fn drop(&mut self, immediate: Immediate) {
+        for _ in 0..immediate {
+            self.stack.pop();
+        }
+    }
 }
 
 #[cfg(test)]
@@ -565,5 +570,20 @@ mod tests {
         assert_eq!(vm.stack.data[0], 2);
         assert_eq!(vm.stack.data.len(), 1);
         assert_eq!(vm.ir.pc, ra)
+    }
+    #[test]
+    fn test_drop() {
+        let mut vm = NinjaVM::default();
+        vm.load("tests/data/a4/prog01.bin");
+        vm.init();
+        let args = 10;
+        for i in 0..args {
+            vm.pushc(i);
+        }
+        assert_eq!(vm.stack.sp, args as usize);
+        assert_eq!(vm.stack.data.len(), args as usize);
+        vm.drop(args);
+        assert_eq!(vm.stack.sp, 0);
+        assert_eq!(vm.stack.data.len(), 0);
     }
 }

@@ -17,7 +17,7 @@ impl Default for Stack<Immediate> {
     }
 }
 
-impl<T: Debug + Display> Stack<T> {
+impl<T: Clone + Debug + Display> Stack<T> {
     pub fn new() -> Self {
         Stack {
             sp: 0,

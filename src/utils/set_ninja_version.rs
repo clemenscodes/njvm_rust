@@ -1,14 +1,10 @@
 use crate::{fatal_error, VERSION};
 
 pub fn set_ninja_version(file: &mut [u8]) {
-    let version = match file
-        .chunks_mut(4)
-        .nth(1)
-        .map(|c| {
-            c[0] = VERSION;
-            u32::from_le_bytes([c[0], c[1], c[2], c[3]])
-        })
-    {
+    let version = match file.chunks_mut(4).nth(1).map(|c| {
+        c[0] = VERSION;
+        u32::from_le_bytes([c[0], c[1], c[2], c[3]])
+    }) {
         Some(version) => version,
         None => fatal_error("Failed to read version"),
     };

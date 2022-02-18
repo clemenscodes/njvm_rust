@@ -72,6 +72,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             Brt => self.brt(immediate),
             Call => self.call(immediate),
             Ret => self.ret(),
+            Drop => self.drop(immediate),
         }
     }
     pub fn work(&mut self) {

@@ -1,7 +1,7 @@
 use anyhow::Result;
 use assert_cmd::{crate_name, Command};
-use predicates::str::contains;
 use difference::Changeset;
+use predicates::str::contains;
 // use std::process::Command as Cmd;
 
 #[test]
@@ -56,14 +56,14 @@ pub fn prog1_works() -> Result<()> {
     test_output(&file, &output)
 }
 
-// #[test]
-// pub fn prog2_works() -> Result<()> {
-//     let base = "tests/data/a4/prog02";
-//     let file = format!("{base}.bin");
-//     let output = format!("{base}.out");
-//     let output = read_file(&output)?;
-//     test_output(&file, &output)
-// }
+#[test]
+pub fn prog2_works() -> Result<()> {
+    let base = "tests/data/a4/prog02";
+    let file = format!("{base}.bin");
+    let output = format!("{base}.out");
+    let output = read_file(&output)?;
+    test_output(&file, &output)
+}
 // #[test]
 // pub fn prog3_works() -> Result<()> {
 //     let base = "tests/data/a4/prog03";
@@ -138,4 +138,3 @@ fn test_output(arg: &str, output: &str) -> Result<()> {
 //     assert_eq!(output, stdout);
 //     Ok(())
 // }
-
