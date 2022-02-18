@@ -6,6 +6,8 @@ pub mod check_instructions;
 pub use check_instructions::check_instructions;
 pub mod check_ninja_version;
 pub use check_ninja_version::{check_ninja_version, VERSION};
+pub mod set_ninja_version;
+pub use set_ninja_version::set_ninja_version;
 pub mod read_file;
 pub use read_file::read_file;
 pub mod split_file_metadata;

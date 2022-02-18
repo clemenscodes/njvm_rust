@@ -30,6 +30,8 @@ pub enum Opcode {
     Jmp = 23,
     Brf = 24,
     Brt = 25,
+    Call = 26,
+    Ret = 27,
 }
 
 impl Opcode {
@@ -65,6 +67,8 @@ impl Opcode {
             23 => Jmp,
             24 => Brf,
             25 => Brt,
+            26 => Call,
+            27 => Ret,
             _ => fatal_error("Unknown opcode"),
         }
     }
@@ -100,7 +104,8 @@ mod tests {
         assert_eq!(Opcode::encode_opcode(Ge), 0x16000000);
         assert_eq!(Opcode::encode_opcode(Jmp), 0x17000000);
         assert_eq!(Opcode::encode_opcode(Brf), 0x18000000);
-        assert_eq!(Opcode::encode_opcode(Brt), 0x19000000);
+        assert_eq!(Opcode::encode_opcode(Call), 0x1a000000);
+        assert_eq!(Opcode::encode_opcode(Ret), 0x1b000000);
     }
     #[test]
     fn test_decode_opcode() {
@@ -130,6 +135,8 @@ mod tests {
         assert_eq!(Opcode::decode_opcode(0x17000000), Jmp);
         assert_eq!(Opcode::decode_opcode(0x18000000), Brf);
         assert_eq!(Opcode::decode_opcode(0x19000000), Brt);
+        assert_eq!(Opcode::decode_opcode(0x1a000000), Call);
+        assert_eq!(Opcode::decode_opcode(0x1b000000), Ret);
     }
     #[test]
     #[should_panic(expected = "Unknown opcode")]

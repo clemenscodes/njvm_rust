@@ -51,8 +51,7 @@ impl<T: Debug + Display> Debug for Stack<T> {
         for slot in (0..=self.data.len()).rev() {
             if sp == 0 && fp == 0 {
                 write!(f, "sp, fp --->\t{slot:04}:\txxxx")?;
-            }
-            if sp == fp {
+            } else if sp == fp {
                 writeln!(f, "sp, fp --->\t{slot:04}:\t{}", self.data[slot])?;
             }
             if slot != sp && slot != fp {

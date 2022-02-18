@@ -193,6 +193,14 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             self.ir.pc = immediate as usize;
         }
     }
+    pub fn call(&mut self, immediate: Immediate) {
+        let ra = (self.ir.pc + 1) as Immediate;
+        self.stack.push(ra);
+        self.ir.pc = immediate as usize;
+    }
+    pub fn ret(&mut self) {
+        self.ir.pc = self.stack.pop() as usize;
+    }
 }
 
 #[cfg(test)]
@@ -529,5 +537,34 @@ mod tests {
         vm.pushc(1);
         vm.brt(immediate);
         assert_eq!(vm.ir.pc, immediate as usize);
+    }
+    #[test]
+    fn test_call() {
+        let mut vm = NinjaVM::default();
+        vm.load("tests/data/a4/prog01.bin");
+        vm.init();
+        let immediate = 5;
+        let ra = vm.ir.pc + 1;
+        vm.call(immediate);
+        assert_eq!(vm.ir.pc, immediate as usize);
+        assert_eq!(vm.stack.sp, ra as usize);
+        assert_eq!(vm.stack.data[vm.stack.sp - 1], ra as i32);
+    }
+    #[test]
+    fn test_ret() {
+        let mut vm = NinjaVM::default();
+        vm.load("tests/data/a4/prog01.bin");
+        vm.init();
+        let immediate = 5;
+        let ra = vm.ir.pc + 1;
+        vm.pushc(2);
+        vm.call(immediate);
+        assert_eq!(vm.stack.data[1], ra as i32);
+        assert_eq!(vm.ir.pc, immediate as usize);
+        assert_ne!(vm.ir.pc, ra);
+        vm.ret();
+        assert_eq!(vm.stack.data[0], 2);
+        assert_eq!(vm.stack.data.len(), 1);
+        assert_eq!(vm.ir.pc, ra)
     }
 }
