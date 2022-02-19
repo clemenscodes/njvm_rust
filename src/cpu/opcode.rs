@@ -33,6 +33,9 @@ pub enum Opcode {
     Call = 26,
     Ret = 27,
     Drop = 28,
+    Pushr = 29,
+    Popr = 30,
+    Dup = 31,
 }
 
 impl Opcode {
@@ -71,6 +74,9 @@ impl Opcode {
             26 => Call,
             27 => Ret,
             28 => Drop,
+            29 => Pushr,
+            30 => Popr,
+            31 => Dup,
             _ => fatal_error("Unknown opcode"),
         }
     }
@@ -110,6 +116,9 @@ mod tests {
         assert_eq!(Opcode::encode_opcode(Call), 0x1a000000);
         assert_eq!(Opcode::encode_opcode(Ret), 0x1b000000);
         assert_eq!(Opcode::encode_opcode(Drop), 0x1c000000);
+        assert_eq!(Opcode::encode_opcode(Pushr), 0x1d000000);
+        assert_eq!(Opcode::encode_opcode(Popr), 0x1e000000);
+        assert_eq!(Opcode::encode_opcode(Dup), 0x1f000000);
     }
     #[test]
     fn test_decode_opcode() {
@@ -142,6 +151,9 @@ mod tests {
         assert_eq!(Opcode::decode_opcode(0x1a000000), Call);
         assert_eq!(Opcode::decode_opcode(0x1b000000), Ret);
         assert_eq!(Opcode::decode_opcode(0x1c000000), Drop);
+        assert_eq!(Opcode::decode_opcode(0x1d000000), Pushr);
+        assert_eq!(Opcode::decode_opcode(0x1e000000), Popr);
+        assert_eq!(Opcode::decode_opcode(0x1f000000), Dup);
     }
     #[test]
     #[should_panic(expected = "Unknown opcode")]

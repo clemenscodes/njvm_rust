@@ -10,6 +10,7 @@ pub mod utils;
 pub use utils::*;
 
 pub type Breakpoint = usize;
+pub type ReturnValueRegister = Immediate;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct NinjaVM<R, W> {
@@ -19,6 +20,7 @@ pub struct NinjaVM<R, W> {
     pub reader: R,
     pub writer: W,
     pub bp: Option<Breakpoint>,
+    pub rv: Option<ReturnValueRegister>,
 }
 
 impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
@@ -38,6 +40,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             reader,
             writer,
             bp: None,
+            rv: None,
         }
     }
     pub fn execute_instruction(&mut self, bytecode: Bytecode) {
@@ -73,6 +76,9 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             Call => self.call(immediate),
             Ret => self.ret(),
             Drop => self.drop(immediate),
+            Pushr => self.pushr(),
+            Popr => self.popr(),
+            Dup => self.dup(),
         }
     }
     pub fn work(&mut self) {

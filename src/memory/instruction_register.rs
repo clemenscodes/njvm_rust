@@ -66,6 +66,9 @@ impl InstructionRegister {
             Call => println!("{pc:04}:\tcall\t{immediate}"),
             Ret => println!("{pc:04}:\tret"),
             Drop => println!("{pc:04}:\tdrop\t{immediate}"),
+            Pushr => println!("{pc:04}:\tpushr"),
+            Popr => println!("{pc:04}:\tpopr"),
+            Dup => println!("{pc:04}:\tdup"),
         }
     }
 }
