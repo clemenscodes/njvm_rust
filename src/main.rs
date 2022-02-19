@@ -10,6 +10,7 @@ pub mod utils;
 pub use utils::*;
 
 pub type Breakpoint = usize;
+pub type ReturnValueRegister = Immediate;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct NinjaVM<R, W> {
@@ -19,6 +20,7 @@ pub struct NinjaVM<R, W> {
     pub reader: R,
     pub writer: W,
     pub bp: Option<Breakpoint>,
+    pub rv: Option<ReturnValueRegister>,
 }
 
 impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
@@ -38,6 +40,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             reader,
             writer,
             bp: None,
+            rv: None,
         }
     }
     pub fn execute_instruction(&mut self, bytecode: Bytecode) {
@@ -70,6 +73,12 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             Jmp => self.jmp(immediate),
             Brf => self.brf(immediate),
             Brt => self.brt(immediate),
+            Call => self.call(immediate),
+            Ret => self.ret(),
+            Drop => self.drop(immediate),
+            Pushr => self.pushr(),
+            Popr => self.popr(),
+            Dup => self.dup(),
         }
     }
     pub fn work(&mut self) {
@@ -102,6 +111,18 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         self.ir = InstructionRegister::new(instruction_count, 0);
         instructions
     }
+    pub fn load_test_binary(&mut self, arg: &str) -> Vec<u8> {
+        verify_arg(arg);
+        let mut file = read_file(arg);
+        let instructions = split_file_metadata(&mut file);
+        check_ninja_format(&file, arg);
+        set_ninja_version(&mut file);
+        let variable_count = check_variables(&file);
+        let instruction_count = check_instructions(&file);
+        self.sda = StaticDataArea::new(variable_count, 0);
+        self.ir = InstructionRegister::new(instruction_count, 0);
+        instructions
+    }
     pub fn load_instructions(&mut self, instructions: &[u8]) {
         instructions.chunks(4).for_each(|c| {
             let instruction = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
@@ -110,6 +131,10 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             let immediate = instruction.immediate;
             self.ir.register_instruction(opcode, immediate);
         });
+    }
+    pub fn load(&mut self, bin: &str) {
+        let instructions = self.load_binary(bin);
+        self.load_instructions(&instructions)
     }
     pub fn init(&mut self) {
         println!("Ninja Virtual Machine started");

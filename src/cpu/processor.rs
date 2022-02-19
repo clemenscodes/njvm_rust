@@ -193,6 +193,35 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             self.ir.pc = immediate as usize;
         }
     }
+    pub fn call(&mut self, immediate: Immediate) {
+        let ra = self.ir.pc as Immediate;
+        self.stack.push(ra);
+        self.ir.pc = immediate as usize;
+    }
+    pub fn ret(&mut self) {
+        self.ir.pc = self.stack.pop() as usize;
+    }
+    pub fn drop(&mut self, immediate: Immediate) {
+        for _ in 0..immediate {
+            self.stack.pop();
+        }
+    }
+    pub fn pushr(&mut self) {
+        if let Some(rv) = self.rv {
+            self.stack.push(rv);
+            self.rv = None;
+        } else {
+            fatal_error("Error: no value in return value register")
+        }
+    }
+    pub fn popr(&mut self) {
+        self.rv = Some(self.stack.pop());
+    }
+    pub fn dup(&mut self) {
+        let dup = self.stack.pop();
+        self.stack.push(dup);
+        self.stack.push(dup);
+    }
 }
 
 #[cfg(test)]
@@ -529,5 +558,105 @@ mod tests {
         vm.pushc(1);
         vm.brt(immediate);
         assert_eq!(vm.ir.pc, immediate as usize);
+    }
+    #[test]
+    fn test_call() {
+        let mut vm = NinjaVM::default();
+        vm.load("tests/data/a4/prog01.bin");
+        vm.init();
+        let immediate = 5;
+        let ra = vm.ir.pc;
+        vm.call(immediate);
+        assert_eq!(vm.ir.pc, immediate as usize);
+        assert_eq!(vm.stack.data[vm.stack.sp - 1], ra as i32);
+    }
+    #[test]
+    fn test_ret() {
+        let mut vm = NinjaVM::default();
+        vm.load("tests/data/a4/prog01.bin");
+        vm.init();
+        let immediate = 5;
+        let ra = vm.ir.pc;
+        vm.pushc(2);
+        vm.call(immediate);
+        assert_eq!(vm.stack.data[1], ra as i32);
+        assert_eq!(vm.ir.pc, immediate as usize);
+        assert_ne!(vm.ir.pc, ra);
+        vm.ret();
+        assert_eq!(vm.stack.data[0], 2);
+        assert_eq!(vm.stack.data.len(), 1);
+        assert_eq!(vm.ir.pc, ra)
+    }
+    #[test]
+    fn test_drop() {
+        let mut vm = NinjaVM::default();
+        vm.load("tests/data/a4/prog01.bin");
+        vm.init();
+        let args = 10;
+        for i in 0..args {
+            vm.pushc(i);
+        }
+        assert_eq!(vm.stack.sp, args as usize);
+        assert_eq!(vm.stack.data.len(), args as usize);
+        vm.drop(args);
+        assert_eq!(vm.stack.sp, 0);
+        assert_eq!(vm.stack.data.len(), 0);
+    }
+    #[test]
+    fn test_pushr_works() {
+        let mut vm = NinjaVM::default();
+        let rv = 5;
+        let sp = vm.stack.sp;
+        let len = vm.stack.data.len();
+        vm.rv = Some(rv);
+        vm.pushr();
+        assert_eq!(vm.stack.sp, sp + 1);
+        assert_eq!(vm.stack.data.len(), len + 1);
+        assert_eq!(vm.rv, None);
+    }
+    #[test]
+    #[should_panic(expected = "Error: no value in return value register")]
+    fn test_pushr_fails() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut vm = NinjaVM::default();
+        vm.pushr();
+    }
+    #[test]
+    fn test_popr_works() {
+        let mut vm = NinjaVM::default();
+        let rv = 5;
+        vm.pushc(rv);
+        let len = vm.stack.data.len();
+        assert_eq!(vm.rv, None);
+        assert_eq!(vm.stack.data[len - 1], rv);
+        vm.popr();
+        assert_eq!(vm.stack.data.len(), 0);
+        assert_eq!(vm.rv, Some(rv));
+    }
+    #[test]
+    #[should_panic(expected = "Stack underflow: popped from empty stack")]
+    fn test_popr_fails() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut vm = NinjaVM::default();
+        vm.popr();
+    }
+    #[test]
+    fn test_dup() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut vm = NinjaVM::default();
+        let immediate = 5;
+        vm.pushc(immediate);
+        let len = vm.stack.data.len();
+        assert_eq!(vm.stack.data[len - 1], immediate);
+        vm.dup();
+        assert_eq!(vm.stack.data[len - 1], immediate);
+        assert_eq!(vm.stack.data[len], immediate);
+    }
+    #[test]
+    #[should_panic(expected = "Stack underflow: popped from empty stack")]
+    fn test_dup_fails() {
+        std::panic::set_hook(Box::new(|_| {}));
+        let mut vm = NinjaVM::default();
+        vm.dup();
     }
 }

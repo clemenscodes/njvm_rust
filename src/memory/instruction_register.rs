@@ -63,6 +63,12 @@ impl InstructionRegister {
             Jmp => println!("{pc:04}:\tjmp\t{immediate}"),
             Brf => println!("{pc:04}:\tbrf\t{immediate}"),
             Brt => println!("{pc:04}:\tbrt\t{immediate}"),
+            Call => println!("{pc:04}:\tcall\t{immediate}"),
+            Ret => println!("{pc:04}:\tret"),
+            Drop => println!("{pc:04}:\tdrop\t{immediate}"),
+            Pushr => println!("{pc:04}:\tpushr"),
+            Popr => println!("{pc:04}:\tpopr"),
+            Dup => println!("{pc:04}:\tdup"),
         }
     }
 }
