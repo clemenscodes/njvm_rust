@@ -1,7 +1,58 @@
 #!/bin/sh
 
+GREEN="\\033[0;32m"
+RED="\\033[0;31m"
+SET="\\033[0m"
+VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1 | cut -c5-)"
+TEST_DIR="tests/data/v$VERSION"
+REFERENCE_NJVM="$TEST_DIR/njvm"
 TARGET="x86_64-unknown-linux-gnu"
+BUILD_NJVM="target/$TARGET/release/njvm"
+FAIL_FLAG=false
+LEAK_FLAG=false
 
-cargo fmt --all -- --check
-cargo clippy --release --target $TARGET -- -D warnings
-cargo test --workspace --release --target $TARGET
+red() {
+    printf "$RED%s$SET" "$1"
+}
+
+green() {
+    printf "$GREEN%s$SET" "$1"
+}
+
+for bin in "$TEST_DIR"/*.bin; do
+    echo "Testing $bin"
+    TEST=$(echo "$bin" | awk -F '.' '{print $1}')
+    STDIN="$(cat "$TEST".in)"
+    VALGRIND_LOG_FILE="$TEST.valgrind.out"
+    echo > "$VALGRIND_LOG_FILE"
+    VALGRIND="valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s --log-file=$VALGRIND_LOG_FILE"
+    EXEC_BUILD="$VALGRIND $BUILD_NJVM $bin"
+    EXEC_REFERENCE="$REFERENCE_NJVM $bin"
+    BUILD="$(echo "$STDIN" | $EXEC_BUILD)"
+    REFERENCE="$(echo "$STDIN" | $EXEC_REFERENCE)"
+    BUILD_OUT="$TEST.build.out"
+    REFERENCE_OUT="$TEST.target.out"
+    echo "$BUILD" > "$BUILD_OUT"
+    cat "$BUILD_OUT"
+    cat "$VALGRIND_LOG_FILE"
+    echo "$REFERENCE" > "$REFERENCE_OUT"
+    if diff "$BUILD_OUT" "$REFERENCE_OUT"
+    then
+        printf "["
+        green "OK" 
+        printf "]"
+        grep -q "All heap blocks were freed" "$VALGRIND_LOG_FILE" ||
+            { red " LEAKS MEMORY!" && LEAK_FLAG=true; }
+        printf "\\n"
+    else
+        FAIL_FLAG=true
+        printf "["
+        red "FAILED" 
+        printf "]\\n"
+    fi
+done
+
+if [ $FAIL_FLAG = true ] || [ $LEAK_FLAG = true ]
+then
+    exit 1
+fi

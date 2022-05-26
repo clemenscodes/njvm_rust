@@ -49,7 +49,7 @@ fn test_output_failure(arg: &str, output: &str) -> Result<()> {
 
 #[test]
 pub fn prog1_works() -> Result<()> {
-    let base = "tests/data/a4/prog01";
+    let base = "tests/data/v4/prog01";
     let file = format!("{base}.bin");
     let output = format!("{base}.out");
     let output = read_file(&output)?;
@@ -58,7 +58,7 @@ pub fn prog1_works() -> Result<()> {
 
 #[test]
 pub fn prog2_works() -> Result<()> {
-    let base = "tests/data/a4/prog02";
+    let base = "tests/data/v4/prog02";
     let file = format!("{base}.bin");
     let output = format!("{base}.out");
     let output = read_file(&output)?;
@@ -67,7 +67,7 @@ pub fn prog2_works() -> Result<()> {
 
 #[test]
 pub fn prog3_works() -> Result<()> {
-    let base = "tests/data/a4/prog03";
+    let base = "tests/data/v4/prog03";
     let file = format!("{base}.bin");
     let output = format!("{base}.out");
     let output = read_file(&output)?;
@@ -76,7 +76,7 @@ pub fn prog3_works() -> Result<()> {
 
 #[test]
 pub fn prog4_works() -> Result<()> {
-    let base = "tests/data/a4/prog04";
+    let base = "tests/data/v4/prog04";
     let file = format!("{base}.bin");
     let output = format!("{base}.out");
     let output = read_file(&output)?;
@@ -85,7 +85,7 @@ pub fn prog4_works() -> Result<()> {
 
 #[test]
 pub fn prog10_works() -> Result<()> {
-    let base = "tests/data/a4/prog10";
+    let base = "tests/data/v4/prog10";
     let file = format!("{base}.bin");
     let output = format!("{base}.out");
     let output = read_file(&output)?;
@@ -94,7 +94,7 @@ pub fn prog10_works() -> Result<()> {
 
 #[test]
 pub fn prog11_works() -> Result<()> {
-    let base = "tests/data/a4/prog11";
+    let base = "tests/data/v4/prog11";
     let file = format!("{base}.bin");
     let output = format!("{base}.out");
     let output = read_file(&output)?;
@@ -103,7 +103,7 @@ pub fn prog11_works() -> Result<()> {
 
 #[test]
 pub fn prog12_works() -> Result<()> {
-    let base = "tests/data/a4/prog12";
+    let base = "tests/data/v4/prog12";
     let file = format!("{base}.bin");
     let output = format!("{base}.out");
     let output = read_file(&output)?;

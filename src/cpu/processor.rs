@@ -562,7 +562,7 @@ mod tests {
     #[test]
     fn test_call() {
         let mut vm = NinjaVM::default();
-        vm.load("tests/data/a4/prog01.bin");
+        vm.load("tests/data/v4/prog01.bin");
         vm.init();
         let immediate = 5;
         let ra = vm.ir.pc;
@@ -573,7 +573,7 @@ mod tests {
     #[test]
     fn test_ret() {
         let mut vm = NinjaVM::default();
-        vm.load("tests/data/a4/prog01.bin");
+        vm.load("tests/data/v4/prog01.bin");
         vm.init();
         let immediate = 5;
         let ra = vm.ir.pc;
@@ -590,7 +590,7 @@ mod tests {
     #[test]
     fn test_drop() {
         let mut vm = NinjaVM::default();
-        vm.load("tests/data/a4/prog01.bin");
+        vm.load("tests/data/v4/prog01.bin");
         vm.init();
         let args = 10;
         for i in 0..args {

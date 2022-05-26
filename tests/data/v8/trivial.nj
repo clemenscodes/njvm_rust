@@ -1,0 +1,9 @@
+// Simple program to test things quickly
+
+void main() {
+    if (readInteger() == 42) {
+        writeString("Exactly!\n");
+    } else {
+        writeString("Nope!\n");
+    }
+}

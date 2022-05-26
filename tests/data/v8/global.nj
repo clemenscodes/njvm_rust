@@ -1,0 +1,10 @@
+global Integer x;
+global Integer y;
+
+void main() {
+    x = 2;
+    y = x + 3;
+    x = 7 * y + x;
+    writeInteger(x + -33);
+    writeCharacter('\n');
+}
