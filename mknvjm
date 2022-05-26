@@ -1,0 +1,5 @@
+#!/bin/sh
+
+TARGET="x86_64-unknown-linux-gnu"
+cargo build --release --target $TARGET --locked
+cp target/$TARGET/release/njvm njvm
