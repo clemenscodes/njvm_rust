@@ -1,3 +1,8 @@
+#![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+
 use crate::{Bytecode, Immediate, Instruction, InstructionRegister, Opcode::*, Stack, StaticDataArea};
 use std::env::args;
 use std::fmt::Debug;
@@ -25,9 +30,9 @@ pub struct NinjaVM<R, W> {
 
 impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
     fn default() -> Self {
-        let stdin = Box::leak(Box::new(std::io::stdin()));
-        let stdout = Box::leak(Box::new(std::io::stdout()));
-        NinjaVM::new(stdin.lock(), stdout.lock())
+        let stdinput = Box::leak(Box::new(std::io::stdin()));
+        let stdoutput = Box::leak(Box::new(std::io::stdout()));
+        NinjaVM::new(stdinput.lock(), stdoutput.lock())
     }
 }
 

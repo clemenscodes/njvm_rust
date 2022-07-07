@@ -7,6 +7,9 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         println!("Ninja Virtual Machine stopped");
     }
     pub fn pushc(&mut self, immediate: Immediate) {
+        unsafe {
+            crate::bigFromInt(immediate);
+        }
         self.stack.push(immediate);
     }
     pub fn add(&mut self) {
