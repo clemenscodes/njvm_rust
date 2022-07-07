@@ -16,3 +16,8 @@ Cargo.lock
 /njvm
 /nja
 /njc
+
+*.o
+*.a
+**/build
+lib/tst/testbip
