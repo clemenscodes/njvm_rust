@@ -44,9 +44,7 @@ impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
 }
 
 impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
-    pub fn start() {
-        let args: Vec<String> = std::env::args().skip(1).collect();
-
+    pub fn start(args: Vec<String>) {
         if args.is_empty() {
             fatal_error("Error: no code file specified");
         }
