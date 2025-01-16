@@ -12,7 +12,10 @@ impl Instruction {
     pub fn new(opcode: Opcode, immediate: Immediate) -> Self {
         Self { opcode, immediate }
     }
-    pub fn encode_instruction(opcode: Opcode, immediate: Immediate) -> Bytecode {
+    pub fn encode_instruction(
+        opcode: Opcode,
+        immediate: Immediate,
+    ) -> Bytecode {
         Opcode::encode_opcode(opcode) | Immediate::encode_immediate(immediate)
     }
     pub fn decode_instruction(instruction: Bytecode) -> Instruction {

@@ -11,7 +11,9 @@ mod tests {
     use super::*;
 
     #[test]
-    #[should_panic(expected = "unknown command line argument '--unknown-arg', try './njvm --help'")]
+    #[should_panic(
+        expected = "unknown command line argument '--unknown-arg', try './njvm --help'"
+    )]
     fn test_unknown_arg() {
         std::panic::set_hook(Box::new(|_| {}));
         unknown_arg("--unknown-arg")

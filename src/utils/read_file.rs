@@ -28,8 +28,10 @@ mod tests {
     #[test]
     fn test_read_file_works() {
         let test_file = "test_file.txt";
-        let mut file = File::create(test_file).expect("Failed to create test file");
-        write!(file, "This is a test file").expect("Failed to write to test file");
+        let mut file =
+            File::create(test_file).expect("Failed to create test file");
+        write!(file, "This is a test file")
+            .expect("Failed to write to test file");
         let content = read_file(test_file);
         assert_eq!(content, b"This is a test file");
         fs::remove_file(test_file).expect("Failed to remove test file");

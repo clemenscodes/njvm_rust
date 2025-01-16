@@ -1,4 +1,6 @@
-use crate::{memory::instruction_register::Bytecode, utils::fatal_error::fatal_error};
+use crate::{
+    memory::instruction_register::Bytecode, utils::fatal_error::fatal_error,
+};
 
 #[macro_export]
 macro_rules! immediate {

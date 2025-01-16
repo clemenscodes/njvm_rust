@@ -476,7 +476,10 @@ mod tests {
         vm.asf(2);
         vm.pushc(value_of_local_var);
         vm.popl(nth_local_var as i32);
-        assert_eq!(vm.stack.data[vm.stack.fp + nth_local_var], value_of_local_var);
+        assert_eq!(
+            vm.stack.data[vm.stack.fp + nth_local_var],
+            value_of_local_var
+        );
     }
 
     #[test]

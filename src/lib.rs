@@ -78,7 +78,8 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             }
         }
 
-        let file = file.unwrap_or_else(|| fatal_error("Error: no code file specified"));
+        let file = file
+            .unwrap_or_else(|| fatal_error("Error: no code file specified"));
 
         let mut vm = NinjaVM::default();
         if debug_mode {
@@ -265,7 +266,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Error: cannot open code file 'tests/data/a2/prog1.404'")]
+    #[should_panic(
+        expected = "Error: cannot open code file 'tests/data/a2/prog1.404'"
+    )]
     fn test_load_binary_fails() {
         let mut vm = NinjaVM::default();
         let path = "tests/data/a2/prog1.404";

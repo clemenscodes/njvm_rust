@@ -27,7 +27,9 @@ mod tests {
         check_ninja_version(&f);
     }
     #[test]
-    #[should_panic(expected = "Error: code file does not have correct Ninja version")]
+    #[should_panic(
+        expected = "Error: code file does not have correct Ninja version"
+    )]
     fn test_check_ninja_version_fails() {
         std::panic::set_hook(Box::new(|_| {}));
         let f = vec![0; 8];

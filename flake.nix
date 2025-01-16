@@ -70,8 +70,8 @@
           include = [
             ./Cargo.toml
             ./Cargo.lock
-            ./.rustfmt.toml
             ./rust-toolchain.toml
+            ./rustfmt.toml
             ./src
           ];
         };

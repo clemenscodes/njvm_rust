@@ -1,4 +1,6 @@
-use crate::{utils::check_ninja_version::VERSION, utils::fatal_error::fatal_error};
+use crate::{
+    utils::check_ninja_version::VERSION, utils::fatal_error::fatal_error,
+};
 
 pub fn set_ninja_version(file: &mut [u8]) {
     let version = match file.chunks_mut(4).nth(1).map(|c| {
