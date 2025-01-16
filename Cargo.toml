@@ -6,6 +6,14 @@ license = "MIT"
 authors = ["Clemens Horn <clemens.horn@mni.thm.de>"]
 description = "Virtual Machine for Ninja"
 
+[lib]
+name = "njvm" 
+path = "src/lib.rs"
+
+[[bin]]
+name = "nvjm"
+path = "src/main.rs"
+
 [dev-dependencies]
 assert_cmd = "2.0.16"
 anyhow = "1.0.95"
