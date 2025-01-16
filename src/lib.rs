@@ -14,9 +14,11 @@ use utils::check_instructions::check_instructions;
 use utils::check_ninja_format::check_ninja_format;
 use utils::check_ninja_version::{check_ninja_version, VERSION};
 use utils::check_variables::check_variables;
+use utils::fatal_error::fatal_error;
 use utils::read_file::read_file;
 use utils::set_ninja_version::set_ninja_version;
 use utils::split_file_metadata::split_file_metadata;
+use utils::unknown_arg::unknown_arg;
 use utils::verify_arg::verify_arg;
 
 pub type Breakpoint = usize;
@@ -42,6 +44,52 @@ impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
 }
 
 impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
+    pub fn start() {
+        let args: Vec<String> = std::env::args().skip(1).collect();
+
+        if args.is_empty() {
+            fatal_error("Error: no code file specified");
+        }
+
+        let mut debug_mode = false;
+        let mut file: Option<String> = None;
+
+        for arg in args {
+            match arg.as_str() {
+                "--help" => {
+                    Self::help();
+                    return;
+                }
+                "--version" => {
+                    Self::version();
+                    return;
+                }
+                "--debug" => {
+                    if debug_mode {
+                        fatal_error("Error: duplicate '--debug' flag");
+                    }
+                    debug_mode = true;
+                }
+                _ if arg.starts_with('-') => unknown_arg(&arg),
+                _ => {
+                    if file.is_some() {
+                        fatal_error("Error: more than one code file specified");
+                    }
+                    file = Some(arg);
+                }
+            }
+        }
+
+        let file = file.unwrap_or_else(|| fatal_error("Error: no code file specified"));
+
+        let mut vm = NinjaVM::default();
+        if debug_mode {
+            vm.debug(&file);
+        } else {
+            vm.execute_binary(&file);
+        }
+    }
+
     pub fn new(reader: R, writer: W) -> Self {
         Self {
             stack: Stack::default(),
@@ -53,6 +101,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             rv: None,
         }
     }
+
     pub fn execute_instruction(&mut self, bytecode: Bytecode) {
         use cpu::opcode::Opcode::*;
 
@@ -93,6 +142,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             Dup => self.dup(),
         }
     }
+
     pub fn work(&mut self) {
         loop {
             let instruction = self.ir.data[self.ir.pc];
@@ -105,12 +155,14 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             }
         }
     }
+
     pub fn execute_binary(&mut self, bin: &str) {
         let instructions = self.load_binary(bin);
         self.load_instructions(&instructions);
         self.init();
         self.work();
     }
+
     pub fn load_binary(&mut self, arg: &str) -> Vec<u8> {
         verify_arg(arg);
         let mut file = read_file(arg);
@@ -123,6 +175,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         self.ir = InstructionRegister::new(instruction_count, 0);
         instructions
     }
+
     pub fn load_test_binary(&mut self, arg: &str) -> Vec<u8> {
         verify_arg(arg);
         let mut file = read_file(arg);
@@ -135,6 +188,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         self.ir = InstructionRegister::new(instruction_count, 0);
         instructions
     }
+
     pub fn load_instructions(&mut self, instructions: &[u8]) {
         instructions.chunks(4).for_each(|c| {
             let instruction = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
@@ -144,34 +198,28 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             self.ir.register_instruction(opcode, immediate);
         });
     }
+
     pub fn load(&mut self, bin: &str) {
         let instructions = self.load_binary(bin);
         self.load_instructions(&instructions)
     }
+
     pub fn init(&mut self) {
         println!("Ninja Virtual Machine started");
         self.ir.pc = 0;
     }
-}
 
-pub fn help() {
-    println!("usage: ./njvm [options] <code file>");
-    println!("Options:");
-    println!("  --debug          start virtual machine in debug mode");
-    println!("  --version        show version and exit");
-    println!("  --help           show this help and exit");
-}
+    fn help() {
+        println!("usage: ./njvm [options] <code file>");
+        println!("Options:");
+        println!("  --debug          start virtual machine in debug mode");
+        println!("  --version        show version and exit");
+        println!("  --help           show this help and exit");
+    }
 
-pub fn version() {
-    println!("Ninja Virtual Machine version {VERSION} (compiled Sep 23 2015, 10:36:52)",);
-}
-
-pub fn kill() {
-    help();
-    #[cfg(not(test))]
-    std::process::exit(1);
-    #[cfg(test)]
-    panic!();
+    fn version() {
+        println!("Ninja Virtual Machine version {VERSION} (compiled Sep 23 2015, 10:36:52)",);
+    }
 }
 
 #[cfg(test)]
