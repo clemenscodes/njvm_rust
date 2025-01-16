@@ -1,6 +1,8 @@
-use crate::{fatal_error, NinjaVM};
 use std::fmt::Debug;
 use std::io::{BufRead, Write};
+
+use crate::utils::fatal_error::fatal_error;
+use crate::NinjaVM;
 
 impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     pub fn debug(&mut self, bin: &str) {
@@ -140,21 +142,25 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{InstructionRegister, NinjaVM, Opcode::*};
-    use std::io::stdout;
+    use crate::cpu::opcode::Opcode::*;
+    use crate::memory::instruction_register::InstructionRegister;
+
+    use super::*;
+
     #[test]
     fn test_prompt() {
         let input = b"s\n8\nq\n";
-        let mut vm = NinjaVM::new(&input[..], stdout());
+        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
         let instructions = vm.load_test_binary("tests/data/a3/prog1.bin");
         vm.load_instructions(&instructions);
         vm.init();
         vm.prompt();
     }
+
     #[test]
     fn test_step() {
         let input = b"9\n";
-        let mut vm = NinjaVM::new(&input[..], stdout());
+        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
         let instructions = vm.load_test_binary("tests/data/a3/prog1.bin");
         vm.load_instructions(&instructions);
         vm.init();
@@ -165,10 +171,11 @@ mod tests {
         assert_eq!(vm.stack.data.len(), 1);
         assert_eq!(vm.stack.data[0], 9)
     }
+
     #[test]
     fn test_run() {
         let input = b"b\n23\nr\n8\n12\nq\n";
-        let mut vm = NinjaVM::new(&input[..], stdout());
+        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
         vm.test_debug("tests/data/a3/prog1.bin");
         assert_eq!(vm.ir.data.len(), 27);
         assert_eq!(vm.sda.data.len(), 2);
@@ -178,25 +185,28 @@ mod tests {
         assert_eq!(vm.stack.fp, 0);
         assert_eq!(vm.stack.data.len(), 1);
     }
+
     #[test]
     fn test_set_breakpoint() {
         let input = b"b\n23\nq\nb\n-1\nq\n";
-        let mut vm = NinjaVM::new(&input[..], stdout());
+        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
         vm.test_debug("tests/data/a3/prog1.bin");
         assert_eq!(vm.bp, Some(23));
         vm.test_debug("tests/data/a3/prog1.bin");
         assert_eq!(vm.bp, None);
     }
+
     #[test]
     fn test_list_ir() {
         let input = b"l\nq\n";
-        let mut vm = NinjaVM::new(&input[..], stdout());
+        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
         vm.test_debug("tests/data/a3/prog1.bin");
     }
+
     #[test]
     fn test_debugger_breaks_at_breakpoint() {
         let input = b"b\n5\nr\n8\n12\nq\nb\n23\nr\nq\n";
-        let mut vm = NinjaVM::new(&input[..], stdout());
+        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
         vm.test_debug("tests/data/a3/prog1.bin");
         assert_eq!(vm.ir.pc, 5);
         assert_eq!(vm.bp, None);
@@ -206,10 +216,13 @@ mod tests {
         assert_eq!(vm.sda.data[0], 4);
         assert_eq!(vm.sda.data[1], 4);
     }
+
     #[test]
     fn test_print_next_instruction() {
-        let mut vm = NinjaVM::default();
-        vm.ir = InstructionRegister::new(3, 0);
+        let mut vm = NinjaVM {
+            ir: InstructionRegister::new(3, 0),
+            ..Default::default()
+        };
         vm.ir.register_instruction(Pushc, 1);
         vm.ir.register_instruction(Pushc, 2);
         vm.ir.register_instruction(Add, 0);

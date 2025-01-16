@@ -1,4 +1,4 @@
-use crate::fatal_error;
+use super::fatal_error::fatal_error;
 
 pub fn check_variables(file: &[u8]) -> usize {
     match file
@@ -19,8 +19,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_check_variables_works() {
-        let mut f = Vec::new();
-        f.resize(16, 0);
+        let mut f = vec![0; 16];
         let instruction_count = check_variables(&f);
         assert_eq!(instruction_count, 0);
         f[12] = 1;
@@ -31,7 +30,7 @@ mod tests {
     #[should_panic(expected = "Error: failed to read global variable count")]
     fn test_check_variables_fails() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut f = Vec::new();
-        check_variables(&mut f);
+        let f = Vec::new();
+        check_variables(&f);
     }
 }

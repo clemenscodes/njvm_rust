@@ -1,4 +1,4 @@
-use crate::{Immediate, Instruction, Opcode, Opcode::*};
+use crate::cpu::{immediate::Immediate, instruction::Instruction, opcode::Opcode};
 
 pub type Bytecode = u32;
 pub type ProgramCounter = usize;
@@ -32,6 +32,8 @@ impl InstructionRegister {
         }
     }
     pub fn print_instruction(&mut self, pc: usize) {
+        use Opcode::*;
+
         let instruction = self.data[pc];
         let decoded = Instruction::decode_instruction(instruction);
         let opcode = decoded.opcode;
@@ -75,20 +77,22 @@ impl InstructionRegister {
 
 #[cfg(test)]
 mod tests {
-    use crate::{InstructionRegister, Opcode::Pushc};
+    use super::*;
+
     #[test]
     fn test_program_memory() {
         let instruction_cache = InstructionRegister::default();
         assert_eq!(instruction_cache.pc, 0);
         assert_eq!(instruction_cache.data.len(), 0);
     }
+
     #[test]
     fn test_data_instruction() {
         let mut instruction_cache = InstructionRegister::new(2, 0);
-        instruction_cache.register_instruction(Pushc, 1);
+        instruction_cache.register_instruction(crate::cpu::opcode::Opcode::Pushc, 1);
         assert_eq!(instruction_cache.pc, 1);
         assert_eq!(instruction_cache.data[0], 0x01000001);
-        instruction_cache.register_instruction(Pushc, 2);
+        instruction_cache.register_instruction(crate::cpu::opcode::Opcode::Pushc, 2);
         assert_eq!(instruction_cache.pc, 2);
         assert_eq!(instruction_cache.data[1], 0x01000002);
     }

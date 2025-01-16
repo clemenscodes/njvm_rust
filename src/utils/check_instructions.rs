@@ -1,4 +1,4 @@
-use crate::fatal_error;
+use super::fatal_error::fatal_error;
 
 pub fn check_instructions(file: &[u8]) -> usize {
     match file
@@ -16,11 +16,11 @@ pub fn check_instructions(file: &[u8]) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use crate::check_instructions;
+    use super::*;
+
     #[test]
     fn test_check_instruction_works() {
-        let mut f = Vec::new();
-        f.resize(12, 0);
+        let mut f = vec![0; 12];
         let instruction_count = check_instructions(&f);
         assert_eq!(instruction_count, 0);
         f[8] = 1;
@@ -31,7 +31,7 @@ mod tests {
     #[should_panic(expected = "Error: failed to read instruction count")]
     fn test_check_instruction_fails() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut f = Vec::new();
-        check_instructions(&mut f);
+        let f = Vec::new();
+        check_instructions(&f);
     }
 }

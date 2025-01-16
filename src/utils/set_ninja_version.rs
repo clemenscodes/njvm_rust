@@ -1,4 +1,4 @@
-use crate::{fatal_error, VERSION};
+use crate::{utils::check_ninja_version::VERSION, utils::fatal_error::fatal_error};
 
 pub fn set_ninja_version(file: &mut [u8]) {
     let version = match file.chunks_mut(4).nth(1).map(|c| {
@@ -15,11 +15,11 @@ pub fn set_ninja_version(file: &mut [u8]) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{set_ninja_version, VERSION};
+    use super::*;
+
     #[test]
     fn test_set_ninja_version_works() {
-        let mut f = Vec::new();
-        f.resize(8, 0);
+        let mut f = vec![0; 8];
         set_ninja_version(&mut f);
         assert_eq!(f[4], VERSION);
     }

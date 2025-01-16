@@ -1,5 +1,6 @@
-use crate::{fatal_error, Immediate};
 use std::fmt::{Debug, Display, Formatter, Result};
+
+use crate::{cpu::immediate::Immediate, utils::fatal_error::fatal_error};
 
 pub type StackPointer = usize;
 pub type FramePointer = usize;
@@ -73,7 +74,8 @@ impl<T: Debug + Display> Debug for Stack<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Immediate, Stack};
+    use super::*;
+
     #[test]
     fn test_stack() {
         let stack = Stack::<Immediate>::default();

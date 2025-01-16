@@ -1,4 +1,4 @@
-use crate::unknown_arg;
+use crate::utils::unknown_arg::unknown_arg;
 
 pub fn verify_arg(arg: &str) {
     if arg.starts_with('-') {

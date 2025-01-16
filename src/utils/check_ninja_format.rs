@@ -12,6 +12,7 @@ pub fn check_ninja_format(file: &[u8], arg: &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_check_ninja_format_works() {
         let f = vec![78, 74, 66, 70];

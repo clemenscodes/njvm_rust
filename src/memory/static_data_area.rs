@@ -1,5 +1,6 @@
-use crate::Immediate;
 use std::fmt::{Debug, Display, Formatter, Result};
+
+use crate::cpu::immediate::Immediate;
 
 #[derive(Eq, PartialEq, Clone)]
 pub struct StaticDataArea<T> {
@@ -39,6 +40,7 @@ impl<T: Debug + Display> Debug for StaticDataArea<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_sda() {
         let sda = StaticDataArea::default();

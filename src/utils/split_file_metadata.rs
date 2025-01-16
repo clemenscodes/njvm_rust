@@ -1,4 +1,4 @@
-use crate::fatal_error;
+use crate::utils::fatal_error::fatal_error;
 
 pub fn split_file_metadata(file: &mut Vec<u8>) -> Vec<u8> {
     if file.len() < 16 {
@@ -12,8 +12,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_split_file_metadata_works() {
-        let mut f = Vec::new();
-        f.resize(16, 0);
+        let mut f = vec![0; 16];
         let len = f.len();
         let instructions = split_file_metadata(&mut f);
         assert_eq!(f.len(), 16);

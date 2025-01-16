@@ -1,4 +1,6 @@
-use crate::{Bytecode, Decoding, Encoding, Immediate, Opcode};
+use crate::cpu::immediate::{Decoding, Encoding, Immediate};
+use crate::cpu::opcode::Opcode;
+use crate::memory::instruction_register::Bytecode;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub struct Instruction {
@@ -26,18 +28,22 @@ impl Instruction {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Instruction, Opcode::Pushc};
+    use super::*;
+    use Opcode::*;
+
     #[test]
     fn test_instruction() {
         let instruction = Instruction::new(Pushc, 1);
         assert_eq!(instruction.opcode, Pushc);
         assert_eq!(instruction.immediate, 1);
     }
+
     #[test]
     fn test_encode_instruction() {
         assert_eq!(Instruction::encode_instruction(Pushc, 1), 0x01000001);
         assert_eq!(Instruction::encode_instruction(Pushc, -1), 0x01ffffff);
     }
+
     #[test]
     fn test_decode_instruction() {
         let decoded_instruction = Instruction::decode_instruction(0x01000001);
@@ -47,6 +53,7 @@ mod tests {
         assert_eq!(decoded_instruction.opcode, Pushc);
         assert_eq!(decoded_instruction.immediate, -1);
     }
+
     #[test]
     fn test_print_instruction() {
         let instruction = Instruction::decode_instruction(0x01000001);

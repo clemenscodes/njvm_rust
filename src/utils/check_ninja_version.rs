@@ -1,4 +1,4 @@
-use crate::fatal_error;
+use super::fatal_error::fatal_error;
 
 pub const VERSION: u8 = 4;
 
@@ -18,11 +18,11 @@ pub fn check_ninja_version(file: &[u8]) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{check_ninja_version, VERSION};
+    use super::*;
+
     #[test]
     fn test_check_ninja_version_works() {
-        let mut f = Vec::new();
-        f.resize(8, 0);
+        let mut f = vec![0; 8];
         f[4] = VERSION;
         check_ninja_version(&f);
     }
@@ -30,8 +30,7 @@ mod tests {
     #[should_panic(expected = "Error: code file does not have correct Ninja version")]
     fn test_check_ninja_version_fails() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut f = Vec::new();
-        f.resize(8, 0);
+        let f = vec![0; 8];
         check_ninja_version(&f);
     }
 }

@@ -1,13 +1,26 @@
-use crate::{Bytecode, Immediate, Instruction, InstructionRegister, Opcode::*, Stack, StaticDataArea};
+pub mod cpu;
+pub mod memory;
+pub mod utils;
+
 use std::env::args;
 use std::fmt::Debug;
 use std::io::{BufRead, Write};
-pub mod cpu;
-pub use cpu::*;
-pub mod memory;
-pub use memory::*;
-pub mod utils;
-pub use utils::*;
+
+use cpu::immediate::Immediate;
+use cpu::instruction::Instruction;
+use memory::instruction_register::{Bytecode, InstructionRegister};
+use memory::stack::Stack;
+use memory::static_data_area::StaticDataArea;
+use utils::check_instructions::check_instructions;
+use utils::check_ninja_format::check_ninja_format;
+use utils::check_ninja_version::{check_ninja_version, VERSION};
+use utils::check_variables::check_variables;
+use utils::fatal_error::fatal_error;
+use utils::read_file::read_file;
+use utils::set_ninja_version::set_ninja_version;
+use utils::split_file_metadata::split_file_metadata;
+use utils::unknown_arg::unknown_arg;
+use utils::verify_arg::verify_arg;
 
 pub type Breakpoint = usize;
 pub type ReturnValueRegister = Immediate;
@@ -44,6 +57,8 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         }
     }
     pub fn execute_instruction(&mut self, bytecode: Bytecode) {
+        use cpu::opcode::Opcode::*;
+
         let instruction = Instruction::decode_instruction(bytecode);
         let immediate = instruction.immediate;
         match instruction.opcode {
@@ -88,7 +103,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
             let opcode = decoded.opcode;
             self.ir.pc += 1;
             self.execute_instruction(instruction);
-            if opcode == Halt {
+            if opcode == cpu::opcode::Opcode::Halt {
                 break;
             }
         }
@@ -203,10 +218,7 @@ pub fn help() {
 }
 
 pub fn version() {
-    println!(
-        "Ninja Virtual Machine version {} (compiled Sep 23 2015, 10:36:52)",
-        VERSION
-    );
+    println!("Ninja Virtual Machine version {VERSION} (compiled Sep 23 2015, 10:36:52)",);
 }
 
 fn kill() {
@@ -219,7 +231,9 @@ fn kill() {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Instruction, InstructionRegister, NinjaVM, Opcode::*};
+    use super::*;
+    use cpu::opcode::Opcode::*;
+
     #[test]
     fn test_ninja_vm() {
         let vm = NinjaVM::default();
@@ -228,10 +242,13 @@ mod tests {
         assert_eq!(vm.ir.pc, 0);
         assert_eq!(vm.ir.data.len(), 0);
     }
+
     #[test]
     fn test_work() {
-        let mut vm = NinjaVM::default();
-        vm.ir = InstructionRegister::new(3, 0);
+        let mut vm = NinjaVM {
+            ir: InstructionRegister::new(3, 0),
+            ..NinjaVM::default()
+        };
         vm.ir.register_instruction(Pushc, 1);
         vm.ir.register_instruction(Pushc, 2);
         vm.ir.register_instruction(Halt, 0);
@@ -239,6 +256,7 @@ mod tests {
         vm.work();
         assert_eq!(vm.stack.data.len(), 2);
     }
+
     #[test]
     fn test_execute_instruction() {
         let mut vm = NinjaVM::default();
@@ -247,12 +265,14 @@ mod tests {
         assert_eq!(vm.stack.sp, 1);
         assert_eq!(vm.stack.data[0], 1);
     }
+
     #[test]
     fn test_load_instruction() {
         let mut vm = NinjaVM::default();
-        let mut instructions = Vec::new();
-        vm.load_instructions(&mut instructions);
+        let instructions = Vec::new();
+        vm.load_instructions(&instructions);
     }
+
     #[test]
     #[should_panic(expected = "Error: cannot open code file 'tests/data/a2/prog1.404'")]
     fn test_load_binary_fails() {

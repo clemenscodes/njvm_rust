@@ -1,4 +1,4 @@
-use crate::{fatal_error, Bytecode};
+use crate::{utils::fatal_error::fatal_error, memory::instruction_register::Bytecode};
 
 #[macro_export]
 macro_rules! immediate {
@@ -56,6 +56,7 @@ impl Encoding for Immediate {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_immediate_macro() {
         let instruction_with_opcode: Bytecode = 0xFFFFFFFF;
@@ -65,6 +66,7 @@ mod tests {
         assert_eq!(opcode_immediate, 0x00FFFFFF);
         assert_eq!(no_opcode_immediate, 0x00000000);
     }
+
     #[test]
     fn test_sign_extend_macro() {
         let mut positive: Immediate = 0x00000001;
@@ -74,22 +76,26 @@ mod tests {
         assert_eq!(positive, 1);
         assert_eq!(negative, -1);
     }
+
     #[test]
     fn test_decode_immediate() {
         assert_eq!(Immediate::decode_immediate(0x00000001), 1);
         assert_eq!(Immediate::decode_immediate(0x00ffffff), -1)
     }
+
     #[test]
     fn test_encode_immediate() {
         assert_eq!(Immediate::encode_immediate(1), 0x00000001);
         assert_eq!(Immediate::encode_immediate(-1), 0x00ffffff)
     }
+
     #[test]
     #[should_panic(expected = "Immediate value out of range")]
     fn test_immediate_value_over_range() {
         std::panic::set_hook(Box::new(|_| {}));
         Immediate::encode_immediate(100000000);
     }
+
     #[test]
     #[should_panic(expected = "Immediate value out of range")]
     fn test_immediate_value_under_range() {

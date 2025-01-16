@@ -1,5 +1,4 @@
-use crate::{fatal_error, Bytecode};
-use Opcode::*;
+use crate::{memory::instruction_register::Bytecode, utils::fatal_error::fatal_error};
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -42,7 +41,9 @@ impl Opcode {
     pub fn encode_opcode(opcode: Opcode) -> Bytecode {
         (opcode as Bytecode) << 24
     }
-    pub fn decode_opcode(instruction: Bytecode) -> Opcode {
+
+    pub fn decode_opcode(instruction: Bytecode) -> Self {
+        use Opcode::*;
         let opcode = instruction >> 24;
         match opcode {
             0 => Halt,
@@ -85,6 +86,8 @@ impl Opcode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use Opcode::*;
+
     #[test]
     fn test_encode_opcode() {
         assert_eq!(Opcode::encode_opcode(Halt), 0x00000000);
@@ -120,6 +123,7 @@ mod tests {
         assert_eq!(Opcode::encode_opcode(Popr), 0x1e000000);
         assert_eq!(Opcode::encode_opcode(Dup), 0x1f000000);
     }
+
     #[test]
     fn test_decode_opcode() {
         assert_eq!(Opcode::decode_opcode(0x0000f001), Halt);
@@ -155,6 +159,7 @@ mod tests {
         assert_eq!(Opcode::decode_opcode(0x1e000000), Popr);
         assert_eq!(Opcode::decode_opcode(0x1f000000), Dup);
     }
+
     #[test]
     #[should_panic(expected = "Unknown opcode")]
     fn test_unknown_opcode() {

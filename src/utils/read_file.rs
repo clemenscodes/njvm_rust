@@ -1,4 +1,4 @@
-use crate::fatal_error;
+use crate::utils::fatal_error::fatal_error;
 
 pub fn read_file(arg: &str) -> Vec<u8> {
     if arg.is_empty() {

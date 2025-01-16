@@ -9,6 +9,7 @@ pub fn unknown_arg(arg: &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     #[should_panic(expected = "unknown command line argument '--unknown-arg', try './njvm --help'")]
     fn test_unknown_arg() {

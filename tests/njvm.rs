@@ -7,7 +7,7 @@ use std::process::Command as Cmd;
 #[test]
 pub fn njvm_works() -> Result<()> {
     let mut cmd = Command::cargo_bin(crate_name!())?;
-    let output = format!("Error: no code file specified\n");
+    let output = "Error: no code file specified\n".to_string();
     let stdout = cmd.assert().failure();
     let stderr = stdout.get_output().stderr.clone();
     let err = String::from_utf8(stderr)?;
@@ -18,19 +18,19 @@ pub fn njvm_works() -> Result<()> {
 #[test]
 pub fn help_works() -> Result<()> {
     let output = "usage: ./njvm [options] <code file>";
-    test_output_success("--help", &output)
+    test_output_success("--help", output)
 }
 
 #[test]
 pub fn version_works() -> Result<()> {
-    let output = format!("Ninja Virtual Machine version 4 (compiled Sep 23 2015, 10:36:52)");
+    let output = "Ninja Virtual Machine version 4 (compiled Sep 23 2015, 10:36:52)".to_string();
     test_output_success("--version", &output)
 }
 
 #[test]
 pub fn unknown_command_fails() -> Result<()> {
     let output = "unknown command line argument";
-    test_output_failure("--unknown-arg", &output)
+    test_output_failure("--unknown-arg", output)
 }
 
 fn test_output_success(arg: &str, output: &str) -> Result<()> {
