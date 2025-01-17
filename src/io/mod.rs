@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use std::io::Write;
+use std::io::{StderrLock, StdinLock, StdoutLock, Write};
 use std::{cell::RefCell, io::BufRead, rc::Rc};
 
 use crate::VERSION;
@@ -9,6 +9,15 @@ pub struct InputOutput<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
     stdin: Rc<RefCell<R>>,
     stdout: Rc<RefCell<W>>,
     stderr: Rc<RefCell<E>>,
+}
+
+impl Default for InputOutput<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>> {
+    fn default() -> Self {
+        let stdin = Box::leak(Box::new(std::io::stdin()));
+        let stdout = Box::leak(Box::new(std::io::stdout()));
+        let stderr = Box::leak(Box::new(std::io::stderr()));
+        Self::new(stdin.lock(), stdout.lock(), stderr.lock())
+    }
 }
 
 impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>

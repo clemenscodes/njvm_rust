@@ -1,27 +1,50 @@
-use crate::cpu::{
-    immediate::Immediate, instruction::Instruction, opcode::Opcode,
+use std::fmt::Debug;
+use std::io::{StderrLock, StdinLock, StdoutLock};
+use std::{
+    cell::RefCell,
+    io::{BufRead, Write},
+    rc::Rc,
+};
+
+use crate::{
+    cpu::{immediate::Immediate, instruction::Instruction, opcode::Opcode},
+    io::InputOutput,
 };
 
 pub type Bytecode = u32;
 pub type ProgramCounter = usize;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct InstructionRegister {
+pub struct InstructionRegister<
+    R: BufRead + Debug,
+    W: Write + Debug,
+    E: Write + Debug,
+> {
+    pub io: Rc<RefCell<InputOutput<R, W, E>>>,
     pub pc: ProgramCounter,
     pub data: Vec<Bytecode>,
 }
 
-impl Default for InstructionRegister {
+impl Default
+    for InstructionRegister<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>>
+{
     fn default() -> Self {
-        Self::new(0, 0)
+        let io = InputOutput::<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>>::default();
+        Self::new(Rc::new(RefCell::new(io)), 0, 0)
     }
 }
 
-impl InstructionRegister {
-    pub fn new(size: usize, value: Bytecode) -> Self {
+impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
+    InstructionRegister<R, W, E>
+{
+    pub fn new(
+        io: Rc<RefCell<InputOutput<R, W, E>>>,
+        size: usize,
+        value: Bytecode,
+    ) -> Self {
         let mut data = vec![];
         data.resize(size, value);
-        InstructionRegister { pc: 0, data }
+        InstructionRegister { io, pc: 0, data }
     }
 
     pub fn register_instruction(
@@ -98,7 +121,9 @@ mod tests {
 
     #[test]
     fn test_data_instruction() {
-        let mut instruction_cache = InstructionRegister::new(2, 0);
+        let io = InputOutput::<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>>::default();
+        let mut instruction_cache =
+            InstructionRegister::new(Rc::new(RefCell::new(io)), 2, 0);
         instruction_cache
             .register_instruction(crate::cpu::opcode::Opcode::Pushc, 1);
         assert_eq!(instruction_cache.pc, 1);

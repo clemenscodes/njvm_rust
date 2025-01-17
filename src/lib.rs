@@ -22,11 +22,11 @@ pub type ReturnValueRegister = Immediate;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct NinjaVM<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
     io: Rc<RefCell<InputOutput<R, W, E>>>,
-    stack: Stack<Immediate>,
-    pub ir: InstructionRegister,
-    pub sda: StaticDataArea<Immediate>,
-    pub bp: Option<Breakpoint>,
-    pub rv: Option<ReturnValueRegister>,
+    stack: Stack<R, W, E, Immediate>,
+    ir: InstructionRegister<R, W, E>,
+    sda: StaticDataArea<Immediate>,
+    bp: Option<Breakpoint>,
+    rv: Option<ReturnValueRegister>,
 }
 
 impl Default for NinjaVM<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>> {
@@ -41,10 +41,11 @@ impl Default for NinjaVM<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>> {
 
 impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     pub fn start(args: Vec<String>) {
-        let mut vm = NinjaVM::default();
+        let mut vm =
+            NinjaVM::<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>>::default();
 
         if args.is_empty() {
-            vm.io.borrow().fatal_error("Error: no code file specified");
+            vm.io_borrow().fatal_error("Error: no code file specified");
         }
 
         let mut debug_mode = false;
@@ -91,9 +92,11 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     }
 
     pub fn new(io: InputOutput<R, W, E>) -> Self {
+        let io = Rc::new(RefCell::new(io));
+
         Self {
-            io: Rc::new(RefCell::new(io)),
-            stack: Stack::default(),
+            io: io.clone(),
+            stack: Stack::new(io.clone()),
             ir: InstructionRegister::default(),
             sda: StaticDataArea::default(),
             bp: None,
@@ -234,7 +237,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         self.io.borrow_mut()
     }
 
-    pub fn stack_mut(&mut self) -> &mut Stack<Immediate> {
+    pub fn stack_mut(&mut self) -> &mut Stack<R, W, E, Immediate> {
         &mut self.stack
     }
 }

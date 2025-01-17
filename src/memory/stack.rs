@@ -1,26 +1,47 @@
-use std::fmt::{Debug, Display, Formatter, Result};
+use std::{
+    cell::RefCell,
+    fmt::{Debug, Display, Formatter, Result},
+    io::{BufRead, StderrLock, StdinLock, StdoutLock, Write},
+    rc::Rc,
+};
 
-use crate::cpu::immediate::Immediate;
+use crate::{cpu::immediate::Immediate, io::InputOutput};
 
 pub type StackPointer = usize;
 pub type FramePointer = usize;
 
 #[derive(Eq, PartialEq, Clone)]
-pub struct Stack<T> {
+pub struct Stack<
+    R: BufRead + Debug,
+    W: Write + Debug,
+    E: Write + Debug,
+    T: Clone + Debug + Display,
+> {
+    pub io: Rc<RefCell<InputOutput<R, W, E>>>,
     pub sp: StackPointer,
     pub fp: FramePointer,
     pub data: Vec<T>,
 }
 
-impl Default for Stack<Immediate> {
+impl Default
+    for Stack<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>, Immediate>
+{
     fn default() -> Self {
-        Self::new()
+        let io = InputOutput::default();
+        Self::new(Rc::new(RefCell::new(io)))
     }
 }
 
-impl<T: Clone + Debug + Display> Stack<T> {
-    pub fn new() -> Self {
+impl<
+        R: BufRead + Debug,
+        W: Write + Debug,
+        E: Write + Debug,
+        T: Clone + Debug + Display,
+    > Stack<R, W, E, T>
+{
+    pub fn new(io: Rc<RefCell<InputOutput<R, W, E>>>) -> Self {
         Stack {
+            io,
             sp: 0,
             fp: 0,
             data: vec![],
@@ -32,12 +53,17 @@ impl<T: Clone + Debug + Display> Stack<T> {
     }
     pub fn pop(&mut self) -> T {
         if self.sp == 0 || self.data.is_empty() {
-            fatal_error("Stack underflow: popped from empty stack");
+            self.io
+                .borrow()
+                .fatal_error("Stack underflow: popped from empty stack");
         }
         self.sp -= 1;
         match self.data.pop() {
             Some(immediate) => immediate,
-            None => fatal_error("Stack underflow: popped from empty stack"),
+            None => self
+                .io
+                .borrow()
+                .fatal_error("Stack underflow: popped from empty stack"),
         }
     }
     pub fn print(&self) {
@@ -45,7 +71,13 @@ impl<T: Clone + Debug + Display> Stack<T> {
     }
 }
 
-impl<T: Debug + Display> Debug for Stack<T> {
+impl<
+        R: BufRead + Debug,
+        W: Write + Debug,
+        E: Write + Debug,
+        T: Clone + Debug + Display,
+    > Debug for Stack<R, W, E, T>
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let sp = self.sp;
         let fp = self.fp;
@@ -78,14 +110,24 @@ mod tests {
 
     #[test]
     fn test_stack() {
-        let stack = Stack::<Immediate>::default();
+        let stack = Stack::<
+            StdinLock<'_>,
+            StdoutLock<'_>,
+            StderrLock<'_>,
+            Immediate,
+        >::default();
         assert_eq!(stack.sp, 0);
         assert_eq!(stack.data.len(), 0);
     }
 
     #[test]
     fn test_push() {
-        let mut stack = Stack::<Immediate>::default();
+        let mut stack = Stack::<
+            StdinLock<'_>,
+            StdoutLock<'_>,
+            StderrLock<'_>,
+            Immediate,
+        >::default();
         stack.push(1);
         assert_eq!(stack.sp, 1);
         assert_eq!(stack.data[0], 1);
@@ -96,7 +138,12 @@ mod tests {
 
     #[test]
     fn test_pop() {
-        let mut stack = Stack::<Immediate>::default();
+        let mut stack = Stack::<
+            StdinLock<'_>,
+            StdoutLock<'_>,
+            StderrLock<'_>,
+            Immediate,
+        >::default();
         stack.push(1);
         assert_eq!(stack.sp, 1);
         assert_eq!(stack.data[0], 1);
@@ -109,7 +156,12 @@ mod tests {
     #[should_panic(expected = "Stack underflow: popped from empty stack")]
     fn test_stack_underflow() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut stack = Stack::<Immediate>::default();
+        let mut stack = Stack::<
+            StdinLock<'_>,
+            StdoutLock<'_>,
+            StderrLock<'_>,
+            Immediate,
+        >::default();
         stack.pop();
     }
 }
