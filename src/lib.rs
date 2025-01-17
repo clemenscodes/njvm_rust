@@ -4,10 +4,11 @@ pub mod memory;
 pub mod utils;
 
 use std::fmt::Debug;
-use std::io::{BufRead, StdinLock, StdoutLock, Write};
+use std::io::{BufRead, StderrLock, StdinLock, StdoutLock, Write};
 
 use cpu::immediate::Immediate;
 use cpu::instruction::Instruction;
+use io::InputOutput;
 use memory::instruction_register::{Bytecode, InstructionRegister};
 use memory::stack::Stack;
 use memory::static_data_area::StaticDataArea;
@@ -28,25 +29,26 @@ pub type Breakpoint = usize;
 pub type ReturnValueRegister = Immediate;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct NinjaVM<R: BufRead + Debug, W: Write + Debug> {
+pub struct NinjaVM<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
+    pub io: InputOutput<R, W, E>,
     pub stack: Stack<Immediate>,
     pub ir: InstructionRegister,
     pub sda: StaticDataArea<Immediate>,
-    pub reader: R,
-    pub writer: W,
     pub bp: Option<Breakpoint>,
     pub rv: Option<ReturnValueRegister>,
 }
 
-impl Default for NinjaVM<StdinLock<'_>, StdoutLock<'_>> {
+impl Default for NinjaVM<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>> {
     fn default() -> Self {
         let stdin = Box::leak(Box::new(std::io::stdin()));
         let stdout = Box::leak(Box::new(std::io::stdout()));
-        NinjaVM::new(stdin.lock(), stdout.lock())
+        let stderr = Box::leak(Box::new(std::io::stderr()));
+        let io = InputOutput::new(stdin.lock(), stdout.lock(), stderr.lock());
+        NinjaVM::new(io)
     }
 }
 
-impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
+impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     pub fn start(args: Vec<String>) {
         if args.is_empty() {
             fatal_error("Error: no code file specified");
@@ -92,13 +94,12 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         }
     }
 
-    pub fn new(reader: R, writer: W) -> Self {
+    pub fn new(io: InputOutput<R, W, E>) -> Self {
         Self {
+            io,
             stack: Stack::default(),
             ir: InstructionRegister::default(),
             sda: StaticDataArea::default(),
-            reader,
-            writer,
             bp: None,
             rv: None,
         }

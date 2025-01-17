@@ -4,13 +4,14 @@ use std::io::{BufRead, Write};
 use crate::utils::fatal_error::fatal_error;
 use crate::NinjaVM;
 
-impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
+impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     pub fn debug(&mut self, bin: &str) {
         let instructions = self.load_binary(bin);
         self.load_instructions(&instructions);
         let code_size = self.ir.data.len();
         let data_size = self.sda.data.len();
-        println!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
+        let message = format!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
+        self.io.write_stdout(&message);
         self.init();
         self.prompt();
     }
@@ -20,7 +21,8 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         self.load_instructions(&instructions);
         let code_size = self.ir.data.len();
         let data_size = self.sda.data.len();
-        println!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
+        let message = format!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
+        self.io.write_stdout(&message);
         self.init();
         self.prompt();
     }
@@ -31,10 +33,12 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
                 break;
             }
             self.print_next_instruction();
-            println!("DEBUG: inspect, list, breakpoint, step, run, quit?");
+            self.io.write_stdout(
+                "DEBUG: inspect, list, breakpoint, step, run, quit?",
+            );
             let mut input = String::new();
-            if self.reader.read_line(&mut input).is_err() {
-                fatal_error("Error: could not read line")
+            if self.io.stdin_borrow_mut().read_line(&mut input).is_err() {
+                self.io.fatal_error("Error: could not read line")
             }
             let input = input.trim();
             if let Some(input) = input.chars().next() {
@@ -59,7 +63,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     pub fn inspect(&mut self) {
         println!("DEBUG: [inspect]: stack, data?");
         let mut input = String::new();
-        if self.reader.read_line(&mut input).is_err() {
+        if self.io.stdin_borrow_mut().read_line(&mut input).is_err() {
             fatal_error("Error: could not read input")
         }
         let input = input.trim();
@@ -100,7 +104,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         }
         println!("DEBUG [breakpoint]: address to set, -1 to clear, <ret> for no change?");
         let mut input = String::new();
-        if self.reader.read_line(&mut input).is_err() {
+        if self.io.stdin_borrow_mut().read_line(&mut input).is_err() {
             fatal_error("Error: could not read input")
         }
         let bp: isize = match String::from(input.trim()).parse() {
@@ -145,6 +149,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
 #[cfg(test)]
 mod tests {
     use crate::cpu::opcode::Opcode::*;
+    use crate::io::InputOutput;
     use crate::memory::instruction_register::InstructionRegister;
 
     use super::*;
@@ -152,7 +157,11 @@ mod tests {
     #[test]
     fn test_prompt() {
         let input = b"s\n8\nq\n";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         let instructions = vm.load_test_binary("assets/a3/prog1.bin");
         vm.load_instructions(&instructions);
         vm.init();
@@ -162,7 +171,11 @@ mod tests {
     #[test]
     fn test_step() {
         let input = b"9\n";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         let instructions = vm.load_test_binary("assets/a3/prog1.bin");
         vm.load_instructions(&instructions);
         vm.init();
@@ -177,7 +190,11 @@ mod tests {
     #[test]
     fn test_run() {
         let input = b"b\n23\nr\n8\n12\nq\n";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         vm.test_debug("assets/a3/prog1.bin");
         assert_eq!(vm.ir.data.len(), 27);
         assert_eq!(vm.sda.data.len(), 2);
@@ -191,7 +208,11 @@ mod tests {
     #[test]
     fn test_set_breakpoint() {
         let input = b"b\n23\nq\nb\n-1\nq\n";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         vm.test_debug("assets/a3/prog1.bin");
         assert_eq!(vm.bp, Some(23));
         vm.test_debug("assets/a3/prog1.bin");
@@ -201,14 +222,22 @@ mod tests {
     #[test]
     fn test_list_ir() {
         let input = b"l\nq\n";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         vm.test_debug("assets/a3/prog1.bin");
     }
 
     #[test]
     fn test_debugger_breaks_at_breakpoint() {
         let input = b"b\n5\nr\n8\n12\nq\nb\n23\nr\nq\n";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         vm.test_debug("assets/a3/prog1.bin");
         assert_eq!(vm.ir.pc, 5);
         assert_eq!(vm.bp, None);

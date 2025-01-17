@@ -5,7 +5,7 @@ use crate::cpu::immediate::Immediate;
 use crate::utils::fatal_error::fatal_error;
 use crate::NinjaVM;
 
-impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
+impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     pub fn halt(&self) {
         println!("Ninja Virtual Machine stopped");
     }
@@ -46,7 +46,9 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     pub fn rdint(&mut self) {
         let mut byte_buffer = [0];
         loop {
-            if let Ok(()) = self.reader.read_exact(&mut byte_buffer) {
+            if let Ok(()) =
+                self.io.stdin_borrow_mut().read_exact(&mut byte_buffer)
+            {
                 match byte_buffer[0] {
                     b'-' => break,
                     b'0' => break,
@@ -68,7 +70,9 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         }
         let mut buffer = vec![byte_buffer[0]];
         loop {
-            if let Ok(()) = self.reader.read_exact(&mut byte_buffer) {
+            if let Ok(()) =
+                self.io.stdin_borrow_mut().read_exact(&mut byte_buffer)
+            {
                 match byte_buffer[0] {
                     b'0' => buffer.push(byte_buffer[0]),
                     b'1' => buffer.push(byte_buffer[0]),
@@ -93,14 +97,14 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
         self.stack.push(immediate)
     }
     pub fn wrint(&mut self) {
-        match write!(self.writer, "{}", self.stack.pop()) {
+        match write!(self.io.stdout_borrow_mut(), "{}", self.stack.pop()) {
             Ok(_) => {}
             Err(_) => fatal_error("Error: unable to write"),
         }
     }
     pub fn rdchr(&mut self) {
         let mut byte_buffer = [0];
-        match self.reader.read_exact(&mut byte_buffer) {
+        match self.io.stdin_borrow_mut().read_exact(&mut byte_buffer) {
             Ok(_) => {}
             Err(_) => fatal_error("Error: could not read character"),
         };
@@ -109,7 +113,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
     }
     pub fn wrchr(&mut self) {
         let character = self.stack.pop() as u8 as char;
-        match write!(self.writer, "{character}") {
+        match write!(self.io.stdout_borrow_mut(), "{character}") {
             Ok(_) => {}
             Err(_) => fatal_error("Error: unable to write"),
         }
@@ -229,7 +233,7 @@ impl<R: BufRead + Debug, W: Write + Debug> NinjaVM<R, W> {
 
 #[cfg(test)]
 mod tests {
-    use crate::memory::static_data_area::StaticDataArea;
+    use crate::{io::InputOutput, memory::static_data_area::StaticDataArea};
 
     use super::*;
 
@@ -322,7 +326,11 @@ mod tests {
     #[test]
     fn test_rdint_works() {
         let input = b" -123  456 -789   ";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         vm.rdint();
         assert_eq!(vm.stack.data[0], -123);
         vm.rdint();
@@ -336,7 +344,11 @@ mod tests {
     fn test_rdint_fails_not_an_integer() {
         std::panic::set_hook(Box::new(|_| {}));
         let input = b" 123 s  456  789   ";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         vm.rdint();
         assert_eq!(vm.stack.data[0], 123);
         vm.rdint();
@@ -347,7 +359,11 @@ mod tests {
     fn test_rdint_fails_too_big() {
         std::panic::set_hook(Box::new(|_| {}));
         let input = b" 12345 67892424234242   ";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         vm.rdint();
         assert_eq!(vm.stack.data[0], 12345);
         vm.rdint();
@@ -357,7 +373,11 @@ mod tests {
     fn test_wrint() {
         let stdin = std::io::stdin();
         let mut output = Vec::new();
-        let mut vm = NinjaVM::new(stdin.lock(), &mut output);
+        let mut vm = NinjaVM::new(InputOutput::new(
+            stdin.lock(),
+            &mut output,
+            std::io::stderr(),
+        ));
         let immediate: Immediate = 42;
         vm.pushc(immediate);
         vm.wrint();
@@ -368,7 +388,11 @@ mod tests {
     #[test]
     fn test_rdchr_works() {
         let input = b"123 456";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         vm.rdchr();
         assert_eq!(vm.stack.data[0], '1' as Immediate);
         vm.rdchr();
@@ -390,7 +414,11 @@ mod tests {
     fn test_rdchr_fails() {
         std::panic::set_hook(Box::new(|_| {}));
         let input = b"";
-        let mut vm = NinjaVM::new(&input[..], std::io::stdout());
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &input[..],
+            std::io::stdout(),
+            std::io::stderr(),
+        ));
         vm.rdchr();
     }
 
@@ -398,7 +426,11 @@ mod tests {
     fn test_wrchr() {
         let stdin = std::io::stdin();
         let mut output = Vec::new();
-        let mut vm = NinjaVM::new(stdin.lock(), &mut output);
+        let mut vm = NinjaVM::new(InputOutput::new(
+            stdin.lock(),
+            &mut output,
+            std::io::stderr(),
+        ));
         let immediate: Immediate = '1'.to_ascii_lowercase() as i32;
         vm.pushc(immediate);
         vm.wrchr();

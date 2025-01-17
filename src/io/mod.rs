@@ -5,19 +5,33 @@ use std::{cell::RefCell, io::BufRead, rc::Rc};
 use crate::VERSION;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct InputOutput<R: BufRead + Debug, W: Write + Debug> {
+pub struct InputOutput<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
     stdin: Rc<RefCell<R>>,
     stdout: Rc<RefCell<W>>,
-    stderr: Rc<RefCell<W>>,
+    stderr: Rc<RefCell<E>>,
 }
 
-impl<R: BufRead + Debug, W: Write + Debug> InputOutput<R, W> {
-    pub fn new(stdin: R, stdout: W, stderr: W) -> Self {
+impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
+    InputOutput<R, W, E>
+{
+    pub fn new(stdin: R, stdout: W, stderr: E) -> Self {
         Self {
             stdin: Rc::new(RefCell::new(stdin)),
             stdout: Rc::new(RefCell::new(stdout)),
             stderr: Rc::new(RefCell::new(stderr)),
         }
+    }
+
+    pub fn stdin_borrow_mut(&self) -> std::cell::RefMut<'_, R> {
+        self.stdin.borrow_mut()
+    }
+
+    pub fn stdout_borrow_mut(&self) -> std::cell::RefMut<'_, W> {
+        self.stdout.borrow_mut()
+    }
+
+    pub fn stderr_borrow_mut(&self) -> std::cell::RefMut<'_, E> {
+        self.stderr.borrow_mut()
     }
 
     pub fn read_line(&self) -> Option<String> {
