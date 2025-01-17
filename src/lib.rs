@@ -1,9 +1,10 @@
 pub mod cpu;
+pub mod io;
 pub mod memory;
 pub mod utils;
 
 use std::fmt::Debug;
-use std::io::{BufRead, Write};
+use std::io::{BufRead, StdinLock, StdoutLock, Write};
 
 use cpu::immediate::Immediate;
 use cpu::instruction::Instruction;
@@ -12,7 +13,7 @@ use memory::stack::Stack;
 use memory::static_data_area::StaticDataArea;
 use utils::check_instructions::check_instructions;
 use utils::check_ninja_format::check_ninja_format;
-use utils::check_ninja_version::{check_ninja_version, VERSION};
+use utils::check_ninja_version::check_ninja_version;
 use utils::check_variables::check_variables;
 use utils::fatal_error::fatal_error;
 use utils::read_file::read_file;
@@ -21,11 +22,13 @@ use utils::split_file_metadata::split_file_metadata;
 use utils::unknown_arg::unknown_arg;
 use utils::verify_arg::verify_arg;
 
+pub const VERSION: u8 = 4;
+
 pub type Breakpoint = usize;
 pub type ReturnValueRegister = Immediate;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct NinjaVM<R, W> {
+pub struct NinjaVM<R: BufRead + Debug, W: Write + Debug> {
     pub stack: Stack<Immediate>,
     pub ir: InstructionRegister,
     pub sda: StaticDataArea<Immediate>,
@@ -35,7 +38,7 @@ pub struct NinjaVM<R, W> {
     pub rv: Option<ReturnValueRegister>,
 }
 
-impl Default for NinjaVM<std::io::StdinLock<'_>, std::io::StdoutLock<'_>> {
+impl Default for NinjaVM<StdinLock<'_>, StdoutLock<'_>> {
     fn default() -> Self {
         let stdin = Box::leak(Box::new(std::io::stdin()));
         let stdout = Box::leak(Box::new(std::io::stdout()));
