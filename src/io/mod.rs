@@ -22,6 +22,18 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
         }
     }
 
+    pub fn stdin_borrow(&self) -> std::cell::Ref<'_, R> {
+        self.stdin.borrow()
+    }
+
+    pub fn stdout_borrow(&self) -> std::cell::Ref<'_, W> {
+        self.stdout.borrow()
+    }
+
+    pub fn stderr_borrow(&self) -> std::cell::Ref<'_, E> {
+        self.stderr.borrow()
+    }
+
     pub fn stdin_borrow_mut(&self) -> std::cell::RefMut<'_, R> {
         self.stdin.borrow_mut()
     }

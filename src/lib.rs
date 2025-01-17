@@ -1,10 +1,11 @@
 pub mod cpu;
 pub mod io;
 pub mod memory;
-pub mod utils;
 
+use std::cell::RefCell;
 use std::fmt::Debug;
 use std::io::{BufRead, StderrLock, StdinLock, StdoutLock, Write};
+use std::rc::Rc;
 
 use cpu::immediate::Immediate;
 use cpu::instruction::Instruction;
@@ -12,16 +13,6 @@ use io::InputOutput;
 use memory::instruction_register::{Bytecode, InstructionRegister};
 use memory::stack::Stack;
 use memory::static_data_area::StaticDataArea;
-use utils::check_instructions::check_instructions;
-use utils::check_ninja_format::check_ninja_format;
-use utils::check_ninja_version::check_ninja_version;
-use utils::check_variables::check_variables;
-use utils::fatal_error::fatal_error;
-use utils::read_file::read_file;
-use utils::set_ninja_version::set_ninja_version;
-use utils::split_file_metadata::split_file_metadata;
-use utils::unknown_arg::unknown_arg;
-use utils::verify_arg::verify_arg;
 
 pub const VERSION: u8 = 4;
 
@@ -30,8 +21,8 @@ pub type ReturnValueRegister = Immediate;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct NinjaVM<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
-    pub io: InputOutput<R, W, E>,
-    pub stack: Stack<Immediate>,
+    io: Rc<RefCell<InputOutput<R, W, E>>>,
+    stack: Stack<Immediate>,
     pub ir: InstructionRegister,
     pub sda: StaticDataArea<Immediate>,
     pub bp: Option<Breakpoint>,
@@ -50,8 +41,10 @@ impl Default for NinjaVM<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>> {
 
 impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     pub fn start(args: Vec<String>) {
+        let mut vm = NinjaVM::default();
+
         if args.is_empty() {
-            fatal_error("Error: no code file specified");
+            vm.io.borrow().fatal_error("Error: no code file specified");
         }
 
         let mut debug_mode = false;
@@ -60,33 +53,36 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         for arg in args {
             match arg.as_str() {
                 "--help" => {
-                    Self::help();
+                    vm.help();
                     return;
                 }
                 "--version" => {
-                    Self::version();
+                    vm.version();
                     return;
                 }
                 "--debug" => {
                     if debug_mode {
-                        fatal_error("Error: duplicate '--debug' flag");
+                        vm.io_borrow()
+                            .fatal_error("Error: duplicate '--debug' flag");
                     }
                     debug_mode = true;
                 }
-                _ if arg.starts_with('-') => unknown_arg(&arg),
+                _ if arg.starts_with('-') => vm.io_borrow().unknown_arg(&arg),
                 _ => {
                     if file.is_some() {
-                        fatal_error("Error: more than one code file specified");
+                        vm.io_borrow().fatal_error(
+                            "Error: more than one code file specified",
+                        );
                     }
                     file = Some(arg);
                 }
             }
         }
 
-        let file = file
-            .unwrap_or_else(|| fatal_error("Error: no code file specified"));
+        let file = file.unwrap_or_else(|| {
+            vm.io_borrow().fatal_error("Error: no code file specified")
+        });
 
-        let mut vm = NinjaVM::default();
         if debug_mode {
             vm.debug(&file);
         } else {
@@ -96,7 +92,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
 
     pub fn new(io: InputOutput<R, W, E>) -> Self {
         Self {
-            io,
+            io: Rc::new(RefCell::new(io)),
             stack: Stack::default(),
             ir: InstructionRegister::default(),
             sda: StaticDataArea::default(),
@@ -167,26 +163,26 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     }
 
     pub fn load_binary(&mut self, arg: &str) -> Vec<u8> {
-        verify_arg(arg);
-        let mut file = read_file(arg);
-        let instructions = split_file_metadata(&mut file);
-        check_ninja_format(&file, arg);
-        check_ninja_version(&file);
-        let variable_count = check_variables(&file);
-        let instruction_count = check_instructions(&file);
+        self.io_borrow().verify_arg(arg);
+        let mut file = self.io_borrow().read_file(arg);
+        let instructions = self.io_borrow().split_file_metadata(&mut file);
+        self.io_borrow().check_ninja_format(&file, arg);
+        self.io_borrow().check_ninja_version(&file);
+        let variable_count = self.io_borrow().check_variables(&file);
+        let instruction_count = self.io_borrow().check_instructions(&file);
         self.sda = StaticDataArea::new(variable_count, 0);
         self.ir = InstructionRegister::new(instruction_count, 0);
         instructions
     }
 
     pub fn load_test_binary(&mut self, arg: &str) -> Vec<u8> {
-        verify_arg(arg);
-        let mut file = read_file(arg);
-        let instructions = split_file_metadata(&mut file);
-        check_ninja_format(&file, arg);
-        set_ninja_version(&mut file);
-        let variable_count = check_variables(&file);
-        let instruction_count = check_instructions(&file);
+        self.io_borrow().verify_arg(arg);
+        let mut file = self.io_borrow().read_file(arg);
+        let instructions = self.io_borrow().split_file_metadata(&mut file);
+        self.io_borrow().check_ninja_format(&file, arg);
+        self.io_borrow().set_ninja_version(&mut file);
+        let variable_count = self.io_borrow().check_variables(&file);
+        let instruction_count = self.io_borrow().check_instructions(&file);
         self.sda = StaticDataArea::new(variable_count, 0);
         self.ir = InstructionRegister::new(instruction_count, 0);
         instructions
@@ -208,20 +204,38 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     }
 
     pub fn init(&mut self) {
-        println!("Ninja Virtual Machine started");
+        self.io_borrow()
+            .write_stdout("Ninja Virtual Machine started");
         self.ir.pc = 0;
     }
 
-    fn help() {
-        println!("usage: ./njvm [options] <code file>");
-        println!("Options:");
-        println!("  --debug          start virtual machine in debug mode");
-        println!("  --version        show version and exit");
-        println!("  --help           show this help and exit");
+    fn help(&self) {
+        self.io_borrow()
+            .write_stdout("usage: ./njvm [options] <code file>");
+        self.io_borrow().write_stdout("Options:");
+        self.io_borrow().write_stdout(
+            "  --debug          start virtual machine in debug mode",
+        );
+        self.io_borrow()
+            .write_stdout("  --version        show version and exit");
+        self.io_borrow()
+            .write_stdout("  --help           show this help and exit");
     }
 
-    fn version() {
-        println!("Ninja Virtual Machine version {VERSION} (compiled Sep 23 2015, 10:36:52)",);
+    fn version(&self) {
+        self.io_borrow().write_stdout("Ninja Virtual Machine version {VERSION} (compiled Sep 23 2015, 10:36:52)",);
+    }
+
+    pub fn io_borrow(&self) -> std::cell::Ref<'_, InputOutput<R, W, E>> {
+        self.io.borrow()
+    }
+
+    pub fn io_borrow_mut(&self) -> std::cell::RefMut<'_, InputOutput<R, W, E>> {
+        self.io.borrow_mut()
+    }
+
+    pub fn stack_mut(&mut self) -> &mut Stack<Immediate> {
+        &mut self.stack
     }
 }
 

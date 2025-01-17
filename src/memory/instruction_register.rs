@@ -23,6 +23,7 @@ impl InstructionRegister {
         data.resize(size, value);
         InstructionRegister { pc: 0, data }
     }
+
     pub fn register_instruction(
         &mut self,
         opcode: Opcode,
@@ -32,11 +33,13 @@ impl InstructionRegister {
         self.data[self.pc] = instruction;
         self.pc += 1;
     }
+
     pub fn print(&mut self) {
         for i in 0..self.data.len() {
             self.print_instruction(i);
         }
     }
+
     pub fn print_instruction(&mut self, pc: usize) {
         use Opcode::*;
 
@@ -44,6 +47,7 @@ impl InstructionRegister {
         let decoded = Instruction::decode_instruction(instruction);
         let opcode = decoded.opcode;
         let immediate = decoded.immediate;
+
         match opcode {
             Halt => println!("{pc:04}:\thalt"),
             Pushc => println!("{pc:04}:\tpushc\t{immediate}"),

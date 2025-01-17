@@ -2,52 +2,62 @@ use std::fmt::Debug;
 use std::io::{BufRead, Write};
 
 use crate::cpu::immediate::Immediate;
-use crate::utils::fatal_error::fatal_error;
 use crate::NinjaVM;
 
 impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     pub fn halt(&self) {
-        println!("Ninja Virtual Machine stopped");
+        self.io_borrow()
+            .write_stdout("Ninja Virtual Machine stopped");
     }
+
     pub fn pushc(&mut self, immediate: Immediate) {
         self.stack.push(immediate);
     }
+
     pub fn add(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 + n2);
     }
+
     pub fn sub(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 - n2);
     }
+
     pub fn mul(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         self.stack.push(n1 * n2);
     }
+
     pub fn div(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
-            fatal_error("Division by zero error");
+            self.io_borrow().fatal_error("Division by zero error");
         }
         self.stack.push(n1 / n2);
     }
+
     pub fn modulo(&mut self) {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
-            fatal_error("Division by zero error");
+            self.io_borrow().fatal_error("Division by zero error");
         }
         self.stack.push(n1 % n2);
     }
+
     pub fn rdint(&mut self) {
         let mut byte_buffer = [0];
+
         loop {
-            if let Ok(()) =
-                self.io.stdin_borrow_mut().read_exact(&mut byte_buffer)
+            if let Ok(()) = self
+                .io_borrow()
+                .stdin_borrow_mut()
+                .read_exact(&mut byte_buffer)
             {
                 match byte_buffer[0] {
                     b'-' => break,
@@ -62,16 +72,23 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
                     b'8' => break,
                     b'9' => break,
                     b' ' => continue,
-                    _ => fatal_error("Error: input is not an integer"),
+                    _ => self
+                        .io_borrow()
+                        .fatal_error("Error: input is not an integer"),
                 }
             } else {
-                fatal_error("Error: could not read character")
+                self.io_borrow()
+                    .fatal_error("Error: could not read character")
             }
         }
+
         let mut buffer = vec![byte_buffer[0]];
+
         loop {
-            if let Ok(()) =
-                self.io.stdin_borrow_mut().read_exact(&mut byte_buffer)
+            if let Ok(()) = self
+                .io_borrow()
+                .stdin_borrow_mut()
+                .read_exact(&mut byte_buffer)
             {
                 match byte_buffer[0] {
                     b'0' => buffer.push(byte_buffer[0]),
@@ -87,43 +104,63 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
                     _ => break,
                 }
             } else {
-                fatal_error("Error: could not read character")
+                self.io_borrow()
+                    .fatal_error("Error: could not read character")
             }
         }
+
         let immediate = match String::from_utf8(buffer).unwrap().parse() {
             Ok(immediate) => immediate,
-            Err(_) => fatal_error("Error: integer is too big"),
+            Err(_) => self.io_borrow().fatal_error("Error: integer is too big"),
         };
+
         self.stack.push(immediate)
     }
+
     pub fn wrint(&mut self) {
-        match write!(self.io.stdout_borrow_mut(), "{}", self.stack.pop()) {
+        let value = self.stack.pop();
+        match write!(self.io_borrow().stdout_borrow_mut(), "{value}") {
             Ok(_) => {}
-            Err(_) => fatal_error("Error: unable to write"),
+            Err(_) => self.io_borrow().fatal_error("Error: unable to write"),
         }
     }
+
     pub fn rdchr(&mut self) {
         let mut byte_buffer = [0];
-        match self.io.stdin_borrow_mut().read_exact(&mut byte_buffer) {
+
+        match self
+            .io_borrow()
+            .stdin_borrow_mut()
+            .read_exact(&mut byte_buffer)
+        {
             Ok(_) => {}
-            Err(_) => fatal_error("Error: could not read character"),
+            Err(_) => self
+                .io_borrow()
+                .fatal_error("Error: could not read character"),
         };
+
         let immediate = byte_buffer[0] as Immediate;
+
         self.stack.push(immediate)
     }
+
     pub fn wrchr(&mut self) {
         let character = self.stack.pop() as u8 as char;
-        match write!(self.io.stdout_borrow_mut(), "{character}") {
+
+        match write!(self.io_borrow().stdout_borrow_mut(), "{character}") {
             Ok(_) => {}
-            Err(_) => fatal_error("Error: unable to write"),
+            Err(_) => self.io_borrow().fatal_error("Error: unable to write"),
         }
     }
+
     pub fn pushg(&mut self, immediate: Immediate) {
         self.stack.push(self.sda.data[immediate as usize]);
     }
+
     pub fn popg(&mut self, immediate: Immediate) {
         self.sda.data[immediate as usize] = self.stack.pop()
     }
+
     pub fn asf(&mut self, immediate: Immediate) {
         self.stack.push(self.stack.fp as Immediate);
         self.stack.fp = self.stack.sp;
@@ -132,6 +169,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         self.stack.data.resize(stack_size, 0);
         self.stack.sp += immediate as usize;
     }
+
     pub fn rsf(&mut self) {
         let fp = self.stack.fp;
         let sp = self.stack.sp;
@@ -140,90 +178,108 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         self.stack.sp = self.stack.fp;
         self.stack.fp = self.stack.pop() as usize;
     }
+
     pub fn pushl(&mut self, immediate: Immediate) {
         let fp = self.stack.fp;
         let n = immediate as usize;
         self.stack.push(self.stack.data[fp + n]);
     }
+
     pub fn popl(&mut self, immediate: Immediate) {
         let n = immediate as usize;
         let fp = self.stack.fp;
         let sp = self.stack.sp;
         self.stack.data[fp + n] = self.stack.data[sp - 1];
     }
+
     pub fn eq(&mut self) {
         let b = self.stack.pop();
         let a = self.stack.pop();
         let result = if a == b { 1 } else { 0 };
         self.stack.push(result);
     }
+
     pub fn ne(&mut self) {
         let b = self.stack.pop();
         let a = self.stack.pop();
         let result = if a != b { 1 } else { 0 };
         self.stack.push(result);
     }
+
     pub fn lt(&mut self) {
         let b = self.stack.pop();
         let a = self.stack.pop();
         let result = if a < b { 1 } else { 0 };
         self.stack.push(result);
     }
+
     pub fn le(&mut self) {
         let b = self.stack.pop();
         let a = self.stack.pop();
         let result = if a <= b { 1 } else { 0 };
         self.stack.push(result);
     }
+
     pub fn gt(&mut self) {
         let b = self.stack.pop();
         let a = self.stack.pop();
         let result = if a > b { 1 } else { 0 };
         self.stack.push(result);
     }
+
     pub fn ge(&mut self) {
         let b = self.stack.pop();
         let a = self.stack.pop();
         let result = if a >= b { 1 } else { 0 };
         self.stack.push(result);
     }
+
     pub fn jmp(&mut self, immediate: Immediate) {
         self.ir.pc = immediate as usize;
     }
+
     pub fn brf(&mut self, immediate: Immediate) {
         if self.stack.pop() == 0 {
             self.ir.pc = immediate as usize;
         }
     }
+
     pub fn brt(&mut self, immediate: Immediate) {
         if self.stack.pop() == 1 {
             self.ir.pc = immediate as usize;
         }
     }
+
     pub fn call(&mut self, immediate: Immediate) {
         let ra = self.ir.pc as Immediate;
         self.stack.push(ra);
         self.ir.pc = immediate as usize;
     }
+
     pub fn ret(&mut self) {
         self.ir.pc = self.stack.pop() as usize;
     }
+
     pub fn drop(&mut self, immediate: Immediate) {
         for _ in 0..immediate {
             self.stack.pop();
         }
     }
+
     pub fn pushr(&mut self) {
         if let Some(rv) = self.rv {
             self.stack.push(rv);
             self.rv = None;
         } else {
-            fatal_error("Error: no value in return value register")
+            self.io_borrow()
+                .fatal_error("Error: no value in return value register")
         }
     }
+
     pub fn popr(&mut self) {
         self.rv = Some(self.stack.pop());
     }
+
     pub fn dup(&mut self) {
         let dup = self.stack.pop();
         self.stack.push(dup);

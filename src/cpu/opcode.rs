@@ -1,6 +1,4 @@
-use crate::{
-    memory::instruction_register::Bytecode, utils::fatal_error::fatal_error,
-};
+use crate::memory::instruction_register::Bytecode;
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]

@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 use std::io::{BufRead, Write};
 
-use crate::utils::fatal_error::fatal_error;
 use crate::NinjaVM;
 
 impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
@@ -11,7 +10,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         let code_size = self.ir.data.len();
         let data_size = self.sda.data.len();
         let message = format!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
-        self.io.write_stdout(&message);
+        self.io_borrow().write_stdout(&message);
         self.init();
         self.prompt();
     }
@@ -22,7 +21,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         let code_size = self.ir.data.len();
         let data_size = self.sda.data.len();
         let message = format!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
-        self.io.write_stdout(&message);
+        self.io_borrow().write_stdout(&message);
         self.init();
         self.prompt();
     }
@@ -33,12 +32,17 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
                 break;
             }
             self.print_next_instruction();
-            self.io.write_stdout(
+            self.io_borrow().write_stdout(
                 "DEBUG: inspect, list, breakpoint, step, run, quit?",
             );
             let mut input = String::new();
-            if self.io.stdin_borrow_mut().read_line(&mut input).is_err() {
-                self.io.fatal_error("Error: could not read line")
+            if self
+                .io_borrow()
+                .stdin_borrow_mut()
+                .read_line(&mut input)
+                .is_err()
+            {
+                self.io.borrow().fatal_error("Error: could not read line")
             }
             let input = input.trim();
             if let Some(input) = input.chars().next() {
@@ -63,8 +67,13 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     pub fn inspect(&mut self) {
         println!("DEBUG: [inspect]: stack, data?");
         let mut input = String::new();
-        if self.io.stdin_borrow_mut().read_line(&mut input).is_err() {
-            fatal_error("Error: could not read input")
+        if self
+            .io_borrow()
+            .stdin_borrow_mut()
+            .read_line(&mut input)
+            .is_err()
+        {
+            self.io_borrow().fatal_error("Error: could not read input")
         }
         let input = input.trim();
         if let Some(input) = input.chars().next() {
@@ -104,8 +113,13 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         }
         println!("DEBUG [breakpoint]: address to set, -1 to clear, <ret> for no change?");
         let mut input = String::new();
-        if self.io.stdin_borrow_mut().read_line(&mut input).is_err() {
-            fatal_error("Error: could not read input")
+        if self
+            .io_borrow()
+            .stdin_borrow_mut()
+            .read_line(&mut input)
+            .is_err()
+        {
+            self.io_borrow().fatal_error("Error: could not read input")
         }
         let bp: isize = match String::from(input.trim()).parse() {
             Ok(bp) => bp,

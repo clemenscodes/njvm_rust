@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display, Formatter, Result};
 
-use crate::{cpu::immediate::Immediate, utils::fatal_error::fatal_error};
+use crate::cpu::immediate::Immediate;
 
 pub type StackPointer = usize;
 pub type FramePointer = usize;
@@ -82,6 +82,7 @@ mod tests {
         assert_eq!(stack.sp, 0);
         assert_eq!(stack.data.len(), 0);
     }
+
     #[test]
     fn test_push() {
         let mut stack = Stack::<Immediate>::default();
@@ -92,6 +93,7 @@ mod tests {
         assert_eq!(stack.sp, 2);
         assert_eq!(stack.data[1], 5);
     }
+
     #[test]
     fn test_pop() {
         let mut stack = Stack::<Immediate>::default();
@@ -102,6 +104,7 @@ mod tests {
         assert_eq!(stack.sp, 0);
         assert_eq!(stack.data.len(), 0);
     }
+
     #[test]
     #[should_panic(expected = "Stack underflow: popped from empty stack")]
     fn test_stack_underflow() {
