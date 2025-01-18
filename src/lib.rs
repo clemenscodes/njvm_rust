@@ -327,7 +327,28 @@ mod tests {
 33
 Ninja Virtual Machine stopped
 "#;
+        assert_eq!(output, expected);
+    }
 
+    #[test]
+    fn test_prog_a4_12() {
+        let stdin = b"5\n";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
+        let instructions = vm.load_test_binary("assets/a4/prog12.bin");
+        vm.load_instructions(&instructions);
+        vm.init();
+        vm.work();
+        let output = String::from_utf8(stdout).unwrap();
+        let expected = r#"Ninja Virtual Machine started
+5! = 120
+Ninja Virtual Machine stopped
+"#;
         assert_eq!(output, expected);
     }
 }

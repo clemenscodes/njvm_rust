@@ -183,10 +183,11 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     }
 
     pub fn popl(&mut self, immediate: Immediate) {
-        let n = immediate as usize;
-        let fp = self.stack.fp;
-        let sp = self.stack.sp;
-        self.stack.data[fp + n] = self.stack.data[sp - 1];
+        let fp = self.stack.fp as isize;
+        let sp = self.stack.sp as isize;
+        let fp_index = (fp + immediate as isize) as usize;
+        let sp_index = (sp - 1) as usize;
+        self.stack.data[fp_index] = self.stack.data[sp_index];
     }
 
     pub fn eq(&mut self) {
