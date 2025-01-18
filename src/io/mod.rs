@@ -13,9 +13,9 @@ pub struct InputOutput<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
 
 impl Default for InputOutput<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>> {
     fn default() -> Self {
-        let stdin = Box::leak(Box::new(std::io::stdin()));
-        let stdout = Box::leak(Box::new(std::io::stdout()));
-        let stderr = Box::leak(Box::new(std::io::stderr()));
+        let stdin = std::io::stdin();
+        let stdout = std::io::stdout();
+        let stderr = std::io::stderr();
         Self::new(stdin.lock(), stdout.lock(), stderr.lock())
     }
 }

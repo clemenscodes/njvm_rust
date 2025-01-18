@@ -31,9 +31,9 @@ pub struct NinjaVM<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
 
 impl Default for NinjaVM<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>> {
     fn default() -> Self {
-        let stdin = Box::leak(Box::new(std::io::stdin()));
-        let stdout = Box::leak(Box::new(std::io::stdout()));
-        let stderr = Box::leak(Box::new(std::io::stderr()));
+        let stdin = std::io::stdin();
+        let stdout = std::io::stdout();
+        let stderr = std::io::stderr();
         let io = InputOutput::new(stdin.lock(), stdout.lock(), stderr.lock());
         NinjaVM::new(io)
     }
@@ -41,8 +41,7 @@ impl Default for NinjaVM<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>> {
 
 impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     pub fn start(args: Vec<String>) {
-        let mut vm =
-            NinjaVM::<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>>::default();
+        let mut vm = NinjaVM::default();
 
         if args.is_empty() {
             vm.io_borrow()
@@ -237,10 +236,6 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
 
     pub fn io_borrow_mut(&self) -> std::cell::RefMut<'_, InputOutput<R, W, E>> {
         self.io.borrow_mut()
-    }
-
-    pub fn stack_mut(&mut self) -> &mut Stack<R, W, E, Immediate> {
-        &mut self.stack
     }
 }
 
