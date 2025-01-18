@@ -19,6 +19,7 @@ impl<T: Clone + Debug + Display> StaticDataArea<T> {
         data.resize(size, value);
         StaticDataArea { data }
     }
+
     pub fn print(&self) {
         println!("{self:#?}");
     }

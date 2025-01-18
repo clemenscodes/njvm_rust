@@ -73,6 +73,7 @@
             ./rust-toolchain.toml
             ./rustfmt.toml
             ./src
+            ./assets
           ];
         };
 

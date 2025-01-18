@@ -44,14 +44,10 @@ impl std::fmt::Display for Opcode {
     }
 }
 
-impl Opcode {
-    pub fn encode_opcode(opcode: Opcode) -> Bytecode {
-        (opcode as Bytecode) << 24
-    }
-
-    pub fn decode_opcode(instruction: Bytecode) -> Self {
+impl From<Bytecode> for Opcode {
+    fn from(value: Bytecode) -> Self {
         use Opcode::*;
-        let opcode = instruction >> 24;
+        let opcode = value >> 24;
         match opcode {
             0 => Halt,
             1 => Pushc,
@@ -90,6 +86,12 @@ impl Opcode {
     }
 }
 
+impl Opcode {
+    pub fn encode(opcode: Opcode) -> Bytecode {
+        (opcode as Bytecode) << 24
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -97,111 +99,112 @@ mod tests {
 
     #[test]
     fn test_encode_opcode() {
-        assert_eq!(Opcode::encode_opcode(Halt), 0x00000000);
-        assert_eq!(Opcode::encode_opcode(Pushc), 0x01000000);
-        assert_eq!(Opcode::encode_opcode(Add), 0x02000000);
-        assert_eq!(Opcode::encode_opcode(Sub), 0x03000000);
-        assert_eq!(Opcode::encode_opcode(Mul), 0x04000000);
-        assert_eq!(Opcode::encode_opcode(Div), 0x05000000);
-        assert_eq!(Opcode::encode_opcode(Mod), 0x06000000);
-        assert_eq!(Opcode::encode_opcode(Rdint), 0x07000000);
-        assert_eq!(Opcode::encode_opcode(Wrint), 0x08000000);
-        assert_eq!(Opcode::encode_opcode(Rdchr), 0x09000000);
-        assert_eq!(Opcode::encode_opcode(Wrchr), 0x0a000000);
-        assert_eq!(Opcode::encode_opcode(Pushg), 0x0b000000);
-        assert_eq!(Opcode::encode_opcode(Popg), 0x0c000000);
-        assert_eq!(Opcode::encode_opcode(Asf), 0x0d000000);
-        assert_eq!(Opcode::encode_opcode(Rsf), 0x0e000000);
-        assert_eq!(Opcode::encode_opcode(Pushl), 0x0f000000);
-        assert_eq!(Opcode::encode_opcode(Popl), 0x10000000);
-        assert_eq!(Opcode::encode_opcode(Eq), 0x11000000);
-        assert_eq!(Opcode::encode_opcode(Ne), 0x12000000);
-        assert_eq!(Opcode::encode_opcode(Lt), 0x13000000);
-        assert_eq!(Opcode::encode_opcode(Le), 0x14000000);
-        assert_eq!(Opcode::encode_opcode(Gt), 0x15000000);
-        assert_eq!(Opcode::encode_opcode(Ge), 0x16000000);
-        assert_eq!(Opcode::encode_opcode(Jmp), 0x17000000);
-        assert_eq!(Opcode::encode_opcode(Brf), 0x18000000);
-        assert_eq!(Opcode::encode_opcode(Brt), 0x19000000);
-        assert_eq!(Opcode::encode_opcode(Call), 0x1a000000);
-        assert_eq!(Opcode::encode_opcode(Ret), 0x1b000000);
-        assert_eq!(Opcode::encode_opcode(Drop), 0x1c000000);
-        assert_eq!(Opcode::encode_opcode(Pushr), 0x1d000000);
-        assert_eq!(Opcode::encode_opcode(Popr), 0x1e000000);
-        assert_eq!(Opcode::encode_opcode(Dup), 0x1f000000);
+        assert_eq!(Opcode::encode(Halt), 0x00000000);
+        assert_eq!(Opcode::encode(Pushc), 0x01000000);
+        assert_eq!(Opcode::encode(Add), 0x02000000);
+        assert_eq!(Opcode::encode(Sub), 0x03000000);
+        assert_eq!(Opcode::encode(Mul), 0x04000000);
+        assert_eq!(Opcode::encode(Div), 0x05000000);
+        assert_eq!(Opcode::encode(Mod), 0x06000000);
+        assert_eq!(Opcode::encode(Rdint), 0x07000000);
+        assert_eq!(Opcode::encode(Wrint), 0x08000000);
+        assert_eq!(Opcode::encode(Rdchr), 0x09000000);
+        assert_eq!(Opcode::encode(Wrchr), 0x0a000000);
+        assert_eq!(Opcode::encode(Pushg), 0x0b000000);
+        assert_eq!(Opcode::encode(Popg), 0x0c000000);
+        assert_eq!(Opcode::encode(Asf), 0x0d000000);
+        assert_eq!(Opcode::encode(Rsf), 0x0e000000);
+        assert_eq!(Opcode::encode(Pushl), 0x0f000000);
+        assert_eq!(Opcode::encode(Popl), 0x10000000);
+        assert_eq!(Opcode::encode(Eq), 0x11000000);
+        assert_eq!(Opcode::encode(Ne), 0x12000000);
+        assert_eq!(Opcode::encode(Lt), 0x13000000);
+        assert_eq!(Opcode::encode(Le), 0x14000000);
+        assert_eq!(Opcode::encode(Gt), 0x15000000);
+        assert_eq!(Opcode::encode(Ge), 0x16000000);
+        assert_eq!(Opcode::encode(Jmp), 0x17000000);
+        assert_eq!(Opcode::encode(Brf), 0x18000000);
+        assert_eq!(Opcode::encode(Brt), 0x19000000);
+        assert_eq!(Opcode::encode(Call), 0x1a000000);
+        assert_eq!(Opcode::encode(Ret), 0x1b000000);
+        assert_eq!(Opcode::encode(Drop), 0x1c000000);
+        assert_eq!(Opcode::encode(Pushr), 0x1d000000);
+        assert_eq!(Opcode::encode(Popr), 0x1e000000);
+        assert_eq!(Opcode::encode(Dup), 0x1f000000);
     }
 
     #[test]
     fn test_decode_opcode() {
-        assert_eq!(Opcode::decode_opcode(0x0000f001), Halt);
-        assert_eq!(Opcode::decode_opcode(0x01000f01), Pushc);
-        assert_eq!(Opcode::decode_opcode(0x02000001), Add);
-        assert_eq!(Opcode::decode_opcode(0x030000f1), Sub);
-        assert_eq!(Opcode::decode_opcode(0x04000001), Mul);
-        assert_eq!(Opcode::decode_opcode(0x0500f001), Div);
-        assert_eq!(Opcode::decode_opcode(0x06000001), Mod);
-        assert_eq!(Opcode::decode_opcode(0x07000001), Rdint);
-        assert_eq!(Opcode::decode_opcode(0x0800f001), Wrint);
-        assert_eq!(Opcode::decode_opcode(0x0900c0f1), Rdchr);
-        assert_eq!(Opcode::decode_opcode(0x0a000f01), Wrchr);
-        assert_eq!(Opcode::decode_opcode(0x0b000f01), Pushg);
-        assert_eq!(Opcode::decode_opcode(0x0c000f01), Popg);
-        assert_eq!(Opcode::decode_opcode(0x0d000f01), Asf);
-        assert_eq!(Opcode::decode_opcode(0x0e000f01), Rsf);
-        assert_eq!(Opcode::decode_opcode(0x0f000f01), Pushl);
-        assert_eq!(Opcode::decode_opcode(0x10000f01), Popl);
-        assert_eq!(Opcode::decode_opcode(0x11000000), Eq);
-        assert_eq!(Opcode::decode_opcode(0x12000000), Ne);
-        assert_eq!(Opcode::decode_opcode(0x13000000), Lt);
-        assert_eq!(Opcode::decode_opcode(0x14000000), Le);
-        assert_eq!(Opcode::decode_opcode(0x15000000), Gt);
-        assert_eq!(Opcode::decode_opcode(0x16000000), Ge);
-        assert_eq!(Opcode::decode_opcode(0x17000000), Jmp);
-        assert_eq!(Opcode::decode_opcode(0x18000000), Brf);
-        assert_eq!(Opcode::decode_opcode(0x19000000), Brt);
-        assert_eq!(Opcode::decode_opcode(0x1a000000), Call);
-        assert_eq!(Opcode::decode_opcode(0x1b000000), Ret);
-        assert_eq!(Opcode::decode_opcode(0x1c000000), Drop);
-        assert_eq!(Opcode::decode_opcode(0x1d000000), Pushr);
-        assert_eq!(Opcode::decode_opcode(0x1e000000), Popr);
-        assert_eq!(Opcode::decode_opcode(0x1f000000), Dup);
+        assert_eq!(Opcode::from(0x0000f001), Halt);
+        assert_eq!(Opcode::from(0x01000f01), Pushc);
+        assert_eq!(Opcode::from(0x02000001), Add);
+        assert_eq!(Opcode::from(0x030000f1), Sub);
+        assert_eq!(Opcode::from(0x04000001), Mul);
+        assert_eq!(Opcode::from(0x0500f001), Div);
+        assert_eq!(Opcode::from(0x06000001), Mod);
+        assert_eq!(Opcode::from(0x07000001), Rdint);
+        assert_eq!(Opcode::from(0x0800f001), Wrint);
+        assert_eq!(Opcode::from(0x0900c0f1), Rdchr);
+        assert_eq!(Opcode::from(0x0a000f01), Wrchr);
+        assert_eq!(Opcode::from(0x0b000f01), Pushg);
+        assert_eq!(Opcode::from(0x0c000f01), Popg);
+        assert_eq!(Opcode::from(0x0d000f01), Asf);
+        assert_eq!(Opcode::from(0x0e000f01), Rsf);
+        assert_eq!(Opcode::from(0x0f000f01), Pushl);
+        assert_eq!(Opcode::from(0x10000f01), Popl);
+        assert_eq!(Opcode::from(0x11000000), Eq);
+        assert_eq!(Opcode::from(0x12000000), Ne);
+        assert_eq!(Opcode::from(0x13000000), Lt);
+        assert_eq!(Opcode::from(0x14000000), Le);
+        assert_eq!(Opcode::from(0x15000000), Gt);
+        assert_eq!(Opcode::from(0x16000000), Ge);
+        assert_eq!(Opcode::from(0x17000000), Jmp);
+        assert_eq!(Opcode::from(0x18000000), Brf);
+        assert_eq!(Opcode::from(0x19000000), Brt);
+        assert_eq!(Opcode::from(0x1a000000), Call);
+        assert_eq!(Opcode::from(0x1b000000), Ret);
+        assert_eq!(Opcode::from(0x1c000000), Drop);
+        assert_eq!(Opcode::from(0x1d000000), Pushr);
+        assert_eq!(Opcode::from(0x1e000000), Popr);
+        assert_eq!(Opcode::from(0x1f000000), Dup);
     }
 
     #[test]
     fn test_opcode_display() {
+        use Opcode::*;
         let test_cases = vec![
-            (Opcode::Halt, "halt"),
-            (Opcode::Pushc, "pushc"),
-            (Opcode::Add, "add"),
-            (Opcode::Sub, "sub"),
-            (Opcode::Mul, "mul"),
-            (Opcode::Div, "div"),
-            (Opcode::Mod, "mod"),
-            (Opcode::Rdint, "rdint"),
-            (Opcode::Wrint, "wrint"),
-            (Opcode::Rdchr, "rdchr"),
-            (Opcode::Wrchr, "wrchr"),
-            (Opcode::Pushg, "pushg"),
-            (Opcode::Popg, "popg"),
-            (Opcode::Asf, "asf"),
-            (Opcode::Rsf, "rsf"),
-            (Opcode::Pushl, "pushl"),
-            (Opcode::Popl, "popl"),
-            (Opcode::Eq, "eq"),
-            (Opcode::Ne, "ne"),
-            (Opcode::Lt, "lt"),
-            (Opcode::Le, "le"),
-            (Opcode::Gt, "gt"),
-            (Opcode::Ge, "ge"),
-            (Opcode::Jmp, "jmp"),
-            (Opcode::Brf, "brf"),
-            (Opcode::Brt, "brt"),
-            (Opcode::Call, "call"),
-            (Opcode::Ret, "ret"),
-            (Opcode::Drop, "drop"),
-            (Opcode::Pushr, "pushr"),
-            (Opcode::Popr, "popr"),
-            (Opcode::Dup, "dup"),
+            (Halt, "halt"),
+            (Pushc, "pushc"),
+            (Add, "add"),
+            (Sub, "sub"),
+            (Mul, "mul"),
+            (Div, "div"),
+            (Mod, "mod"),
+            (Rdint, "rdint"),
+            (Wrint, "wrint"),
+            (Rdchr, "rdchr"),
+            (Wrchr, "wrchr"),
+            (Pushg, "pushg"),
+            (Popg, "popg"),
+            (Asf, "asf"),
+            (Rsf, "rsf"),
+            (Pushl, "pushl"),
+            (Popl, "popl"),
+            (Eq, "eq"),
+            (Ne, "ne"),
+            (Lt, "lt"),
+            (Le, "le"),
+            (Gt, "gt"),
+            (Ge, "ge"),
+            (Jmp, "jmp"),
+            (Brf, "brf"),
+            (Brt, "brt"),
+            (Call, "call"),
+            (Ret, "ret"),
+            (Drop, "drop"),
+            (Pushr, "pushr"),
+            (Popr, "popr"),
+            (Dup, "dup"),
         ];
 
         for (opcode, expected) in test_cases {
@@ -213,6 +216,6 @@ mod tests {
     #[should_panic(expected = "Unknown opcode")]
     fn test_unknown_opcode() {
         std::panic::set_hook(Box::new(|_| {}));
-        Opcode::decode_opcode(0xFF000001);
+        let _ = Opcode::from(0xFF000001);
     }
 }

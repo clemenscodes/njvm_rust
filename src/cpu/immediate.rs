@@ -24,22 +24,22 @@ macro_rules! sign_extend {
 pub type Immediate = i32;
 
 pub trait Decoding {
-    fn decode_immediate(instruction: Bytecode) -> Immediate;
+    fn decode(instruction: Bytecode) -> Immediate;
 }
 
 pub trait Encoding {
-    fn encode_immediate(immediate: Immediate) -> Bytecode;
+    fn encode(immediate: Immediate) -> Bytecode;
 }
 
 impl Decoding for Immediate {
-    fn decode_immediate(instruction: Bytecode) -> Self {
+    fn decode(instruction: Bytecode) -> Self {
         let mut immediate: Immediate = (immediate!(instruction)) as Immediate;
         sign_extend!(immediate)
     }
 }
 
 impl Encoding for Immediate {
-    fn encode_immediate(immediate: Immediate) -> Bytecode {
+    fn encode(immediate: Immediate) -> Bytecode {
         const MIN: i32 = -8388608;
         const MAX: i32 = 8388607;
         match immediate {
@@ -79,27 +79,27 @@ mod tests {
 
     #[test]
     fn test_decode_immediate() {
-        assert_eq!(Immediate::decode_immediate(0x00000001), 1);
-        assert_eq!(Immediate::decode_immediate(0x00ffffff), -1)
+        assert_eq!(Immediate::decode(0x00000001), 1);
+        assert_eq!(Immediate::decode(0x00ffffff), -1)
     }
 
     #[test]
     fn test_encode_immediate() {
-        assert_eq!(Immediate::encode_immediate(1), 0x00000001);
-        assert_eq!(Immediate::encode_immediate(-1), 0x00ffffff)
+        assert_eq!(Immediate::encode(1), 0x00000001);
+        assert_eq!(Immediate::encode(-1), 0x00ffffff)
     }
 
     #[test]
     #[should_panic(expected = "Immediate value out of range")]
     fn test_immediate_value_over_range() {
         std::panic::set_hook(Box::new(|_| {}));
-        Immediate::encode_immediate(100000000);
+        Immediate::encode(100000000);
     }
 
     #[test]
     #[should_panic(expected = "Immediate value out of range")]
     fn test_immediate_value_under_range() {
         std::panic::set_hook(Box::new(|_| {}));
-        Immediate::encode_immediate(-100000000);
+        Immediate::encode(-100000000);
     }
 }

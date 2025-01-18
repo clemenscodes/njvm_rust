@@ -17,20 +17,13 @@ impl Instruction {
         opcode: Opcode,
         immediate: Immediate,
     ) -> Bytecode {
-        Opcode::encode_opcode(opcode) | Immediate::encode_immediate(immediate)
-    }
-
-    pub fn print(&self) {
-        println!("{self:?}")
+        Opcode::encode(opcode) | Immediate::encode(immediate)
     }
 }
 
 impl From<Bytecode> for Instruction {
     fn from(value: Bytecode) -> Self {
-        Instruction::new(
-            Opcode::decode_opcode(value),
-            Immediate::decode_immediate(value),
-        )
+        Instruction::new(Opcode::from(value), Immediate::decode(value))
     }
 }
 
@@ -38,7 +31,7 @@ impl std::fmt::Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let opcode = self.opcode;
         let immediate = self.immediate;
-        writeln!(f, "{opcode}\t{immediate}")
+        writeln!(f, "{opcode} {immediate}")
     }
 }
 
@@ -68,11 +61,5 @@ mod tests {
         let decoded_instruction = Instruction::from(0x01ffffff);
         assert_eq!(decoded_instruction.opcode, Pushc);
         assert_eq!(decoded_instruction.immediate, -1);
-    }
-
-    #[test]
-    fn test_print_instruction() {
-        let instruction = Instruction::from(0x01000001);
-        instruction.print();
     }
 }

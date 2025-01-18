@@ -27,14 +27,14 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     }
 
     pub fn prompt(&mut self) {
+        self.io_borrow().write_stdout(
+            "DEBUG: inspect, list, breakpoint, step, run, quit?\n",
+        );
         loop {
             if self.ir.pc == self.ir.data.len() {
                 break;
             }
             self.print_next_instruction();
-            self.io_borrow().write_stdout(
-                "DEBUG: inspect, list, breakpoint, step, run, quit?\n",
-            );
             let mut input = String::new();
             if self
                 .io_borrow()
@@ -87,11 +87,13 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             }
         }
     }
+
     pub fn step(&mut self) {
         let instruction = self.ir.data[self.ir.pc];
         self.ir.pc += 1;
         self.execute_instruction(instruction);
     }
+
     pub fn run(&mut self) {
         loop {
             if self.ir.pc == self.ir.data.len() {
@@ -109,6 +111,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             self.step()
         }
     }
+
     pub fn set_breakpoint(&mut self) {
         if let Some(bp) = self.bp {
             let message =
@@ -186,23 +189,36 @@ mod tests {
     #[test]
     fn test_prompt() {
         let input = b"s\n8\nq\n";
+        let mut output = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
             &input[..],
-            std::io::stdout(),
+            &mut output,
             std::io::stderr(),
         ));
         let instructions = vm.load_test_binary("assets/a3/prog1.bin");
+
         vm.load_instructions(&instructions);
         vm.init();
         vm.prompt();
+
+        let expected = r#"Ninja Virtual Machine started
+DEBUG: inspect, list, breakpoint, step, run, quit?
+rdint 0
+popg 0
+Ninja Virtual Machine stopped
+"#;
+        let result = String::from_utf8(output).unwrap();
+
+        assert_eq!(expected, result);
     }
 
     #[test]
     fn test_step() {
         let input = b"9\n";
+        let mut output = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
             &input[..],
-            std::io::stdout(),
+            &mut output,
             std::io::stderr(),
         ));
         let instructions = vm.load_test_binary("assets/a3/prog1.bin");
@@ -213,15 +229,24 @@ mod tests {
         assert_eq!(vm.stack.sp, 1);
         assert_eq!(vm.stack.fp, 0);
         assert_eq!(vm.stack.data.len(), 1);
-        assert_eq!(vm.stack.data[0], 9)
+        assert_eq!(vm.stack.data[0], 9);
+
+        let expected = r#"Ninja Virtual Machine started
+sp ---> 0001: xxxx
+fp ---> 0000: 9"#;
+
+        let result = String::from_utf8(output).unwrap();
+
+        assert_eq!(expected, result);
     }
 
     #[test]
     fn test_run() {
         let input = b"b\n23\nr\n8\n12\nq\n";
+        let mut output = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
             &input[..],
-            std::io::stdout(),
+            &mut output,
             std::io::stderr(),
         ));
         vm.test_debug("assets/a3/prog1.bin");
@@ -237,9 +262,10 @@ mod tests {
     #[test]
     fn test_set_breakpoint() {
         let input = b"b\n23\nq\nb\n-1\nq\n";
+        let mut output = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
             &input[..],
-            std::io::stdout(),
+            &mut output,
             std::io::stderr(),
         ));
         vm.test_debug("assets/a3/prog1.bin");
@@ -251,9 +277,10 @@ mod tests {
     #[test]
     fn test_list_ir() {
         let input = b"l\nq\n";
+        let mut output = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
             &input[..],
-            std::io::stdout(),
+            &mut output,
             std::io::stderr(),
         ));
         vm.test_debug("assets/a3/prog1.bin");
@@ -262,9 +289,10 @@ mod tests {
     #[test]
     fn test_debugger_breaks_at_breakpoint() {
         let input = b"b\n5\nr\n8\n12\nq\nb\n23\nr\nq\n";
+        let mut output = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
             &input[..],
-            std::io::stdout(),
+            &mut output,
             std::io::stderr(),
         ));
         vm.test_debug("assets/a3/prog1.bin");
@@ -279,7 +307,12 @@ mod tests {
 
     #[test]
     fn test_print_next_instruction() {
-        let mut vm = NinjaVM::default();
+        let mut output = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            std::io::stdin().lock(),
+            &mut output,
+            std::io::stderr(),
+        ));
         vm.ir.resize_data(3, 0);
         vm.ir.register_instruction(Pushc, 1);
         vm.ir.register_instruction(Pushc, 2);

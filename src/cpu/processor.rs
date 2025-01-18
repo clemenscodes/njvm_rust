@@ -292,7 +292,14 @@ mod tests {
 
     #[test]
     fn test_pushc() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(2);
         assert_eq!(vm.stack.sp, 1);
         assert_eq!(vm.stack.data[0], 2);
@@ -300,7 +307,14 @@ mod tests {
 
     #[test]
     fn test_add() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(-1);
         vm.pushc(2);
         vm.add();
@@ -310,7 +324,14 @@ mod tests {
 
     #[test]
     fn test_sub() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(1);
         vm.pushc(2);
         vm.sub();
@@ -320,7 +341,14 @@ mod tests {
 
     #[test]
     fn test_mul() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(-1);
         vm.pushc(-2);
         vm.mul();
@@ -330,7 +358,14 @@ mod tests {
 
     #[test]
     fn test_div() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(-7);
         vm.pushc(-2);
         vm.div();
@@ -346,7 +381,14 @@ mod tests {
     #[should_panic(expected = "Division by zero error")]
     fn test_division_by_zero_should_fail() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(-2);
         vm.pushc(4);
         vm.pushc(-4);
@@ -356,7 +398,14 @@ mod tests {
 
     #[test]
     fn test_modulo() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(-9);
         vm.pushc(4);
         vm.modulo();
@@ -368,7 +417,14 @@ mod tests {
     #[should_panic(expected = "Division by zero error")]
     fn test_modulo_with_zero_should_fail() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(-2);
         vm.pushc(4);
         vm.pushc(-4);
@@ -378,11 +434,13 @@ mod tests {
 
     #[test]
     fn test_rdint_works() {
-        let input = b" -123  456 -789   ";
+        let stdin = b" -123  456 -789   ";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
-            &input[..],
-            std::io::stdout(),
-            std::io::stderr(),
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
         ));
         vm.rdint();
         assert_eq!(vm.stack.data[0], -123);
@@ -396,11 +454,13 @@ mod tests {
     #[should_panic(expected = "Error: input is not an integer")]
     fn test_rdint_fails_not_an_integer() {
         std::panic::set_hook(Box::new(|_| {}));
-        let input = b" 123 s  456  789   ";
+        let stdin = b" 123 s  456  789   ";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
-            &input[..],
-            std::io::stdout(),
-            std::io::stderr(),
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
         ));
         vm.rdint();
         assert_eq!(vm.stack.data[0], 123);
@@ -411,11 +471,13 @@ mod tests {
     #[should_panic(expected = "Error: integer is too big")]
     fn test_rdint_fails_too_big() {
         std::panic::set_hook(Box::new(|_| {}));
-        let input = b" 12345 67892424234242   ";
+        let stdin = b" 12345 67892424234242   ";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
-            &input[..],
-            std::io::stdout(),
-            std::io::stderr(),
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
         ));
         vm.rdint();
         assert_eq!(vm.stack.data[0], 12345);
@@ -424,27 +486,30 @@ mod tests {
 
     #[test]
     fn test_wrint() {
-        let stdin = std::io::stdin();
-        let mut output = Vec::new();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
-            stdin.lock(),
-            &mut output,
-            std::io::stderr(),
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
         ));
         let immediate: Immediate = 42;
         vm.pushc(immediate);
         vm.wrint();
-        let output = String::from_utf8(output).expect("Not utf-8");
+        let output = String::from_utf8(stdout).expect("Not utf-8");
         assert_eq!(output, String::from("42"));
     }
 
     #[test]
     fn test_rdchr_works() {
-        let input = b"123 456";
+        let stdin = b"123 456";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
-            &input[..],
-            std::io::stdout(),
-            std::io::stderr(),
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
         ));
         vm.rdchr();
         assert_eq!(vm.stack.data[0], '1' as Immediate);
@@ -466,37 +531,45 @@ mod tests {
     #[should_panic(expected = "Error: could not read character")]
     fn test_rdchr_fails() {
         std::panic::set_hook(Box::new(|_| {}));
-        let input = b"";
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
-            &input[..],
-            std::io::stdout(),
-            std::io::stderr(),
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
         ));
         vm.rdchr();
     }
 
     #[test]
     fn test_wrchr() {
-        let stdin = std::io::stdin();
-        let mut output = Vec::new();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
         let mut vm = NinjaVM::new(InputOutput::new(
-            stdin.lock(),
-            &mut output,
-            std::io::stderr(),
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
         ));
         let immediate: Immediate = '1'.to_ascii_lowercase() as i32;
         vm.pushc(immediate);
         vm.wrchr();
-        let output = String::from_utf8(output).expect("Not utf-8");
+        let output = String::from_utf8(stdout).expect("Not utf-8");
         assert_eq!(output, String::from("1"));
     }
 
     #[test]
     fn test_pushg() {
-        let mut vm = NinjaVM {
-            sda: StaticDataArea::new(1, 0),
-            ..Default::default()
-        };
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
+        vm.sda = StaticDataArea::new(1, 0);
         let value = 2;
         vm.sda.data[0] = value;
         vm.pushg(0);
@@ -505,10 +578,15 @@ mod tests {
 
     #[test]
     fn test_popg() {
-        let mut vm = NinjaVM {
-            sda: StaticDataArea::new(1, 0),
-            ..Default::default()
-        };
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
+        vm.sda = StaticDataArea::new(1, 0);
         let value = 2;
         vm.stack.push(value);
         vm.popg(0);
@@ -517,7 +595,14 @@ mod tests {
 
     #[test]
     fn test_asf() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let immediate = 100 as Immediate;
         let sp = vm.stack.sp;
         vm.asf(immediate);
@@ -530,7 +615,14 @@ mod tests {
 
     #[test]
     fn test_rsf() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let immediate = 100 as Immediate;
         vm.asf(immediate);
         vm.rsf();
@@ -541,7 +633,14 @@ mod tests {
 
     #[test]
     fn test_pushl() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let value_of_local_var = 10;
         let nth_local_var = 2;
         vm.asf(2);
@@ -555,7 +654,14 @@ mod tests {
 
     #[test]
     fn test_popl() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let value_of_local_var = 10;
         let nth_local_var: usize = 0;
         vm.asf(2);
@@ -569,7 +675,14 @@ mod tests {
 
     #[test]
     fn test_eq() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(1);
         vm.pushc(2);
         vm.eq();
@@ -584,7 +697,14 @@ mod tests {
 
     #[test]
     fn test_ne() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(1);
         vm.pushc(2);
         vm.ne();
@@ -599,7 +719,14 @@ mod tests {
 
     #[test]
     fn test_lt() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(1);
         vm.pushc(2);
         vm.lt();
@@ -614,7 +741,14 @@ mod tests {
 
     #[test]
     fn test_le() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(1);
         vm.pushc(2);
         vm.le();
@@ -629,7 +763,14 @@ mod tests {
 
     #[test]
     fn test_gt() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(1);
         vm.pushc(2);
         vm.gt();
@@ -644,7 +785,14 @@ mod tests {
 
     #[test]
     fn test_ge() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushc(1);
         vm.pushc(2);
         vm.ge();
@@ -656,7 +804,14 @@ mod tests {
 
     #[test]
     fn test_jmp() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let immediate = 5;
         vm.jmp(immediate);
         assert_eq!(vm.ir.pc, immediate as usize);
@@ -664,7 +819,14 @@ mod tests {
 
     #[test]
     fn test_brf() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let immediate = 5;
         vm.pushc(1);
         vm.brf(immediate);
@@ -676,7 +838,14 @@ mod tests {
 
     #[test]
     fn test_brt() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let immediate = 5;
         vm.pushc(0);
         vm.brt(immediate);
@@ -688,7 +857,14 @@ mod tests {
 
     #[test]
     fn test_call() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.load("assets/a4/prog01.bin");
         vm.init();
         let immediate = 5;
@@ -700,7 +876,14 @@ mod tests {
 
     #[test]
     fn test_ret() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.load("assets/a4/prog01.bin");
         vm.init();
         let immediate = 5;
@@ -718,7 +901,14 @@ mod tests {
 
     #[test]
     fn test_drop() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.load("assets/a4/prog01.bin");
         vm.init();
         let args = 10;
@@ -734,7 +924,14 @@ mod tests {
 
     #[test]
     fn test_pushr_works() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let rv = 5;
         let sp = vm.stack.sp;
         let len = vm.stack.data.len();
@@ -749,13 +946,27 @@ mod tests {
     #[should_panic(expected = "Error: no value in return value register")]
     fn test_pushr_fails() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.pushr();
     }
 
     #[test]
     fn test_popr_works() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let rv = 5;
         vm.pushc(rv);
         let len = vm.stack.data.len();
@@ -770,14 +981,28 @@ mod tests {
     #[should_panic(expected = "Stack underflow: popped from empty stack")]
     fn test_popr_fails() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.popr();
     }
 
     #[test]
     fn test_dup() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let immediate = 5;
         vm.pushc(immediate);
         let len = vm.stack.data.len();
@@ -791,7 +1016,14 @@ mod tests {
     #[should_panic(expected = "Stack underflow: popped from empty stack")]
     fn test_dup_fails() {
         std::panic::set_hook(Box::new(|_| {}));
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.dup();
     }
 }

@@ -136,14 +136,17 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
                     self.fatal_error(&message)
                 }
             },
-            None => self.fatal_error("Error: failed to read instruction count\n"),
+            None => {
+                self.fatal_error("Error: failed to read instruction count\n")
+            }
         }
     }
 
     pub fn check_ninja_format(&self, file: &[u8], arg: &str) {
         let ninja_binary_format = &[78, 74, 66, 70];
         if !file.starts_with(ninja_binary_format) {
-            let message = format!("Error: file '{arg}' is not a Ninja binary\n");
+            let message =
+                format!("Error: file '{arg}' is not a Ninja binary\n");
             self.fatal_error(&message);
         }
     }
@@ -163,9 +166,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
                     self.fatal_error(&message)
                 }
             },
-            None => {
-                self.fatal_error("Error: failed to read global variable count\n")
-            }
+            None => self
+                .fatal_error("Error: failed to read global variable count\n"),
         }
     }
 
@@ -175,7 +177,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
         }
 
         std::fs::read(arg).unwrap_or_else(|err| {
-            let error = format!("Error: cannot open code file '{arg}': {err}\n");
+            let error =
+                format!("Error: cannot open code file '{arg}': {err}\n");
             self.fatal_error(&error);
         })
     }

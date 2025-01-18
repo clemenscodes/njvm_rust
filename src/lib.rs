@@ -19,7 +19,7 @@ pub const VERSION: u8 = 4;
 pub type Breakpoint = usize;
 pub type ReturnValueRegister = Immediate;
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub struct NinjaVM<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
     io: Rc<RefCell<InputOutput<R, W, E>>>,
     stack: Stack<R, W, E, Immediate>,
@@ -251,7 +251,14 @@ mod tests {
 
     #[test]
     fn test_ninja_vm() {
-        let vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         assert_eq!(vm.stack.sp, 0);
         assert_eq!(vm.stack.data.len(), 0);
         assert_eq!(vm.ir.pc, 0);
@@ -260,7 +267,14 @@ mod tests {
 
     #[test]
     fn test_work() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         vm.ir.resize_data(3, 0);
         vm.ir.register_instruction(Pushc, 1);
         vm.ir.register_instruction(Pushc, 2);
@@ -272,7 +286,14 @@ mod tests {
 
     #[test]
     fn test_execute_instruction() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let instruction = Instruction::encode_instruction(Pushc, 1);
         vm.execute_instruction(instruction);
         assert_eq!(vm.stack.sp, 1);
@@ -281,7 +302,14 @@ mod tests {
 
     #[test]
     fn test_load_instruction() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let instructions = Vec::new();
         vm.load_instructions(&instructions);
     }
@@ -291,7 +319,14 @@ mod tests {
         expected = "Error: cannot open code file 'tests/data/a2/prog1.404'"
     )]
     fn test_load_binary_fails() {
-        let mut vm = NinjaVM::default();
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut vm = NinjaVM::new(InputOutput::new(
+            &stdin[..],
+            &mut stdout,
+            &mut stderr,
+        ));
         let path = "tests/data/a2/prog1.404";
         vm.load_binary(path);
     }
