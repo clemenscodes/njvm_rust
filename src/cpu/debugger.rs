@@ -203,8 +203,8 @@ mod tests {
 
         let expected = r#"Ninja Virtual Machine started
 DEBUG: inspect, list, breakpoint, step, run, quit?
-rdint 0
-popg 0
+0000: rdint 0
+0001: popg 0
 Ninja Virtual Machine stopped
 "#;
         let result = String::from_utf8(output).unwrap();

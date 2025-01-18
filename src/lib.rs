@@ -31,11 +31,7 @@ pub struct NinjaVM<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
 
 impl Default for NinjaVM<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>> {
     fn default() -> Self {
-        let stdin = std::io::stdin();
-        let stdout = std::io::stdout();
-        let stderr = std::io::stderr();
-        let io = InputOutput::new(stdin.lock(), stdout.lock(), stderr.lock());
-        NinjaVM::new(io)
+        NinjaVM::new(InputOutput::default())
     }
 }
 
@@ -110,6 +106,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
 
         let instruction = Instruction::from(bytecode);
         let immediate = instruction.immediate;
+
         match instruction.opcode {
             Halt => self.halt(),
             Pushc => self.pushc(immediate),
@@ -310,10 +307,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(
-        expected = "Error: cannot open code file 'tests/data/a2/prog1.404'"
-    )]
-    fn test_load_binary_fails() {
+    fn test_prog_a4_02() {
         let stdin = b"";
         let mut stdout = Vec::new();
         let mut stderr = Vec::new();
@@ -322,7 +316,18 @@ mod tests {
             &mut stdout,
             &mut stderr,
         ));
-        let path = "tests/data/a2/prog1.404";
-        vm.load_binary(path);
+        let instructions = vm.load_test_binary("assets/a4/prog02.bin");
+        vm.load_instructions(&instructions);
+        vm.init();
+        vm.work();
+        let output = String::from_utf8(stdout).unwrap();
+        let expected = r#"Ninja Virtual Machine started
+11
+22
+33
+Ninja Virtual Machine stopped
+"#;
+
+        assert_eq!(output, expected);
     }
 }

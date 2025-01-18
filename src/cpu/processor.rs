@@ -177,9 +177,9 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     }
 
     pub fn pushl(&mut self, immediate: Immediate) {
-        let fp = self.stack.fp;
-        let n = immediate as usize;
-        self.stack.push(self.stack.data[fp + n]);
+        let fp = self.stack.fp as isize;
+        let index = (fp + immediate as isize) as usize;
+        self.stack.push(self.stack.data[index]);
     }
 
     pub fn popl(&mut self, immediate: Immediate) {

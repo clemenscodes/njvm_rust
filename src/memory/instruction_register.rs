@@ -70,7 +70,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
     pub fn print_instruction(&mut self, pc: usize) {
         let bytecode = self.data[pc];
         let instruction = Instruction::from(bytecode);
-        let instruction = format!("{instruction}");
+        let instruction = format!("{pc:04}: {instruction}");
         self.io.borrow().write_stdout(&instruction);
     }
 }

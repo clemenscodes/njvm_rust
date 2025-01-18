@@ -218,3 +218,20 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_stdout() {
+        let stdin = b"";
+        let mut stdout = Vec::new();
+        let stderr = Vec::new();
+        let io = InputOutput::new(&stdin[..], &mut stdout, stderr);
+        let input = "test";
+        io.write_stdout(input);
+        let result = String::from_utf8(stdout).unwrap();
+        assert_eq!(result, input);
+    }
+}
