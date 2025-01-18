@@ -9,7 +9,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         self.load_instructions(&instructions);
         let code_size = self.ir.data.len();
         let data_size = self.sda.data.len();
-        let message = format!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
+        let message = format!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})\n");
         self.io_borrow().write_stdout(&message);
         self.init();
         self.prompt();
@@ -20,7 +20,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         self.load_instructions(&instructions);
         let code_size = self.ir.data.len();
         let data_size = self.sda.data.len();
-        let message = format!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})");
+        let message = format!("DEBUG: file '{bin}' loaded (code size = {code_size}, data size = {data_size})\n");
         self.io_borrow().write_stdout(&message);
         self.init();
         self.prompt();
@@ -33,7 +33,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             }
             self.print_next_instruction();
             self.io_borrow().write_stdout(
-                "DEBUG: inspect, list, breakpoint, step, run, quit?",
+                "DEBUG: inspect, list, breakpoint, step, run, quit?\n",
             );
             let mut input = String::new();
             if self
@@ -42,7 +42,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
                 .read_line(&mut input)
                 .is_err()
             {
-                self.io.borrow().fatal_error("Error: could not read line")
+                self.io.borrow().fatal_error("Error: could not read line\n")
             }
             let input = input.trim();
             if let Some(input) = input.chars().next() {
@@ -64,8 +64,10 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             }
         }
     }
+
     pub fn inspect(&mut self) {
-        println!("DEBUG: [inspect]: stack, data?");
+        self.io_borrow()
+            .write_stdout("DEBUG: [inspect]: stack, data?\n");
         let mut input = String::new();
         if self
             .io_borrow()
@@ -73,7 +75,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             .read_line(&mut input)
             .is_err()
         {
-            self.io_borrow().fatal_error("Error: could not read input")
+            self.io_borrow()
+                .fatal_error("Error: could not read input\n")
         }
         let input = input.trim();
         if let Some(input) = input.chars().next() {
@@ -97,7 +100,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             if let Some(bp) = self.bp {
                 if bp == self.ir.pc {
                     self.bp = None;
-                    println!("DEBUG [breakpoint]: cleared");
+                    self.io_borrow()
+                        .write_stdout("DEBUG [breakpoint]: cleared\n");
                     self.prompt();
                     break;
                 }
@@ -107,11 +111,14 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     }
     pub fn set_breakpoint(&mut self) {
         if let Some(bp) = self.bp {
-            println!("DEBUG [breakpoint]: breakpoint is set at {bp}");
+            let message =
+                format!("DEBUG [breakpoint]: breakpoint is set at {bp}\n");
+            self.io_borrow().write_stdout(&message);
         } else {
-            println!("DEBUG [breakpoint]: cleared")
+            self.io_borrow()
+                .write_stdout("DEBUG [breakpoint]: cleared\n");
         }
-        println!("DEBUG [breakpoint]: address to set, -1 to clear, <ret> for no change?");
+        self.io_borrow().write_stdout("DEBUG [breakpoint]: address to set, -1 to clear, <ret> for no change?\n");
         let mut input = String::new();
         if self
             .io_borrow()
@@ -119,7 +126,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             .read_line(&mut input)
             .is_err()
         {
-            self.io_borrow().fatal_error("Error: could not read input")
+            self.io_borrow()
+                .fatal_error("Error: could not read input\n")
         }
         let bp: isize = match String::from(input.trim()).parse() {
             Ok(bp) => bp,
@@ -131,42 +139,49 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         match bp {
             -1 => {
                 self.bp = None;
-                println!("DEBUG [breakpoint]: now cleared");
+                self.io_borrow()
+                    .write_stdout("DEBUG [breakpoint]: now cleared\n");
             }
             _ => {
                 let bp = bp as usize;
                 self.bp = Some(bp);
-                println!("DEBUG [breakpoint]: now set at {bp}");
+                let message = format!("DEBUG [breakpoint]: now set at {bp}\n");
+                self.io_borrow().write_stdout(&message);
             }
         }
     }
+
     pub fn print_next_instruction(&mut self) {
         self.ir.print_instruction(self.ir.pc);
     }
+
     pub fn print_stack(&mut self) {
-        println!("-----------------------------");
+        self.io_borrow()
+            .write_stdout("-----------------------------\n");
         self.stack.print();
-        println!("-----------------------------");
+        self.io_borrow()
+            .write_stdout("-----------------------------\n");
     }
+
     pub fn print_sda(&mut self) {
-        println!("------------------");
+        self.io_borrow().write_stdout("------------------\n");
         self.sda.print();
-        println!("------------------");
+        self.io_borrow().write_stdout("------------------\n");
     }
+
     pub fn print_ir(&mut self) {
-        println!("------------------");
+        self.io_borrow().write_stdout("------------------\n");
         self.ir.print();
-        println!("------------------");
+        self.io_borrow().write_stdout("------------------\n");
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     use crate::cpu::opcode::Opcode::*;
     use crate::io::InputOutput;
-    use crate::memory::instruction_register::InstructionRegister;
-
-    use super::*;
 
     #[test]
     fn test_prompt() {
@@ -264,10 +279,8 @@ mod tests {
 
     #[test]
     fn test_print_next_instruction() {
-        let mut vm = NinjaVM {
-            ir: InstructionRegister::new(3, 0),
-            ..Default::default()
-        };
+        let mut vm = NinjaVM::default();
+        vm.ir.resize_data(3, 0);
         vm.ir.register_instruction(Pushc, 1);
         vm.ir.register_instruction(Pushc, 2);
         vm.ir.register_instruction(Add, 0);

@@ -48,7 +48,7 @@ impl Encoding for Immediate {
                 let bytes = immediate.to_be_bytes();
                 u32::from_be_bytes(bytes)
             }
-            _ => fatal_error("Immediate value out of range"),
+            _ => panic!("Immediate value out of range"),
         }
     }
 }

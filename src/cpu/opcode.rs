@@ -37,6 +37,13 @@ pub enum Opcode {
     Dup = 31,
 }
 
+impl std::fmt::Display for Opcode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let opcode = format!("{self:?}").to_lowercase();
+        write!(f, "{opcode}")
+    }
+}
+
 impl Opcode {
     pub fn encode_opcode(opcode: Opcode) -> Bytecode {
         (opcode as Bytecode) << 24
@@ -78,7 +85,7 @@ impl Opcode {
             29 => Pushr,
             30 => Popr,
             31 => Dup,
-            _ => fatal_error("Unknown opcode"),
+            _ => panic!("Unknown opcode"),
         }
     }
 }
@@ -158,6 +165,48 @@ mod tests {
         assert_eq!(Opcode::decode_opcode(0x1d000000), Pushr);
         assert_eq!(Opcode::decode_opcode(0x1e000000), Popr);
         assert_eq!(Opcode::decode_opcode(0x1f000000), Dup);
+    }
+
+    #[test]
+    fn test_opcode_display() {
+        let test_cases = vec![
+            (Opcode::Halt, "halt"),
+            (Opcode::Pushc, "pushc"),
+            (Opcode::Add, "add"),
+            (Opcode::Sub, "sub"),
+            (Opcode::Mul, "mul"),
+            (Opcode::Div, "div"),
+            (Opcode::Mod, "mod"),
+            (Opcode::Rdint, "rdint"),
+            (Opcode::Wrint, "wrint"),
+            (Opcode::Rdchr, "rdchr"),
+            (Opcode::Wrchr, "wrchr"),
+            (Opcode::Pushg, "pushg"),
+            (Opcode::Popg, "popg"),
+            (Opcode::Asf, "asf"),
+            (Opcode::Rsf, "rsf"),
+            (Opcode::Pushl, "pushl"),
+            (Opcode::Popl, "popl"),
+            (Opcode::Eq, "eq"),
+            (Opcode::Ne, "ne"),
+            (Opcode::Lt, "lt"),
+            (Opcode::Le, "le"),
+            (Opcode::Gt, "gt"),
+            (Opcode::Ge, "ge"),
+            (Opcode::Jmp, "jmp"),
+            (Opcode::Brf, "brf"),
+            (Opcode::Brt, "brt"),
+            (Opcode::Call, "call"),
+            (Opcode::Ret, "ret"),
+            (Opcode::Drop, "drop"),
+            (Opcode::Pushr, "pushr"),
+            (Opcode::Popr, "popr"),
+            (Opcode::Dup, "dup"),
+        ];
+
+        for (opcode, expected) in test_cases {
+            assert_eq!(format!("{opcode}"), expected);
+        }
     }
 
     #[test]

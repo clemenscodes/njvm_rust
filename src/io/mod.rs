@@ -102,7 +102,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
         #[cfg(not(test))]
         std::process::exit(1);
         #[cfg(test)]
-        panic!("{error}");
+        panic!("{error}\n");
     }
 
     pub fn check_ninja_version(&self, file: &[u8]) {
@@ -112,11 +112,11 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
             .map(|c| u32::from_le_bytes([c[0], c[1], c[2], c[3]]))
         {
             Some(version) => version,
-            None => self.fatal_error("Failed to read version"),
+            None => self.fatal_error("Failed to read version\n"),
         };
         if VERSION != version as u8 {
             self.fatal_error(
-                "Error: code file does not have correct Ninja version",
+                "Error: code file does not have correct Ninja version\n",
             )
         }
     }
@@ -131,19 +131,19 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
                 Ok(count) => count,
                 Err(err) => {
                     let message = format!(
-                        "Error: failed to parse to usize from u32: {err}"
+                        "Error: failed to parse to usize from u32: {err}\n"
                     );
                     self.fatal_error(&message)
                 }
             },
-            None => self.fatal_error("Error: failed to read instruction count"),
+            None => self.fatal_error("Error: failed to read instruction count\n"),
         }
     }
 
     pub fn check_ninja_format(&self, file: &[u8], arg: &str) {
         let ninja_binary_format = &[78, 74, 66, 70];
         if !file.starts_with(ninja_binary_format) {
-            let message = format!("Error: file '{arg}' is not a Ninja binary");
+            let message = format!("Error: file '{arg}' is not a Ninja binary\n");
             self.fatal_error(&message);
         }
     }
@@ -158,24 +158,24 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
                 Ok(count) => count,
                 Err(err) => {
                     let message = format!(
-                        "Error: failed to parse to usize from u32: {err}"
+                        "Error: failed to parse to usize from u32: {err}\n"
                     );
                     self.fatal_error(&message)
                 }
             },
             None => {
-                self.fatal_error("Error: failed to read global variable count")
+                self.fatal_error("Error: failed to read global variable count\n")
             }
         }
     }
 
     pub fn read_file(&self, arg: &str) -> Vec<u8> {
         if arg.trim().is_empty() {
-            self.fatal_error("Error: no code file specified");
+            self.fatal_error("Error: no code file specified\n");
         }
 
         std::fs::read(arg).unwrap_or_else(|err| {
-            let error = format!("Error: cannot open code file '{arg}': {err}");
+            let error = format!("Error: cannot open code file '{arg}': {err}\n");
             self.fatal_error(&error);
         })
     }
@@ -186,25 +186,25 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug>
             u32::from_le_bytes([c[0], c[1], c[2], c[3]])
         }) {
             Some(version) => version,
-            None => self.fatal_error("Failed to read version"),
+            None => self.fatal_error("Failed to read version\n"),
         };
         if VERSION != version as u8 {
             self.fatal_error(
-                "Error: code file does not have correct Ninja version",
+                "Error: code file does not have correct Ninja version\n",
             )
         }
     }
 
     pub fn split_file_metadata(&self, file: &mut Vec<u8>) -> Vec<u8> {
         if file.len() < 16 {
-            self.fatal_error("Error: code file is corrupted")
+            self.fatal_error("Error: code file is corrupted\n")
         }
         file.split_off(16)
     }
 
     pub fn unknown_arg(&self, arg: &str) {
         let message = format!(
-            "unknown command line argument '{arg}', try './njvm --help'"
+            "unknown command line argument '{arg}', try './njvm --help'\n"
         );
         self.fatal_error(&message);
     }

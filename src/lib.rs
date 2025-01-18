@@ -45,7 +45,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             NinjaVM::<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>>::default();
 
         if args.is_empty() {
-            vm.io_borrow().fatal_error("Error: no code file specified");
+            vm.io_borrow()
+                .fatal_error("Error: no code file specified\n");
         }
 
         let mut debug_mode = false;
@@ -64,7 +65,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
                 "--debug" => {
                     if debug_mode {
                         vm.io_borrow()
-                            .fatal_error("Error: duplicate '--debug' flag");
+                            .fatal_error("Error: duplicate '--debug' flag\n");
                     }
                     debug_mode = true;
                 }
@@ -72,7 +73,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
                 _ => {
                     if file.is_some() {
                         vm.io_borrow().fatal_error(
-                            "Error: more than one code file specified",
+                            "Error: more than one code file specified\n",
                         );
                     }
                     file = Some(arg);
@@ -81,7 +82,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         }
 
         let file = file.unwrap_or_else(|| {
-            vm.io_borrow().fatal_error("Error: no code file specified")
+            vm.io_borrow()
+                .fatal_error("Error: no code file specified\n")
         });
 
         if debug_mode {
@@ -97,7 +99,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         Self {
             io: io.clone(),
             stack: Stack::new(io.clone()),
-            ir: InstructionRegister::default(),
+            ir: InstructionRegister::new(io.clone(), 0, 0),
             sda: StaticDataArea::default(),
             bp: None,
             rv: None,
@@ -107,7 +109,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     pub fn execute_instruction(&mut self, bytecode: Bytecode) {
         use cpu::opcode::Opcode::*;
 
-        let instruction = Instruction::decode_instruction(bytecode);
+        let instruction = Instruction::from(bytecode);
         let immediate = instruction.immediate;
         match instruction.opcode {
             Halt => self.halt(),
@@ -147,11 +149,11 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
 
     pub fn work(&mut self) {
         loop {
-            let instruction = self.ir.data[self.ir.pc];
-            let decoded = Instruction::decode_instruction(instruction);
+            let bytecode = self.ir.data[self.ir.pc];
+            let decoded = Instruction::from(bytecode);
             let opcode = decoded.opcode;
             self.ir.pc += 1;
-            self.execute_instruction(instruction);
+            self.execute_instruction(bytecode);
             if opcode == cpu::opcode::Opcode::Halt {
                 break;
             }
@@ -174,7 +176,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         let variable_count = self.io_borrow().check_variables(&file);
         let instruction_count = self.io_borrow().check_instructions(&file);
         self.sda = StaticDataArea::new(variable_count, 0);
-        self.ir = InstructionRegister::new(instruction_count, 0);
+        self.ir.resize_data(instruction_count, 0);
         instructions
     }
 
@@ -187,14 +189,14 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         let variable_count = self.io_borrow().check_variables(&file);
         let instruction_count = self.io_borrow().check_instructions(&file);
         self.sda = StaticDataArea::new(variable_count, 0);
-        self.ir = InstructionRegister::new(instruction_count, 0);
+        self.ir.resize_data(instruction_count, 0);
         instructions
     }
 
     pub fn load_instructions(&mut self, instructions: &[u8]) {
         instructions.chunks(4).for_each(|c| {
-            let instruction = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
-            let instruction = Instruction::decode_instruction(instruction);
+            let bytecode = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
+            let instruction = Instruction::from(bytecode);
             let opcode = instruction.opcode;
             let immediate = instruction.immediate;
             self.ir.register_instruction(opcode, immediate);
@@ -208,25 +210,25 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
 
     pub fn init(&mut self) {
         self.io_borrow()
-            .write_stdout("Ninja Virtual Machine started");
+            .write_stdout("Ninja Virtual Machine started\n");
         self.ir.pc = 0;
     }
 
     fn help(&self) {
         self.io_borrow()
-            .write_stdout("usage: ./njvm [options] <code file>");
-        self.io_borrow().write_stdout("Options:");
+            .write_stdout("usage: ./njvm [options] <code file>\n");
+        self.io_borrow().write_stdout("Options:\n");
         self.io_borrow().write_stdout(
-            "  --debug          start virtual machine in debug mode",
+            "  --debug          start virtual machine in debug mode\n",
         );
         self.io_borrow()
-            .write_stdout("  --version        show version and exit");
+            .write_stdout("  --version        show version and exit\n");
         self.io_borrow()
-            .write_stdout("  --help           show this help and exit");
+            .write_stdout("  --help           show this help and exit\n");
     }
 
     fn version(&self) {
-        self.io_borrow().write_stdout("Ninja Virtual Machine version {VERSION} (compiled Sep 23 2015, 10:36:52)",);
+        self.io_borrow().write_stdout("Ninja Virtual Machine version {VERSION} (compiled Sep 23 2015, 10:36:52)\n",);
     }
 
     pub fn io_borrow(&self) -> std::cell::Ref<'_, InputOutput<R, W, E>> {
@@ -258,10 +260,8 @@ mod tests {
 
     #[test]
     fn test_work() {
-        let mut vm = NinjaVM {
-            ir: InstructionRegister::new(3, 0),
-            ..NinjaVM::default()
-        };
+        let mut vm = NinjaVM::default();
+        vm.ir.resize_data(3, 0);
         vm.ir.register_instruction(Pushc, 1);
         vm.ir.register_instruction(Pushc, 2);
         vm.ir.register_instruction(Halt, 0);

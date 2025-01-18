@@ -47,15 +47,17 @@ impl<
             data: vec![],
         }
     }
+
     pub fn push(&mut self, immediate: T) {
         self.data.push(immediate);
         self.sp += 1;
     }
+
     pub fn pop(&mut self) -> T {
         if self.sp == 0 || self.data.is_empty() {
             self.io
                 .borrow()
-                .fatal_error("Stack underflow: popped from empty stack");
+                .fatal_error("Stack underflow: popped from empty stack\n");
         }
         self.sp -= 1;
         match self.data.pop() {
@@ -63,11 +65,13 @@ impl<
             None => self
                 .io
                 .borrow()
-                .fatal_error("Stack underflow: popped from empty stack"),
+                .fatal_error("Stack underflow: popped from empty stack\n"),
         }
     }
+
     pub fn print(&self) {
-        println!("{self:#?}");
+        let output = format!("{self:#?}");
+        self.io.borrow().write_stdout(&output);
     }
 }
 

@@ -7,7 +7,7 @@ use crate::NinjaVM;
 impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
     pub fn halt(&self) {
         self.io_borrow()
-            .write_stdout("Ninja Virtual Machine stopped");
+            .write_stdout("Ninja Virtual Machine stopped\n");
     }
 
     pub fn pushc(&mut self, immediate: Immediate) {
@@ -36,7 +36,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
-            self.io_borrow().fatal_error("Division by zero error");
+            self.io_borrow().fatal_error("Division by zero error\n");
         }
         self.stack.push(n1 / n2);
     }
@@ -45,7 +45,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         let n2 = self.stack.pop();
         let n1 = self.stack.pop();
         if n2 == 0 {
-            self.io_borrow().fatal_error("Division by zero error");
+            self.io_borrow().fatal_error("Division by zero error\n");
         }
         self.stack.push(n1 % n2);
     }
@@ -74,11 +74,11 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
                     b' ' => continue,
                     _ => self
                         .io_borrow()
-                        .fatal_error("Error: input is not an integer"),
+                        .fatal_error("Error: input is not an integer\n"),
                 }
             } else {
                 self.io_borrow()
-                    .fatal_error("Error: could not read character")
+                    .fatal_error("Error: could not read character\n")
             }
         }
 
@@ -105,13 +105,15 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
                 }
             } else {
                 self.io_borrow()
-                    .fatal_error("Error: could not read character")
+                    .fatal_error("Error: could not read character\n")
             }
         }
 
         let immediate = match String::from_utf8(buffer).unwrap().parse() {
             Ok(immediate) => immediate,
-            Err(_) => self.io_borrow().fatal_error("Error: integer is too big"),
+            Err(_) => {
+                self.io_borrow().fatal_error("Error: integer is too big\n")
+            }
         };
 
         self.stack.push(immediate)
@@ -119,10 +121,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
 
     pub fn wrint(&mut self) {
         let value = self.stack.pop();
-        match write!(self.io_borrow().stdout_borrow_mut(), "{value}") {
-            Ok(_) => {}
-            Err(_) => self.io_borrow().fatal_error("Error: unable to write"),
-        }
+        let output = format!("{value}");
+        self.io_borrow().write_stdout(&output);
     }
 
     pub fn rdchr(&mut self) {
@@ -136,7 +136,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             Ok(_) => {}
             Err(_) => self
                 .io_borrow()
-                .fatal_error("Error: could not read character"),
+                .fatal_error("Error: could not read character\n"),
         };
 
         let immediate = byte_buffer[0] as Immediate;
@@ -146,11 +146,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
 
     pub fn wrchr(&mut self) {
         let character = self.stack.pop() as u8 as char;
-
-        match write!(self.io_borrow().stdout_borrow_mut(), "{character}") {
-            Ok(_) => {}
-            Err(_) => self.io_borrow().fatal_error("Error: unable to write"),
-        }
+        let output = format!("{character}");
+        self.io_borrow().write_stdout(&output);
     }
 
     pub fn pushg(&mut self, immediate: Immediate) {
@@ -272,7 +269,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             self.rv = None;
         } else {
             self.io_borrow()
-                .fatal_error("Error: no value in return value register")
+                .fatal_error("Error: no value in return value register\n")
         }
     }
 
