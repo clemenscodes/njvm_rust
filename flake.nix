@@ -74,6 +74,15 @@
             ./rustfmt.toml
             ./src
             ./assets
+            ./build.rs
+            ./lib/bigint/Makefile
+            ./lib/bigint/src/bigint.c
+            ./lib/bigint/src/bigint.h
+            ./lib/bigint/src/support.h
+            ./lib/bigint/src/Makefile
+            ./lib/bigint/tst/support.c
+            ./lib/bigint/tst/testbip.c
+            ./lib/bigint/tst/Makefile
           ];
         };
 
@@ -82,8 +91,7 @@
         args = {
           inherit src;
           strictDeps = true;
-          buildInputs = [];
-          nativeBuildInputs = [];
+          nativeBuildInputs = [pkgs.rustPlatform.bindgenHook];
         };
 
         individualCrateArgs =
@@ -144,11 +152,12 @@
         devShells = {
           default = craneLib.devShell {
             checks = self.checks.${system};
-            packages = with pkgs; [
-              rust-analyzer
-              cargo-watch
-              cargo-llvm-cov
-              cargo-nextest
+            nativeBuildInputs = [pkgs.rustPlatform.bindgenHook];
+            packages = [
+              pkgs.rust-analyzer
+              pkgs.cargo-watch
+              pkgs.cargo-llvm-cov
+              pkgs.cargo-nextest
             ];
             RUST_SRC_PATH = "${craneLib.rustc}/lib/rustlib/src/rust/library";
             RUST_BACKTRACE = 1;

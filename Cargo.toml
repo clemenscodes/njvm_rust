@@ -5,6 +5,7 @@ edition = "2021"
 license = "MIT"
 authors = ["Clemens Horn <clemens.horn@mni.thm.de>"]
 description = "Virtual Machine for Ninja"
+build = "build.rs"
 
 [lib]
 name = "njvm" 
@@ -13,3 +14,6 @@ path = "src/lib.rs"
 [[bin]]
 name = "nvjm"
 path = "src/main.rs"
+
+[build-dependencies]
+bindgen = "0.71.1"
