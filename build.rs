@@ -18,8 +18,9 @@ fn main() {
 
     let bindings = bindgen::Builder::default()
         .header("lib/bigint/build/include/bigint.h")
-        .header("lib/bigint/build/include/support.h")
         .clang_arg("-Ilib/bigint/build/include")
+        .blocklist_function("fatalError")
+        .blocklist_function("newPrimObject")
         .generate()
         .expect("Unable to generate bindings");
 
