@@ -7,7 +7,7 @@ BUILD = ../build
 CC = gcc
 CFLAGS = -g -Wall
 
-all:		support.h bigint.h libbigint.a
+all: support.h bigint.h libbigint.a
 
 install:	all
 		mkdir -p $(BUILD)/include
@@ -16,11 +16,14 @@ install:	all
 		mkdir -p $(BUILD)/lib
 		cp libbigint.a $(BUILD)/lib
 
-libbigint.a:	bigint.o
-		ar -crs libbigint.a bigint.o
+libbigint.a:	bigint.o support.o
+		ar -crs libbigint.a bigint.o support.o
 
 bigint.o:	bigint.c bigint.h support.h
 		$(CC) $(CFLAGS) -o bigint.o -c bigint.c
 
+support.o: support.c support.h
+		$(CC) $(CFLAGS) -o support.o -c support.c
+
 clean:
-		rm -f *~ bigint.o libbigint.a
+		rm -f *~ bigint.o support.o libbigint.a

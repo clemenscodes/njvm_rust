@@ -77,6 +77,7 @@
             ./build.rs
             ./lib/bigint/Makefile
             ./lib/bigint/src/bigint.c
+            ./lib/bigint/src/support.c
             ./lib/bigint/src/bigint.h
             ./lib/bigint/src/support.h
             ./lib/bigint/src/Makefile

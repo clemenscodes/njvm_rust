@@ -18,6 +18,7 @@ fn main() {
 
     let bindings = bindgen::Builder::default()
         .header("lib/bigint/build/include/bigint.h")
+        .header("lib/bigint/build/include/support.h")
         .clang_arg("-Ilib/bigint/build/include")
         .generate()
         .expect("Unable to generate bindings");

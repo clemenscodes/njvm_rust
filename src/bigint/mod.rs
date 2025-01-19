@@ -2,9 +2,9 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 #![allow(non_upper_case_globals)]
-#![allow(clippy::const_static_lifetime)]
+#![allow(clippy::redundant_static_lifetimes)]
 #![allow(clippy::unreadable_literal)]
-#![allow(clippy::cyclomatic_complexity)]
+#![allow(clippy::cognitive_complexity)]
 #![allow(clippy::useless_transmute)]
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
@@ -15,7 +15,8 @@ mod tests {
     #[test]
     fn test_bigint_lib() {
         unsafe {
-            println!("{:#?}", bip);
+            bigFromInt(2);
+            println!("{bip:#?}");
         }
     }
 }
