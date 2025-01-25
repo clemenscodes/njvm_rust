@@ -3,7 +3,7 @@ use crate::memory::instruction_register::Bytecode;
 #[macro_export]
 macro_rules! immediate {
     ($e:expr) => {
-        ($e) & 0x00FFFFFF
+        (($e) & 0x00FFFFFF) as Immediate
     };
 }
 
@@ -13,8 +13,7 @@ macro_rules! sign_extend {
         if ($e & 0x00800000) != 0 {
             let mut bytes = $e.to_be_bytes();
             bytes[0] = 0xFF;
-            $e = i32::from_be_bytes(bytes);
-            $e
+            i32::from_be_bytes(bytes)
         } else {
             $e
         }
@@ -33,8 +32,7 @@ pub trait Encoding {
 
 impl Decoding for Immediate {
     fn decode(instruction: Bytecode) -> Self {
-        let mut immediate: Immediate = (immediate!(instruction)) as Immediate;
-        sign_extend!(immediate)
+        sign_extend!(immediate!(instruction))
     }
 }
 
@@ -69,8 +67,8 @@ mod tests {
 
     #[test]
     fn test_sign_extend_macro() {
-        let mut positive: Immediate = 0x00000001;
-        let mut negative: Immediate = 0x00FFFFFF;
+        let positive: Immediate = 0x00000001;
+        let negative: Immediate = 0x00FFFFFF;
         let positive = sign_extend!(positive);
         let negative = sign_extend!(negative);
         assert_eq!(positive, 1);
