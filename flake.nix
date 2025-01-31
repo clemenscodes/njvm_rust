@@ -111,24 +111,10 @@
         checks = {
           inherit njvm;
 
-          clippy = craneLib.cargoClippy (args
-            // {
-              inherit cargoArtifacts;
-              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-            });
-
-          doc = craneLib.cargoDoc (args
-            // {
-              inherit cargoArtifacts;
-            });
-
-          fmt = craneLib.cargoFmt {
-            inherit src;
-          };
-
-          audit = craneLib.cargoAudit {
-            inherit src advisory-db;
-          };
+          doc = craneLib.cargoDoc (args // {inherit cargoArtifacts;});
+          fmt = craneLib.cargoFmt {inherit src;};
+          audit = craneLib.cargoAudit {inherit src advisory-db;};
+          coverage = craneLib.cargoLlvmCov (args // {inherit cargoArtifacts;});
 
           nextest = craneLib.cargoNextest (args
             // {
@@ -137,9 +123,10 @@
               partitionType = "count";
             });
 
-          coverage = craneLib.cargoLlvmCov (args
+          clippy = craneLib.cargoClippy (args
             // {
               inherit cargoArtifacts;
+              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
             });
         };
 
