@@ -1,31 +1,62 @@
-use std::fmt::{Debug, Display, Formatter, Result};
+use std::{
+    cell::RefCell,
+    fmt::{Debug, Display, Formatter, Result},
+    io::{BufRead, StderrLock, StdinLock, StdoutLock, Write},
+    rc::Rc,
+};
 
-use crate::cpu::immediate::Immediate;
+use crate::{cpu::immediate::Immediate, io::InputOutput};
 
 #[derive(Eq, PartialEq, Clone)]
-pub struct StaticDataArea<T> {
+pub struct StaticDataArea<
+    R: BufRead + Debug,
+    W: Write + Debug,
+    E: Write + Debug,
+    T,
+> {
+    pub io: Rc<RefCell<InputOutput<R, W, E>>>,
     pub data: Vec<T>,
 }
 
-impl Default for StaticDataArea<Immediate> {
+impl Default
+    for StaticDataArea<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>, Immediate>
+{
     fn default() -> Self {
-        Self::new(0, 0)
+        let io = InputOutput::default();
+        Self::new(Rc::new(RefCell::new(io)), 0, 0)
     }
 }
 
-impl<T: Clone + Debug + Display> StaticDataArea<T> {
-    pub fn new(size: usize, value: T) -> Self {
+impl<
+        R: BufRead + Debug,
+        W: Write + Debug,
+        E: Write + Debug,
+        T: Clone + Debug + Display,
+    > StaticDataArea<R, W, E, T>
+{
+    pub fn new(
+        io: Rc<RefCell<InputOutput<R, W, E>>>,
+        size: usize,
+        value: T,
+    ) -> Self {
         let mut data = vec![];
         data.resize(size, value);
-        StaticDataArea { data }
+        StaticDataArea { io, data }
     }
 
     pub fn print(&self) {
-        println!("{self:#?}");
+        let output = format!("{self:#?}");
+        self.io.borrow().write_stdout(&output);
     }
 }
 
-impl<T: Debug + Display> Debug for StaticDataArea<T> {
+impl<
+        R: BufRead + Debug,
+        W: Write + Debug,
+        E: Write + Debug,
+        T: Debug + Display,
+    > Debug for StaticDataArea<R, W, E, T>
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         for data in 0..self.data.len() {
             if data == (self.data.len() - 1) {

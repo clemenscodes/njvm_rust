@@ -25,7 +25,7 @@ pub struct NinjaVM<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
     io: Rc<RefCell<InputOutput<R, W, E>>>,
     stack: Stack<R, W, E, Immediate>,
     ir: InstructionRegister<R, W, E>,
-    sda: StaticDataArea<Immediate>,
+    sda: StaticDataArea<R, W, E, Immediate>,
     bp: Option<Breakpoint>,
     rv: Option<ReturnValueRegister>,
 }
@@ -96,7 +96,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
             io: io.clone(),
             stack: Stack::new(io.clone()),
             ir: InstructionRegister::new(io.clone(), 0, 0),
-            sda: StaticDataArea::default(),
+            sda: StaticDataArea::new(io.clone(), 0, 0),
             bp: None,
             rv: None,
         }
@@ -172,8 +172,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         self.io_borrow().check_ninja_version(&file);
         let variable_count = self.io_borrow().check_variables(&file);
         let instruction_count = self.io_borrow().check_instructions(&file);
-        self.sda = StaticDataArea::new(variable_count, 0);
-        self.ir.resize_data(instruction_count, 0);
+        self.sda.data.resize(variable_count, 0);
+        self.ir.data.resize(instruction_count, 0);
         instructions
     }
 
@@ -185,8 +185,8 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         self.io_borrow().set_ninja_version(&mut file);
         let variable_count = self.io_borrow().check_variables(&file);
         let instruction_count = self.io_borrow().check_instructions(&file);
-        self.sda = StaticDataArea::new(variable_count, 0);
-        self.ir.resize_data(instruction_count, 0);
+        self.sda.data.resize(variable_count, 0);
+        self.ir.data.resize(instruction_count, 0);
         instructions
     }
 

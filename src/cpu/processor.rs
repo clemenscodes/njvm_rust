@@ -287,7 +287,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{io::InputOutput, memory::static_data_area::StaticDataArea};
+    use crate::io::InputOutput;
 
     use super::*;
 
@@ -565,12 +565,9 @@ mod tests {
         let stdin = b"";
         let mut stdout = Vec::new();
         let mut stderr = Vec::new();
-        let mut vm = NinjaVM::new(InputOutput::new(
-            &stdin[..],
-            &mut stdout,
-            &mut stderr,
-        ));
-        vm.sda = StaticDataArea::new(1, 0);
+        let io = InputOutput::new(&stdin[..], &mut stdout, &mut stderr);
+        let mut vm = NinjaVM::new(io);
+        vm.sda.data.resize(1, 0);
         let value = 2;
         vm.sda.data[0] = value;
         vm.pushg(0);
@@ -582,12 +579,9 @@ mod tests {
         let stdin = b"";
         let mut stdout = Vec::new();
         let mut stderr = Vec::new();
-        let mut vm = NinjaVM::new(InputOutput::new(
-            &stdin[..],
-            &mut stdout,
-            &mut stderr,
-        ));
-        vm.sda = StaticDataArea::new(1, 0);
+        let io = InputOutput::new(&stdin[..], &mut stdout, &mut stderr);
+        let mut vm = NinjaVM::new(io);
+        vm.sda.data.resize(1, 0);
         let value = 2;
         vm.stack.push(value);
         vm.popg(0);

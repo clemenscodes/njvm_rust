@@ -29,7 +29,7 @@ impl Default
     for InstructionRegister<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>>
 {
     fn default() -> Self {
-        let io = InputOutput::<StdinLock<'_>, StdoutLock<'_>, StderrLock<'_>>::default();
+        let io = InputOutput::default();
         Self::new(Rc::new(RefCell::new(io)), 0, 0)
     }
 }
