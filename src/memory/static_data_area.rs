@@ -57,12 +57,16 @@ impl<
         T: Debug + Display,
     > Debug for StaticDataArea<R, W, E, T>
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, _f: &mut Formatter<'_>) -> Result {
         for data in 0..self.data.len() {
             if data == (self.data.len() - 1) {
-                write!(f, "data[{data:04}]:\t{}", self.data[data])?;
+                let value = &self.data[data];
+                let message = format!("data[{data:04}]:\t{value}");
+                self.io.borrow().write_stdout(&message);
             } else {
-                writeln!(f, "data[{data:04}]:\t{}", self.data[data])?;
+                let value = &self.data[data];
+                let message = format!("data[{data:04}]:\t{value}\n");
+                self.io.borrow().write_stdout(&message);
             }
         }
         Ok(())

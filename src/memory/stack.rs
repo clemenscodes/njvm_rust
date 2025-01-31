@@ -82,31 +82,41 @@ impl<
         T: Clone + Debug + Display,
     > Display for Stack<R, W, E, T>
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, _f: &mut Formatter<'_>) -> Result {
         let sp = self.sp;
         let fp = self.fp;
 
         for slot in (0..=self.data.len()).rev() {
             if sp == 0 && fp == 0 {
-                write!(f, "sp, fp ---> {slot:04}: xxxx")?;
+                let message = format!("sp, fp ---> {slot:04}: xxxx");
+                self.io.borrow().write_stdout(&message);
             } else if sp == fp {
-                writeln!(f, "sp, fp ---> {slot:04}: {}", self.data[slot])?;
+                let value = &self.data[slot];
+                let message = format!("sp, fp ---> {slot:04}: {value}\n");
+                self.io.borrow().write_stdout(&message);
             }
 
             if slot != sp && slot != fp {
-                writeln!(f, "{slot:04}: {}", self.data[slot])?;
+                let value = &self.data[slot];
+                let message = format!("{slot:04}: {value}\n");
+                self.io.borrow().write_stdout(&message);
             }
 
             if slot == sp && slot != fp {
-                writeln!(f, "sp ---> {sp:04}: xxxx")?;
+                let message = format!("sp ---> {sp:04}: xxxx\n");
+                self.io.borrow().write_stdout(&message);
             }
 
             if slot == fp && slot != sp && fp == 0 {
-                write!(f, "fp ---> {fp:04}: {}", self.data[fp])?;
+                let value = &self.data[fp];
+                let message = format!("fp ---> {fp:04}: {value}");
+                self.io.borrow().write_stdout(&message);
             }
 
             if slot == fp && slot != sp && fp != 0 {
-                writeln!(f, "fp ---> {fp:04}: {}", self.data[fp])?;
+                let value = &self.data[fp];
+                let message = format!("fp ---> {fp:04}: {value}\n");
+                self.io.borrow().write_stdout(&message);
             }
         }
 
