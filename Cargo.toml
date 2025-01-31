@@ -12,7 +12,7 @@ name = "njvm"
 path = "src/lib.rs"
 
 [[bin]]
-name = "nvjm"
+name = "njvm"
 path = "src/main.rs"
 
 [build-dependencies]
