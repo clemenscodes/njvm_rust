@@ -8,6 +8,11 @@
 
 #include "support.h"
 
+typedef struct {
+      unsigned int size;                /* byte count of payload data */
+        unsigned char data[1];  /* payload data, size as needed */
+} *ObjRef;
+
 
 /*
  * This routine is called in case a fatal error has occurred.
@@ -31,14 +36,20 @@ void fatalError(char *msg) {
  * the global "bip" structure point to the correct objects when
  * the function returns.
  */
-ObjRef newPrimObject(int dataSize) {
-  ObjRef objRef;
+void * newPrimObject(int dataSize) {
+  ObjRef bigObjRef;
 
-  objRef = malloc(sizeof(unsigned int) +
+  bigObjRef = malloc(sizeof(unsigned int) +
                   dataSize * sizeof(unsigned char));
-  if (objRef == NULL) {
+  if (bigObjRef == NULL) {
     fatalError("newPrimObject() got no memory");
   }
-  objRef->size = dataSize;
-  return objRef;
+  bigObjRef->size = dataSize;
+  return bigObjRef;
 }
+
+void * getPrimObjectDataPointer(void * obj){
+    ObjRef oo = ((ObjRef)  (obj));
+    return oo->data;
+}
+

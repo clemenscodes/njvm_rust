@@ -4,3 +4,7 @@
 /njc
 .direnv
 result
+**/*.o
+**/*.a
+lib/bigint/tst/testbip
+lib/bigint/build

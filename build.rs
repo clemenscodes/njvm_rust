@@ -21,6 +21,7 @@ fn main() {
         .clang_arg("-Ilib/bigint/build/include")
         .blocklist_function("fatalError")
         .blocklist_function("newPrimObject")
+        .blocklist_function("getPrimObjectDataPointer")
         .generate()
         .expect("Unable to generate bindings");
 

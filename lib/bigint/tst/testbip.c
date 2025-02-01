@@ -9,6 +9,10 @@
 
 #include "bigint.h"
 
+typedef struct {
+      unsigned int size;                /* byte count of payload data */
+        unsigned char data[1];  /* payload data, size as needed */
+} *ObjRef;
 
 /**************************************************************/
 
@@ -987,19 +991,19 @@ void test17(void) {
   bigMul();
   bip.op1 = bip.res;
   /* set all 8 digits of dividend */
-  bip.op1->data[5 + 0] = 0xF2;
-  bip.op1->data[5 + 1] = 0xFB;
-  bip.op1->data[5 + 2] = 0xE3;
-  bip.op1->data[5 + 3] = 0x46;
-  bip.op1->data[5 + 4] = 0x7C;
-  bip.op1->data[5 + 5] = 0xC2;
-  bip.op1->data[5 + 6] = 0x54;
-  bip.op1->data[5 + 7] = 0xF8;
-  /* set all 4 digits of divisor */
-  bip.op2->data[5 + 0] = 0x1B;
-  bip.op2->data[5 + 1] = 0xE8;
-  bip.op2->data[5 + 2] = 0xE7;
-  bip.op2->data[5 + 3] = 0x8D;
+  ((ObjRef) bip.op1)->data[5 + 0] = 0xF2;
+  ((ObjRef) bip.op1)->data[5 + 1] = 0xFB;
+  ((ObjRef) bip.op1)->data[5 + 2] = 0xE3;
+  ((ObjRef) bip.op1)->data[5 + 3] = 0x46;
+  ((ObjRef) bip.op1)->data[5 + 4] = 0x7C;
+  ((ObjRef) bip.op1)->data[5 + 5] = 0xC2;
+  ((ObjRef) bip.op1)->data[5 + 6] = 0x54;
+  ((ObjRef) bip.op1)->data[5 + 7] = 0xF8;
+  /* set )all 4 digits of divisor */
+  ((ObjRef) bip.op2)->data[5 + 0] = 0x1B;
+  ((ObjRef) bip.op2)->data[5 + 1] = 0xE8;
+  ((ObjRef) bip.op2)->data[5 + 2] = 0xE7;
+  ((ObjRef) bip.op2)->data[5 + 3] = 0x8D;
   /* divide */
   dump("", bip.op1, " / ");
   dump("", bip.op2, " =\n");
@@ -1027,19 +1031,19 @@ void test18(void) {
   bigMul();
   bip.op1 = bip.res;
   /* set all 8 digits of dividend */
-  bip.op1->data[5 + 0] = 0x4D;
-  bip.op1->data[5 + 1] = 0xCC;
-  bip.op1->data[5 + 2] = 0x8C;
-  bip.op1->data[5 + 3] = 0x18;
-  bip.op1->data[5 + 4] = 0x34;
-  bip.op1->data[5 + 5] = 0xDF;
-  bip.op1->data[5 + 6] = 0x1D;
-  bip.op1->data[5 + 7] = 0xFD;
+  ((ObjRef) bip.op1)->data[5 + 0] = 0x4D;
+  ((ObjRef) bip.op1)->data[5 + 1] = 0xCC;
+  ((ObjRef) bip.op1)->data[5 + 2] = 0x8C;
+  ((ObjRef) bip.op1)->data[5 + 3] = 0x18;
+  ((ObjRef) bip.op1)->data[5 + 4] = 0x34;
+  ((ObjRef) bip.op1)->data[5 + 5] = 0xDF;
+  ((ObjRef) bip.op1)->data[5 + 6] = 0x1D;
+  ((ObjRef) bip.op1)->data[5 + 7] = 0xFD;
   /* set all 4 digits of divisor */
-  bip.op2->data[5 + 0] = 0x69;
-  bip.op2->data[5 + 1] = 0xF4;
-  bip.op2->data[5 + 2] = 0x94;
-  bip.op2->data[5 + 3] = 0x37;
+  ((ObjRef) bip.op2)->data[5 + 0] = 0x69;
+  ((ObjRef) bip.op2)->data[5 + 1] = 0xF4;
+  ((ObjRef) bip.op2)->data[5 + 2] = 0x94;
+  ((ObjRef) bip.op2)->data[5 + 3] = 0x37;
   /* divide */
   dump("", bip.op1, " / ");
   dump("", bip.op2, " =\n");

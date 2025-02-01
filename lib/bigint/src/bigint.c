@@ -8,7 +8,6 @@
 
 #include "bigint.h"
 
-
 /**************************************************************/
 
 /* debugging */
@@ -35,23 +34,14 @@
 #define BIG_NEGATIVE		((unsigned char) 0)
 #define BIG_POSITIVE		((unsigned char) 1)
 
-typedef struct {
-  int nd;			/* number of digits; array may be bigger */
-				/* nd = 0 exactly when number = 0 */
-  unsigned char sign;		/* one of BIG_NEGATIVE or BIG_POSITIVE */
-				/* zero always has BIG_POSITIVE here */
-  unsigned char digits[1];	/* the digits proper; number base is 256 */
-				/* LS digit first; MS digit is not zero */
-} Big;
 
-
-#define BIG_PTR(objRef)			((Big *) ((objRef)->data))
-#define GET_ND(objRef)			(BIG_PTR(objRef)->nd)
-#define SET_ND(objRef, val)		(BIG_PTR(objRef)->nd = (val))
-#define GET_SIGN(objRef)		(BIG_PTR(objRef)->sign)
-#define SET_SIGN(objRef, val)		(BIG_PTR(objRef)->sign = (val))
-#define GET_DIGIT(objRef, i)		(BIG_PTR(objRef)->digits[i])
-#define SET_DIGIT(objRef, i, val)	(BIG_PTR(objRef)->digits[i] = (val))
+#define BIG_PTR(bigObjRef)			((Big *) (getPrimObjectDataPointer(bigObjRef)))
+#define GET_ND(bigObjRef)			(BIG_PTR(bigObjRef)->nd)
+#define SET_ND(bigObjRef, val)		(BIG_PTR(bigObjRef)->nd = (val))
+#define GET_SIGN(bigObjRef)		(BIG_PTR(bigObjRef)->sign)
+#define SET_SIGN(bigObjRef, val)		(BIG_PTR(bigObjRef)->sign = (val))
+#define GET_DIGIT(bigObjRef, i)		(BIG_PTR(bigObjRef)->digits[i])
+#define SET_DIGIT(bigObjRef, i, val)	(BIG_PTR(bigObjRef)->digits[i] = (val))
 
 
 /**************************************************************/
@@ -84,13 +74,13 @@ BIP bip = {
  * places other than the bip registers may become
  * invalid as soon as this function is called!
  */
-static ObjRef newBig(int nd) {
+static BigObjRef newBig(int nd) {
   int dataSize;
-  ObjRef objRef;
+  BigObjRef bigObjRef;
 
   dataSize = sizeof(int) + 1 + nd;
-  objRef = newPrimObject(dataSize);
-  return objRef;
+  bigObjRef = newPrimObject(dataSize);
+  return bigObjRef;
 }
 
 
@@ -103,7 +93,7 @@ static ObjRef newBig(int nd) {
  * exchange bip.op1 and bip.op2
  */
 static void bigXchg(void) {
-  ObjRef tmp;
+  BigObjRef tmp;
 
   tmp = bip.op1;
   bip.op1 = bip.op2;
@@ -301,7 +291,7 @@ static void bigUmul(void) {
  * quotient in bip.rem, remainder is returned
  */
 static unsigned char bigUdiv1(unsigned char divisor) {
-  ObjRef tmp;
+  BigObjRef tmp;
   int nd;
   int i;
   unsigned short d, r;
@@ -341,7 +331,7 @@ static unsigned char bigUdiv1(unsigned char divisor) {
  * quotient in bip.res, remainder in bip.rem
  */
 static void bigUdiv(void) {
-  ObjRef tmp;
+  BigObjRef tmp;
   int nd1;
   int nd2;
   int nd3;
@@ -979,19 +969,19 @@ void bigPrint(FILE *out) {
 /*
  * dump a big integer object
  */
-void bigDump(FILE *out, ObjRef objRef) {
+void bigDump(FILE *out, BigObjRef bigObjRef) {
   int nd;
   unsigned char sign;
   int i;
 
-  if (objRef == NULL) {
+  if (bigObjRef == NULL) {
     nilRefException();
   }
-  nd = GET_ND(objRef);
-  sign = GET_SIGN(objRef);
+  nd = GET_ND(bigObjRef);
+  sign = GET_SIGN(bigObjRef);
   fprintf(out, "[%d %c", nd, sign == BIG_POSITIVE ? '+' : '-');
   for (i = 0; i < nd; i++) {
-    fprintf(out, " %02X", GET_DIGIT(objRef, i));
+    fprintf(out, " %02X", GET_DIGIT(bigObjRef, i));
   }
   fprintf(out, "]");
 }
