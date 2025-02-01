@@ -17,7 +17,7 @@ use std::ptr::NonNull;
 #[repr(C)]
 pub struct ObjRef {
     size: c_uint,
-    data: [c_uchar; 1], // Placeholder for the flexible array
+    data: [c_uchar; 1],
 }
 
 impl ObjRef {
