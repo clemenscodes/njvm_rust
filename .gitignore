@@ -6,5 +6,5 @@
 result
 **/*.o
 **/*.a
-lib/bigint/tst/testbip
-lib/bigint/build
+crates/bigint/lib/bigint/tst/testbip
+crates/bigint/lib/bigint/build

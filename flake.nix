@@ -70,18 +70,24 @@
             ./Cargo.lock
             ./rust-toolchain.toml
             ./rustfmt.toml
-            ./src
-            ./assets
-            ./build.rs
-            ./lib/bigint/Makefile
-            ./lib/bigint/src/bigint.c
-            ./lib/bigint/src/support.c
-            ./lib/bigint/src/bigint.h
-            ./lib/bigint/src/support.h
-            ./lib/bigint/src/Makefile
-            ./lib/bigint/tst/support.c
-            ./lib/bigint/tst/testbip.c
-            ./lib/bigint/tst/Makefile
+            ./.config
+            ./crates/njvm/Cargo.toml
+            ./crates/njvm/src
+            ./crates/njvm/assets
+            ./crates/cli/Cargo.toml
+            ./crates/cli/src
+            ./crates/bigint/Cargo.toml
+            ./crates/bigint/build.rs
+            ./crates/bigint/src
+            ./crates/bigint/lib/bigint/Makefile
+            ./crates/bigint/lib/bigint/src/bigint.c
+            ./crates/bigint/lib/bigint/src/support.c
+            ./crates/bigint/lib/bigint/src/bigint.h
+            ./crates/bigint/lib/bigint/src/support.h
+            ./crates/bigint/lib/bigint/src/Makefile
+            ./crates/bigint/lib/bigint/tst/support.c
+            ./crates/bigint/lib/bigint/tst/testbip.c
+            ./crates/bigint/lib/bigint/tst/Makefile
           ];
         };
 

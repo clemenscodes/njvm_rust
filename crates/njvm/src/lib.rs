@@ -1,4 +1,3 @@
-pub mod bigint;
 pub mod cpu;
 pub mod io;
 pub mod memory;
@@ -11,7 +10,7 @@ use std::rc::Rc;
 use cpu::immediate::Immediate;
 use cpu::instruction::Instruction;
 use io::InputOutput;
-use memory::heap::Heap;
+use memory::heap::{Heap, DEFAULT_HEAP_MEMORY};
 use memory::instruction_register::{Bytecode, InstructionRegister};
 use memory::stack::Stack;
 use memory::static_data_area::StaticDataArea;
@@ -25,7 +24,7 @@ pub type ReturnValueRegister = Immediate;
 pub struct NinjaVM<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> {
     io: Rc<RefCell<InputOutput<R, W, E>>>,
     stack: Stack<R, W, E, Immediate>,
-    heap: Heap<R, W, E, Immediate>,
+    heap: Heap<R, W, E>,
     ir: InstructionRegister<R, W, E>,
     sda: StaticDataArea<R, W, E, Immediate>,
     bp: Option<Breakpoint>,
@@ -50,7 +49,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         let mut debug_mode = false;
         let mut file: Option<String> = None;
 
-        for arg in args {
+        for arg in args.into_iter() {
             match arg.as_str() {
                 "--help" => {
                     vm.help();
@@ -97,7 +96,7 @@ impl<R: BufRead + Debug, W: Write + Debug, E: Write + Debug> NinjaVM<R, W, E> {
         Self {
             io: io.clone(),
             stack: Stack::new(io.clone()),
-            heap: Heap::new(io.clone()),
+            heap: Heap::new(io.clone(), DEFAULT_HEAP_MEMORY),
             ir: InstructionRegister::new(io.clone(), 0, 0),
             sda: StaticDataArea::new(io.clone(), 0, 0),
             bp: None,

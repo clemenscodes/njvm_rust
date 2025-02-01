@@ -1,19 +1,18 @@
-[package]
-name = "njvm"
-version = "0.4.0"
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
 edition = "2021"
 license = "MIT"
-authors = ["Clemens Horn <clemens.horn@mni.thm.de>"]
-description = "Virtual Machine for Ninja"
-build = "build.rs"
+authors = ["Clemens Horn <me@clemenshorn.com>"]
 
-[lib]
-name = "njvm" 
-path = "src/lib.rs"
-
-[[bin]]
+[workspace.metadata.crane]
 name = "njvm"
-path = "src/main.rs"
 
-[build-dependencies]
-bindgen = "0.71.1"
+[workspace.dependencies]
+njvm = { path = "./crates/njvm" }
+bigint = { path = "./crates/bigint" }
+cli = { path = "./crates/cli" }
+clap = { version = "4.5.20", features = ["derive", "help"] }

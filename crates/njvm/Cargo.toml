@@ -1,0 +1,19 @@
+[package]
+name = "njvm"
+description = "Virtual Machine for Ninja"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+name = "njvm" 
+path = "src/lib.rs"
+
+[[bin]]
+name = "njvm"
+path = "src/main.rs"
+
+[dependencies]
+njvm-cli = { path = "../cli" }
+bigint = {path = "../bigint" }
